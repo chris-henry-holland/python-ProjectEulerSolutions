@@ -24,6 +24,7 @@ dependencies = [
     "sympy>=1.11.1",
     "gmpy2>=2.2.0",
     "data_structures_and_algorithms @ git+https://github.com/chris-henry-holland/python-DataStructuresAndAlgorithms",
+    "graph_classes @ git+https://github.com/chris-henry-holland/python-GraphClasses",
 ]
 requires-python = ">=3.11"
 

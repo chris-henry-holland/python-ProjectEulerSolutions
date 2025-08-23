@@ -19,18 +19,14 @@ import itertools
 import math
 import os
 import random
-import sys
 import time
 
 import numpy as np
 import scipy.special as sp
 
-from collections import deque, defaultdict
-from sortedcontainers import SortedList, SortedDict, SortedSet
+from sortedcontainers import SortedList, SortedDict
 
-
-sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
-from Graph_classes import GridWeightedDirectedGraph, Grid
+from graph_classes import GridWeightedDirectedGraph, Grid
 
 from data_structures.prime_sieves import PrimeSPFsieve
 
