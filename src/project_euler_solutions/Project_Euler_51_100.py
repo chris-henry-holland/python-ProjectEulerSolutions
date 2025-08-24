@@ -22,75 +22,30 @@ import random
 import time
 
 import numpy as np
-import scipy.special as sp
 
 from sortedcontainers import SortedList, SortedDict
 
 from graph_classes import GridWeightedDirectedGraph, Grid
 
-from data_structures.prime_sieves import PrimeSPFsieve
+from data_structures.prime_sieves import SimplePrimeSieve, PrimeSPFsieve
 
 from algorithms.random_selection_algorithms import uniformRandomDistinctIntegers
 from algorithms.string_searching_algorithms import AhoCorasick
 
 # Problem 51
-def candidatesGenerator(n: int, mn_lst_sz: int=0, only_poss_primes: bool=False,\
-        base: int=10, prime_disallowed_last_dig: Optional[Set[int]]=None)\
-        -> Generator[Tuple[List[int]], None, None]:
-    """
-    TODO
-    """
-    # Consider adding option to exclude all candidates which give
-    # rise to numbers guaranteed to exceed a given number
-    n_lst = []
-    n2 = n
-    while n2:
-        n2, r = divmod(n2, base)
-        n_lst.append(r)
-    n_lst = n_lst[::-1]
-    n_dig = len(n_lst)
-    ind_lsts = [[] for _ in range(base)]
-    if only_poss_primes:
-        if prime_disallowed_last_dig is None:
-            disallowed_last_dig = set()
-            for p in range(2, base):
-                if p * p > base: break
-                elif base % p: continue
-                for i in range(p, base, p):
-                    disallowed_last_dig.add(i)
-        else: disallowed_last_dig = prime_disallowed_last_dig
-    else: disallowed_last_dig = set()
-    for i, d in enumerate(n_lst):
-        ind_lsts[d].append(i)
-    for d in range(base - mn_lst_sz):
-        #print(f"d = {d}")
-        has_last_dig = only_poss_primes and ind_lsts[d] and\
-                        ind_lsts[d][-1] == n_dig - 1
-        for bm in range(1, (1 << len(ind_lsts[d]))):
-            if has_last_dig and (bm & (1 << (len(ind_lsts[d]) - 1))):
-                dig_vals = [d]
-                for d2 in range(d + 1, base):
-                    if has_last_dig and d2 in disallowed_last_dig:
-                        continue
-                    dig_vals.append(d)
-                if len(dig_vals) < mn_lst_sz: break
-            else: dig_vals = list(range(d, base))
-            dig_inds = []
-            for j in range(len(ind_lsts[d])):
-                if not bm & (1 << j): continue
-                dig_inds.append(ind_lsts[d][j])
-            yield (n_lst, dig_vals, dig_inds)
-    return
-    
-def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
-        base: int=10, p_sieve: Optional[PrimeSPFsieve]=None,\
-        disallowed_last_dig: Optional[Set[int]]=None) -> int:
+def smallestPrimeWhenReplacingGivenDigits(
+    dig_lst: List[int],
+    dig_replace_inds: List[int],
+    base: int=10,
+    p_sieve: Optional[SimplePrimeSieve]=None,
+    disallowed_last_dig: Optional[Set[int]]=None,
+) -> int:
     """
     Finds the smallest prime which has len(dig_lst) digits in the
     chosen base with no leading zeroes, and (indexing the digits
     of its representation in the chosen base from left to right
     starting at 0), for each index i that does not appear in
-    permut_inds, the ith digit equals dig_lst[i].
+    dig_replace_inds, the ith digit equals dig_lst[i].
     
     Args:
         Required positional:
@@ -98,24 +53,23 @@ def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
                 and (base - 1) inclusive, representing the
                 digits that the representation of the output
                 in the chose base must match (excluding those
-                with index in permut_inds)
-        permut_inds (list of ints): List of integers between 0 and
-                (len(dig_lst) - 1) in strictly increasing order
-                representing the indices where the digits of
+                with index in dig_replace_inds)
+        dig_replace_inds (list of ints): List of integers between
+                0 and (len(dig_lst) - 1) in strictly increasing
+                order representing the indices where the digits of
                 the representation of the output in the chosen
                 base are not required to match the corresponding
-                index of dig_lst (i.e. the indices of dig_lst that
-                may be moved by a permutation and are not required
-                to remain fixed).
+                index of dig_lst and may be replaced by another
+                digit.
         
         Optional named:
-        base (int): The base in which the representation of the
-                output is being assessed.
+        base (int): Integer strictly greater than 1 giving the base
+                in which the primes are to be represented.
             Default: 10
-        p_sieve (PrimeSPFsieve or None): A PrimeSPFsieve object
+        p_sieve (SimplePrimeSieve or None): A SimplePrimeSieve object
                 used to facilitate assessment of whether a
                 number is prime. If not given or given as None, a
-                new PrimeSPFsieve is created. By specifying
+                new SimplePrimeSieve is created. By specifying
                 this and using the same prime sieve object in
                 multiple calculation and functions, it can prevent
                 the same calculations from being repeated.
@@ -132,11 +86,12 @@ def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
                 factors of 10).
                 If not given or is given as None, and len(dig_lst)
                 is more than one, this set is calculated from
-                scratch
-                Inclusion of this as an option is intended to
-                avoid repeated calculation of this set if
-                it is needed in more than one place in the
-                larger calculation.
+                scratch.
+                Inclusion of this as an option is intended to avoid
+                repeated calculation of this set if it is needed in
+                more than one place in the larger calculation.
+            Default: None
+
     Returns:
     Integer (int) representing the smallest prime that satisfies
     the conditions stated above. If no such prime exists then
@@ -146,25 +101,26 @@ def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
     # between 0 and (base - 1) inclusive and permut_inds only is a
     # strictly increasing list of integers between 0 and
     # (len(dig_lst) - 1) inclusive.
-    n_permut = len(permut_inds)
+    n_replace = len(dig_replace_inds)
     n_dig = len(dig_lst)
     if not n_dig: return -1
-    elif (not n_permut or permut_inds[0]) and not dig_lst[0]:
+    elif not dig_lst[0] and (not n_replace or dig_replace_inds[0]):
         return -1
-    if p_sieve is None: p_sieve = PrimeSPFsieve()
-    if not n_permut:
+    if p_sieve is None: p_sieve = SimplePrimeSieve()
+    if not n_replace:
         res = 0
         for d in reversed(dig_lst):
             res = base * res + d
         return res if p_sieve.isPrime(res) else -1
-    ps_mx = base ** n_dig if permut_inds and not permut_inds[0]\
-            else dig_lst[0] * base ** (n_dig - 1)
+    ps_mx = base ** n_dig - 1 if dig_replace_inds and\
+            not dig_replace_inds[0]\
+            else (dig_lst[0] + 1) * base ** (n_dig - 1) - 1
     p_sieve.extendSieve(ps_mx)
     if n_dig == 1:
         res = 2
         return res if res < base else -1
     #print(p_sieve.p_lst[-1])
-    if permut_inds[-1] == n_dig - 1:
+    if dig_replace_inds[-1] == n_dig - 1:
         if disallowed_last_dig is None:
             disallowed_last_dig = set()
             for p in range(2, base):
@@ -178,11 +134,11 @@ def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
                 disallowed_last_dig]
     else:
         last_dig_iter = lambda: range(base)
-    for num in range(base ** (n_permut - 2) if not permut_inds[0]\
-            else 0, base ** (n_permut - 1)):
-        vals = [0] * n_permut
+    for num in range(base ** (n_replace - 2) if not dig_replace_inds[0]\
+            else 0, base ** (n_replace - 1)):
+        vals = [0] * n_replace
         num2 = num
-        for i in range(1, n_permut):
+        for i in range(1, n_replace):
             num2, d2 = divmod(num2, base)
             vals[~i] = d2
             if not num2: break
@@ -190,7 +146,7 @@ def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
             vals[-1] = last_dig
             p = 0
             j = 0
-            for j2, val in zip(permut_inds, vals):
+            for j2, val in zip(dig_replace_inds, vals):
                 for j in range(j, j2):
                     p = p * base + dig_lst[j]
                 p = p * base + val
@@ -203,97 +159,333 @@ def smallestPrimeGivenDigits(dig_lst: List[int], permut_inds: List[int],\
                 return p
     return -1
 
-def primeDigitReplacements(n_primes: int=8, base: int=10,\
-        n_dig_max: int=7, ans_in_family: bool=True)\
-        -> Tuple[Union[int, Tuple[int]]]:
+def primeDigitReplacementFamilies(
+    n_dig: int,
+    family_min_n_primes: int,
+    base: int=10,
+    p_sieve: Optional[SimplePrimeSieve]=None,
+    prime_disallowed_last_dig: Optional[Set[int]]=None,
+) -> List[Tuple[List[int], List[int], List[int]]]:
     """
-    Solution to Project Euler #51
-    Finds the smallest prime, such that in a given base,
-    there exist at least n_primes numbers between 0 and
-    (base - 1) inclusive and a selection of its digits
-    such that replacing all of the selected digits with
-    those numbers each gives a prime number in that base.
+    Calculates all n_dig digit prime digit replacement families
+    for the chosen base with at least family_min_n_prime
+    members, returning for each family every member, and the
+    values and indices of the replaced digits.
+    
+    A n_dig digit prime digit replacement family for a given
+    base is defined to be the set of prime numbers which,
+    when expressed in that base contain n_dig digits (without
+    leading zeros) and these representations differ by each
+    other at specific digit positions, with for each prime
+    the digits at those positions all having the same value
+    (an necessarily a different value from all of the other
+    primes). The number of members of the family is the number
+    of such primes that exist for that number of digits (in
+    the chosen base) and digit positions.
     
     Args:
+        Required positional:
+        n_dig (int): The number of digits (without leading zeros)
+                that the primes in the returned families should
+                all have when represented in the chosen base.
+        family_min_n_primes (int): The minimum number of members
+                of an n_dig digit prime digit replacement family
+                for the chosen base required for it to be included.
+        
         Optional named:
-        n_primes (int): The minimum number of primes that
-                need to be produced by the process outlined
-                above for it to be regarded as a solution.
-            Default: 8
-        base (int): The base being used.
+        base (int): Integer strictly greater than 1 giving the base
+                in which the primes are to be represented.
             Default: 10
-        n_dig_max (int): The 
-            Default: 7
+        p_sieve (SimplePrimeSieve or None): A SimplePrimeSieve object
+                used to facilitate assessment of whether a
+                number is prime. If not given or given as None, a
+                new SimplePrimeSieve is created. By specifying
+                this and using the same prime sieve object in
+                multiple calculation and functions, it can prevent
+                the same calculations from being repeated.
+            Default: None
+        disallowed_last_dig (set of ints or None): If given
+                should be None or the set of digits which no
+                prime with at least two digits when expressed
+                in the chosen base has a final digit in this
+                set. This is the set of integers between 2 and
+                (base - 1) inclusive which are not coprime with
+                base. For example, for base 10, this is the
+                set {2, 4, 5, 6, 8} (i.e. all integers from 2 to
+                9 inclusive divisible by 2 and 5, the prime
+                factors of 10).
+                If not given or is given as None, and len(dig_lst)
+                is more than one, this set is calculated from
+                scratch.
+                Inclusion of this as an option is intended to avoid
+                repeated calculation of this set if it is needed in
+                more than one place in the larger calculation.
+            Default: None
     
     Returns:
-    If a solution is found, 2-tuple whose 0th index is the
-    smallest prime satisfing the requirements and whose
-    1st index is a list of the n_primes primes or more
-    that it produces by the described procedure. If no
-    such solution exists for numbers with at most
-    n_dig_max digits then an empty tuple is returned.
+    List of 3-tuples of lists representing the n_dig digit prime
+    digit replacement families for the chosen base with at least
+    family_min_n_prime members. Each 3-tuple represents one such
+    family, where:
+     - Index 0 contains a list of ints giving the prime numbers
+       in the family in increasing order.
+     - Index 1 contains a list of ints between 0 and (base - 1)
+       inclusive with the same length as the list in index 0, each
+       giving the values of the replacing digits for the
+       corresponding prime in the list in index 0
+     - Index 2 contains a list of ints giving the indices of the
+       replaced digits for the primes when expressed in the
+       chosen base without leading zeros, when read from right to
+       left starting at index 0.
+    The families are provided in order of the smallest prime in
+    the family in increasing order (with ties resolved by the order
+    of the second smallest prime in the family).
     """
-    since = time.time()
-    if n_primes > base: return None
-    ps = PrimeSPFsieve(base)
-    if len(ps.p_lst) >= n_primes:
-        return ps.p_lst
-    base_p_factors = ps.primeFactors(base)
+    #since = time.time()
+    if family_min_n_primes > base: return []
+    if p_sieve is None:
+        p_sieve = SimplePrimeSieve(base ** n_dig - 1)
+    else:
+        p_sieve.extendSieve(base ** n_dig - 1)
+    if n_dig == 1:
+        i2 = bisect.bisect_left(p_sieve.p_lst, base)
+        return [(p_sieve.p_lst[:i2], [0])] if i2 >= family_min_n_primes else []
+    if prime_disallowed_last_dig is None:
+        base_p_factors = p_sieve.primeFactors(base)
+        prime_disallowed_last_dig = set()
+        for p in base_p_factors:
+            for i in range(p, base, p):
+                prime_disallowed_last_dig.add(i)
+
+    def candidatesGenerator(
+        n: int,
+        mn_lst_sz: int=0,
+        only_poss_primes: bool=False,
+        base: int=10,
+        prime_disallowed_last_dig: Optional[Set[int]]=None,
+    ) -> Generator[Tuple[List[int]], None, None]:
+        # Consider adding option to exclude all candidates which give
+        # rise to numbers guaranteed to exceed a given number
+        dig_lst = []
+        n2 = n
+        while n2:
+            n2, r = divmod(n2, base)
+            dig_lst.append(r)
+        dig_lst = dig_lst[::-1]
+        n_dig = len(dig_lst)
+        ind_lsts = [[] for _ in range(base)]
+        if only_poss_primes:
+            if prime_disallowed_last_dig is None:
+                disallowed_last_dig = set()
+                for p in range(2, base):
+                    if p * p > base: break
+                    elif base % p: continue
+                    for i in range(p, base, p):
+                        disallowed_last_dig.add(i)
+            else: disallowed_last_dig = prime_disallowed_last_dig
+        else: disallowed_last_dig = set()
+        for i, d in enumerate(dig_lst):
+            ind_lsts[d].append(i)
+        for d in range(base - mn_lst_sz):
+            #print(f"d = {d}")
+            has_last_dig = only_poss_primes and ind_lsts[d] and\
+                            ind_lsts[d][-1] == n_dig - 1
+            for bm in range(1, (1 << len(ind_lsts[d]))):
+                if has_last_dig and (bm & (1 << (len(ind_lsts[d]) - 1))):
+                    dig_vals = [d]
+                    for d2 in range(d + 1, base):
+                        if has_last_dig and d2 in disallowed_last_dig:
+                            continue
+                        dig_vals.append(d)
+                    if len(dig_vals) < mn_lst_sz: break
+                else: dig_vals = list(range(d, base))
+                dig_inds = []
+                for j in range(len(ind_lsts[d])):
+                    if not bm & (1 << j): continue
+                    dig_inds.append(ind_lsts[d][j])
+                yield (dig_lst, dig_vals, dig_inds)
+        return
+
+
+    #i = 0
+    res = []
+    
+    #curr = None
+    i1 = bisect.bisect_left(p_sieve.p_lst, base ** (n_dig - 1))
+    i2 = bisect.bisect_left(p_sieve.p_lst, base ** (n_dig), lo=i1)
+    #print(i1, i2, p_sieve.p_lst)
+    for i in range(i1, i2):
+        p = p_sieve.p_lst[i]
+        for dig_lst, dig_vals, dig_inds in candidatesGenerator(
+            p, mn_lst_sz=family_min_n_primes,
+            only_poss_primes=True,
+            base=base,
+            prime_disallowed_last_dig=prime_disallowed_last_dig,
+        ):
+            p_lst = [p]
+            dig_vals2 = [dig_vals[0]]
+            for d_i in range(1, len(dig_vals)):
+                d = dig_vals[d_i]
+                idx = 0
+                p2 = 0
+                for j, d2 in enumerate(dig_lst):
+                    if j == dig_inds[idx]:
+                        p2 = base * p2 + d
+                        idx += 1
+                        if idx == len(dig_inds): break
+                    else: p2 = base * p2 + d2
+                for j in range(j + 1, n_dig):
+                    p2 = base * p2 + dig_lst[j]
+                if p_sieve.isPrime(p2):
+                    p_lst.append(p2)
+                    dig_vals2.append(d)
+                #idx = bisect.bisect_left(ps.p_lst, p2, lo=i)
+                #if idx < i2 and ps.p_lst[idx] == p2:
+                #    p_lst.append(p2)
+            if len(p_lst) >= family_min_n_primes and p_lst[0] == min(p_lst):
+                #print(p_lst, dig_lst, dig_vals, dig_vals2, dig_inds)
+                res.append((p_lst, dig_vals2, dig_inds))
+            """
+            elif ans_in_family:
+                res = [p_lst[0], p_lst]
+                break
+            p2 = smallestPrimeGivenDigits(
+                p_lst,
+                dig_inds,
+                base=base,
+                p_sieve=ps,
+                disallowed_last_dig=prime_disallowed_last_dig,
+            )
+            if p2 < res[0]:
+                res = [p2, p_lst]
+                curr = [0] * n_dig
+                for i in range(n_dig):
+                    p2, r = divmod(p2, base)
+                    curr[~i] = r
+            """
+        #else: continue
+        #break
+    #if isinstance(res[0], int):
+    #    break
+    #i = i2
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
+    #return res if isinstance(res[0], int) else ()
+    return sorted(res)
+
+def smallestPrimeDigitReplacementsPrime(
+    family_min_n_primes: int=8,
+    base: int=10,
+    n_dig_max: Optional[int]=None,
+    ans_in_family: bool=True,
+) -> int:
+    """
+    Solution to Project Euler #51
+
+    Calculates the smallest prime number for which there
+    exists an n_dig digit prime digit replacement family
+    for the chosen base with at least family_min_n_primes
+    members (where n_dig is the number of digits in the
+    prime when represented in the chosen base without leading
+    zeros), where the representation of the prime number
+    in the chosen base only differs from that of the prime
+    numbers in the family in the digit positions for which
+    they differ from each other, and if ans_in_family is True,
+    the prime is a member of the family.
+    
+    A n_dig digit prime digit replacement family for a given
+    base is defined to be the set of prime numbers which,
+    when expressed in that base contain n_dig digits (without
+    leading zeros) and these representations differ by each
+    other at specific digit positions, with for each prime
+    the digits at those positions all having the same value
+    (an necessarily a different value from all of the other
+    primes). The number of members of the family is the number
+    of such primes that exist for that number of digits (in
+    the chosen base) and digit positions.
+    
+     Args:
+        Optional named:
+        family_min_n_primes (int): The minimum number of members
+                of an n_dig digit prime digit replacement family
+                for the chosen base required for it to be included.
+            Default: 8
+        base (int): Integer strictly greater than 1 giving the base
+                in which the primes are to be represented.
+            Default: 10
+        n_dig_max (int or None): If given as a strictly positive
+                integer, the maximum number of digits in the
+                representation in the chosen base of prime numbers
+                considered. Otherwise, there is no such restriction
+                and if there is no reason for the prime not to
+                exist (for instance, due to family_min_n_primes
+                exceeding base), there is no upper bound on the
+                search.
+            Default: None
+        ans_in_family (bool): Whether the prime is required to be
+                a member of the corresponding family.
+            Default: True
+    
+    Returns:
+    Integer (int) giving the smallest prime number satisfying the
+    described conditions with (if n_dig_max is given as a strictly
+    positive integer) no more than n_dig_max in its representation
+    in the chosen base, if such a prime number exists. Otherwise,
+    returns -1.
+    """
+    p_sieve = PrimeSPFsieve(base)
+    base_p_factors = p_sieve.primeFactors(base)
     prime_disallowed_last_dig = set()
     for p in base_p_factors:
         for i in range(p, base, p):
             prime_disallowed_last_dig.add(i)
-    i = 0
-    res = [float("inf"), []]
+    it = itertools.count(1) if n_dig_max is None else range(1, n_dig_max + 1)
+    for n_dig in it:
+        print(f"n_dig = {n_dig}")
+        lsts = primeDigitReplacementFamilies(
+            n_dig,
+            family_min_n_primes,
+            base=base,
+            p_sieve=p_sieve,
+            prime_disallowed_last_dig=prime_disallowed_last_dig,
+        )
+        if lsts: break
+    else: return -1
+    #print(lsts)
     
-    for n_dig in range(2, n_dig_max + 1):
-        curr = None
-        ps.extendSieve(base ** n_dig)
-        i2 = len(ps.p_lst)
-        for i in range(i, i2):
-            p = ps.p_lst[i]
-            for n_lst, dig_vals, dig_inds in\
-                    candidatesGenerator(p, mn_lst_sz=n_primes,\
-                    only_poss_primes=True, base=base,\
-                    prime_disallowed_last_dig=prime_disallowed_last_dig):
-                p_lst = [p]
-                for d_i in range(1, len(dig_vals)):
-                    d = dig_vals[d_i]
-                    idx = 0
-                    p2 = 0
-                    for j, d2 in enumerate(n_lst):
-                        if j == dig_inds[idx]:
-                            p2 = base * p2 + d
-                            idx += 1
-                            if idx == len(dig_inds): break
-                        else: p2 = base * p2 + d2
-                    
-                    for j in range(j + 1, n_dig):
-                        p2 = base * p2 + n_lst[j]
-                    if ps.isPrime(p2): p_lst.append(p2)
-                    #idx = bisect.bisect_left(ps.p_lst, p2, lo=i)
-                    #if idx < i2 and ps.p_lst[idx] == p2:
-                    #    p_lst.append(p2)
-                if len(p_lst) < n_primes: continue
-                elif ans_in_family:
-                    res = [p_lst[0], p_lst]
-                    break
-                p2 = smallestPrimeGivenDigits(n_lst, dig_inds, base=base,\
-                        p_sieve=ps, disallowed_last_dig=prime_disallowed_last_dig)
-                if p2 < res[0]:
-                    res = [p2, p_lst]
-                    curr = [0] * n_dig
-                    for i in range(n_dig):
-                        p2, r = divmod(p2, base)
-                        curr[~i] = r
-            else: continue
-            break
-        if isinstance(res[0], int):
-            break
-        i = i2
-    print(f"Time taken = {time.time() - since:.4f} seconds")
-    return res if isinstance(res[0], int) else ()
-
+    if ans_in_family:
+        return min(lsts)[0][0]
+    
+    res = float("inf")
+    for p_lst, dig_vals, dig_inds in lsts:
+        dig_lst = []
+        p2 = p_lst[0]
+        for _ in range(n_dig):
+            p2, d = divmod(p2, base)
+            dig_lst.append(d)
+        dig_lst = dig_lst[::-1]
+        p2 = smallestPrimeWhenReplacingGivenDigits(
+            dig_lst,
+            dig_inds,
+            base=base,
+            p_sieve=p_sieve,
+            disallowed_last_dig=prime_disallowed_last_dig,
+        )
+        res = min(res, p2)
+    return res
+    """
+    for dig_lst, dig_vals, dig_inds in lsts:
+        d0 = min(dig_vals)
+        j = 0
+        num = 0
+        for i, d in enumerate(dig_lst):
+            if j < len(dig_inds) and i == dig_inds[j]:
+                num = num * base + d0
+                j += 1
+                continue
+            num = num * base + d
+        res = min(res, num)
+    return res
+    """
 
 # Problem 52
 def digitFrequency(num: int, base: int=10) -> Dict[int, int]:
@@ -5495,7 +5687,7 @@ def cubeDigitPairs(n_cubes: int=2, n_faces: int=6, base: int=10,\
     for i, tup in enumerate(cube_opts):
         cnt = 1
         for num, f in tup:
-            cnt *= sp.comb(multiplicity[num], f, exact=True)
+            cnt *= math.comb(multiplicity[num], f)
         counts[i] = cnt
     cube_opts2 = [{y[0] for y in x} for x in cube_opts]
     n_opts = len(cube_opts2)
@@ -7088,3 +7280,24 @@ def arrangedProbability(min_tot: int=10 ** 12 + 1) -> int:
         if x_ > target_x_: break
     print(f"Time taken = {time.time() - since:.4f} seconds")
     return (y_ + 1) >> 1
+
+##############
+project_euler_num_range = (51, 100)
+
+def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> None:
+    if not eval_nums:
+        eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
+    
+    if 51 in eval_nums:
+        since = time.time()
+        res = smallestPrimeDigitReplacementsPrime(
+            family_min_n_primes=8,
+            base=10,
+            n_dig_max=8,
+            ans_in_family=True,
+        )
+        print(f"Solution to Project Euler #51 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+if __name__ == "__main__":
+    eval_nums = {51}
+    evaluateProjectEulerSolutions1to50(eval_nums)
