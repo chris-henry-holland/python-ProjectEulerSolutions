@@ -23,10 +23,12 @@ import os
 import random
 import time
 
-from pathlib import Path
+
 from sortedcontainers import SortedList
 
 from data_structures.prime_sieves import PrimeSPFsieve
+
+from project_euler_solutions.utils import loadStringsFromFile
 
 # Problem 1
 def multipleSum(n_max: int=999, fact_list: Tuple[int]=(3, 5)) -> int:
@@ -1365,60 +1367,27 @@ def numberLetterCount(n_max: int=1000) -> int:
     return res
     
 # Problems 18
-triangle1 = ["75",
-            "95 64",
-            "17 47 82",
-            "18 35 87 10",
-            "20 04 82 47 65",
-            "19 01 23 75 03 34",
-            "88 02 77 73 07 63 67",
-            "99 65 04 28 06 16 70 92",
-            "41 41 26 56 83 40 80 70 33",
-            "41 48 72 33 47 32 37 16 94 29",
-            "53 71 44 65 25 43 91 52 97 51 14",
-            "70 11 33 28 77 73 17 78 39 68 17 57",
-            "91 71 52 38 17 14 91 43 58 50 27 29 48",
-            "63 66 04 68 89 53 67 30 73 16 69 87 40 31",
-            "04 62 98 27 23 09 70 98 73 93 38 53 60 04 23"]
-
-def loadTriangle(doc: str, rel_package: bool=False) -> List[str]:
-    """
-    Loads triangle of integers from .txt file located at doc.
-    The file should contain the rows of the triangle in order,
-    separated by line breaks ('\\n') and the integers in each
-    row separated by single spaces. For rows labelled in order
-    starting from 0, for any non-negative integer i less than the
-    number of rows of the triangle, the ith row must contain exactly
-    (i + 1) integers.
-    
-    Args:
-        Required positional:
-        doc (str): The relative or absolution location of the .txt
-                file containing the triangle of integers.
-
-        Optional named:
-        rel_package (bool): Whether a relative path given by doc
-                is relative to the current directory (False) or
-                the package directory (True).
-            Default: False
-    
-    Returns:
-    List of strings (str), with each entry in the list representing
-    a row of the triangle, and for each row the integers are
-    separated by single spaces.
-    """
-    doc = doc.strip()
-    if rel_package and not doc.startswith("/"):
-        doc = os.path.join(__file__, doc)
-    with open(doc) as f:
-        txt = f.read()
-    res = txt.split("\n")
-    while not res[-1]: res.pop()
-    return res
+triangle1 = [
+    [75],
+    [95, 64],
+    [17, 47, 82],
+    [18, 35, 87, 10],
+    [20, 4, 82, 47, 65],
+    [19, 1, 23, 75, 3, 34],
+    [88, 2, 77, 73, 7, 63, 67],
+    [99, 65, 4, 28, 6, 16, 70, 92],
+    [41, 41, 26, 56, 83, 40, 80, 70, 33],
+    [41, 48, 72, 33, 47, 32, 37, 16, 94, 29],
+    [53, 71, 44, 65, 25, 43, 91, 52, 97, 51, 14],
+    [70, 11, 33, 28, 77, 73, 17, 78, 39, 68, 17, 57],
+    [91, 71, 52, 38, 17, 14, 91, 43, 58, 50, 27, 29, 48],
+    [63, 66, 4, 68, 89, 53, 67, 30, 73, 16, 69, 87, 40, 31],
+    [4, 62, 98, 27, 23, 9, 70, 98, 73, 93, 38, 53, 60, 4, 23],
+]
 
 def triangleMaxSum(
     triangle: List[List[int]]=triangle1,
-    preserve_triangle: bool=True
+    preserve_triangle: bool=True,
 ) -> int:
     """
     Solution to Project Euler #18
@@ -1435,17 +1404,9 @@ def triangleMaxSum(
     
     Args:
         Optional named:
-        triangle (str, list of strs or list of list of ints): Either
-                a string giving the path to a .txt file containing
-                the triangle of integers (where the rows are separated
-                by line breaks- '\\n'- and the integers in each row
-                are separated by single spaces), or a representation
-                of the triangle directly. This representation may
-                either be as a list of strings (where each entry
-                represents a row and the integers of each row are
-                separated by single spaces), or as a list of lists
-                of integers (where the lists in the main list are the
-                rows of the triangle).
+        triangle (list of list of ints): A list of lists of integers
+                (where the lists in the main list are the rows of the
+                triangle).
                 For rows labelled in order starting from 0, for any
                 non-negative integer i less than the number of rows of
                 the triangle, the ith row must contain exactly (i + 1)
@@ -1462,6 +1423,7 @@ def triangleMaxSum(
     of the triangle following the restrictions given.
     """
     #since = time.time()
+    """
     if isinstance(triangle, str):
         triangle = loadTriangle(triangle)
         preserve_triangle = False
@@ -1471,14 +1433,19 @@ def triangleMaxSum(
             triangle = list(triangle)
         for i, row in enumerate(triangle):
             triangle[i] = [int(x) for x in row.strip().split(" ")]
-    elif preserve_triangle or not isinstance(triangle, list) or\
-            any(not isinstance(x, list) for x in triangle):
-        triangle = [list(x) for x in triangle]
+    """
+    #if preserve_triangle or not isinstance(triangle, list) or\
+    #        any(not isinstance(x, list) for x in triangle):
+    #    triangle = [list(x) for x in triangle]
+    if preserve_triangle:
+        triangle = [list(row) for row in triangle]
     n = len(triangle)
     for i in reversed(range(n - 1)):
         for j in range(i + 1):
-            triangle[i][j] += max(triangle[i + 1][j],
-                    triangle[i + 1][j + 1])
+            triangle[i][j] += max(
+                triangle[i + 1][j],
+                triangle[i + 1][j + 1]
+            )
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return triangle[0][0]
     
@@ -2253,45 +2220,6 @@ def nameListScore(
     return sum(i * nameScore(x) for i, x in\
                 enumerate(ordering, start=1))
 
-def loadStrings(doc: str, rel_package_src: bool=False) -> List[str]:
-    """
-    Loads a list of strings from .txt file located at relative or
-    absolute location doc. The file should contain the words separated
-    by commas (',') with each word surrounded by double quotation marks
-    ('"').
-    
-    Args:
-        Required positional:
-        doc (str): The relative or absolution location of the .txt
-                file containing the list of strings.
-        
-        Optional named:
-        rel_package_src (bool): Whether a relative path given by doc
-                is relative to the current directory (False) or
-                the package src directory (True).
-            Default: False
-    
-    Returns:
-    List of strings (str), with each entry in the list representing one
-    of the words in the .txt file at doc. The list contains all the
-    words in that .txt file in the same order as they appear there.
-    """
-    
-    #print(src_directory.name, type(src_directory))
-    doc = doc.strip()
-    if rel_package_src and not doc.startswith("/"):
-        src_directory = Path(__file__).resolve()
-        while src_directory.name != "src":
-            #print(src_directory.name)
-            src_directory = src_directory.parent
-        doc = (src_directory / doc).resolve()
-    #print(doc)
-    if not os.path.isfile(doc):
-        raise FileNotFoundError(f"There is no file at location {doc}.")
-    with open(doc) as f:
-        txt = f.read()
-    return txt.strip("\"").split("\",\"")
-
 def nameListScoreFromFile(
     word_file: str="project_euler_problem_data_files/p022_names.txt",
     sort_func: Optional[Callable[[List[Any], Callable[[Any, Any], Tuple[Any]]], Tuple[Any]]]=None,
@@ -2361,7 +2289,7 @@ def nameListScoreFromFile(
     comparitor function comp_func.
     """
     #since = time.time()
-    word_list = loadStrings(word_file, rel_package_src=rel_package_src)
+    word_list = loadStringsFromFile(word_file, rel_package_src=rel_package_src)
     res = nameListScore(
         word_list,
         sort_func=sort_func,
@@ -5243,7 +5171,7 @@ def countTriangleWordsInTxtDoc(
     """
     # Using loadStrings() from solution to Project Euler #22
     #since = time.time()
-    words = loadStrings(doc, rel_package_src=rel_package_src)
+    words = loadStringsFromFile(doc, rel_package_src=rel_package_src)
     n_triangle = 0
     for word in words:
         n_triangle += isTriangleWord(word)
@@ -7156,5 +7084,5 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
     return
 
 if __name__ == "__main__":
-    eval_nums = {50}
+    eval_nums = {18}
     evaluateProjectEulerSolutions1to50(eval_nums)

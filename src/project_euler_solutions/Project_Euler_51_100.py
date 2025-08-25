@@ -29,8 +29,17 @@ from graph_classes import GridWeightedDirectedGraph, Grid
 
 from data_structures.prime_sieves import SimplePrimeSieve, PrimeSPFsieve
 
+from algorithms.number_theory_algorithms import gcd, isqrt
 from algorithms.random_selection_algorithms import uniformRandomDistinctIntegers
 from algorithms.string_searching_algorithms import AhoCorasick
+
+from project_euler_solutions.utils import (
+    loadTextFromFile,
+    loadStringsFromFile,
+)
+from project_euler_solutions.Project_Euler_1_50 import triangleMaxSum
+
+Real = Union[int, float]
 
 # Problem 51
 def smallestPrimeWhenReplacingGivenDigits(
@@ -440,7 +449,7 @@ def smallestPrimeDigitReplacementsPrime(
             prime_disallowed_last_dig.add(i)
     it = itertools.count(1) if n_dig_max is None else range(1, n_dig_max + 1)
     for n_dig in it:
-        print(f"n_dig = {n_dig}")
+        #print(f"n_dig = {n_dig}")
         lsts = primeDigitReplacementFamilies(
             n_dig,
             family_min_n_primes,
@@ -550,10 +559,14 @@ def digitFrequencyComp(num: int, comp: Dict[int, int], base: int=10) -> bool:
         if res[r] > comp.get(r, 0): return False
     return res == comp
 
-def permutedMultiples(n_permutes: int=6, n_dig_mx: int=10, base: int=10)\
-        -> int:
+def permutedMultiples(
+    n_permutes: int=6,
+    n_dig_mx: int=10,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #52
+
     Searches for the smallest strictly positive integer n such that the
     digits of the representations of i * x for 1 <= i <= n_permutes
     in the chosen base are all composed of exactly the same collection
@@ -578,7 +591,7 @@ def permutedMultiples(n_permutes: int=6, n_dig_mx: int=10, base: int=10)\
     If no solution is found in the numbers searched (i.e. up to
     base ** n_dig_mx - 1) then returns -1
     """
-    since = time.time()
+    #since = time.time()
     if n_permutes > base: return 0
     for n_dig in range(1, n_dig_mx + 1):
         rng = (base ** (n_dig - 1), -((-base ** n_dig) // n_permutes))
@@ -590,16 +603,20 @@ def permutedMultiples(n_permutes: int=6, n_dig_mx: int=10, base: int=10)\
                 if not digitFrequencyComp(num2, f_dict, base=base):
                     break
             else:
-                print(f"Time taken = {time.time() - since:.4f} seconds")
+                #print(f"Time taken = {time.time() - since:.4f} seconds")
                 return num
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return -1
 
 # Problem 53
-def combinatoricSelections(n_mn: int=1, n_mx: int=100,\
-        cutoff: int=10 ** 6) -> int:
+def combinatoricSelections(
+    n_mn: int=1,
+    n_mx: int=100,
+    cutoff: int=10 ** 6,
+) -> int:
     """
     Solution to Project Euler #53
+
     Calculates the number of binomial coefficients of the form
     n choose r such that n is between n_mn and inclusive n_mx
     that have value at least cutoff,.
@@ -620,7 +637,7 @@ def combinatoricSelections(n_mn: int=1, n_mx: int=100,\
     Non-negative integer (int) representing the number of binomial
     coefficients that satisfy the above conditions.
     """
-    since = time.time()
+    #since = time.time()
     if n_mn > n_mx: return 0
     n_mn = max(n_mn, 0)
     if not cutoff:
@@ -659,7 +676,7 @@ def combinatoricSelections(n_mn: int=1, n_mx: int=100,\
             i2 = i + 1
         break
     else:
-        print(f"Time taken = {time.time() - since:.4f} seconds")
+        #print(f"Time taken = {time.time() - since:.4f} seconds")
         return 0
     while curr and not curr[-1] or curr[-1] > cutoff:
         curr.pop()
@@ -699,11 +716,11 @@ def combinatoricSelections(n_mn: int=1, n_mx: int=100,\
         # rows being considered here are all guaranteed to be
         # at least at row n_mn, so they are all counted
         res += (n_mx * (n_mx - 1) - (cutoff) * (cutoff - 1)) >> 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 54
-class PokerHand:
+class PokerHand(object):
     """
     Class representing poker hands so that they can be directly
     compared.
@@ -911,7 +928,10 @@ class PokerHand:
                     "instance of PokerHand.")
         return self.hand_repr <= other.hand_repr
 
-def loadPokerHands(doc: str) -> List[Tuple[Tuple[str]]]:
+def loadPokerHands(
+    doc: str,
+    rel_package_src: bool=False,
+) -> List[Tuple[Tuple[str]]]:
     """
     From the .txt file at the relative or absolute location doc
     containing a list of pairs of poker hands, returns these hands.
@@ -933,6 +953,12 @@ def loadPokerHands(doc: str) -> List[Tuple[Tuple[str]]]:
         Required positional:
         doc (str): Relative or absolue path to the .txt file containing
                 the pairs of poker hands.
+        
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or the
+                package directory (True).
+            Default: False
     
     Returns:
     List of 2-tuples of 5-tuples of strings, where the elements of the
@@ -946,11 +972,12 @@ def loadPokerHands(doc: str) -> List[Tuple[Tuple[str]]]:
     encoded as a pair of alphanumeric characters the manner described
     above.
     """
-    doc = doc.strip()
-    if not os.path.isfile(doc):
-        raise FileNotFoundError(f"There is no file at location {doc}")
-    with open(doc) as f:
-        txt = f.read()
+    #doc = doc.strip()
+    #if not os.path.isfile(doc):
+    #    raise FileNotFoundError(f"There is no file at location {doc}")
+    #with open(doc) as f:
+    #    txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     res = []
     for i, line in enumerate(txt.split("\n"), start=1):
         if not line: continue
@@ -961,9 +988,13 @@ def loadPokerHands(doc: str) -> List[Tuple[Tuple[str]]]:
         res.append((tuple(cards[:5]), tuple(cards[5:])))
     return res
         
-def numberOfPokerHandsWon(hand_file: str="p054_poker.txt") -> int:
+def numberOfPokerHandsWon(
+    hand_file: str="project_euler_problem_data_files/p054_poker.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #54
+
     Function that takes a list of pairs of poker hands given by the
     .txt file at location specified by input argument hand_file and
     calculates the number of these pairs for which if the two hands in
@@ -978,21 +1009,27 @@ def numberOfPokerHandsWon(hand_file: str="p054_poker.txt") -> int:
         hand_file (str): String representing the absolute or relative
                 location of the .txt file containing the pairs of
                 poker hands.
-            Default: "p054_poker.txt"
+            Default: "project_euler_problem_data_files/p054_poker.txt"
+        rel_package_src (bool): Whether a relative path given by
+                hand_file is relative to the current directory (False)
+                or the package src directory (True).
+            Default: True
     
     Returns:
     Integer (int) giving the number of pairs of hands in the .txt
     file at location hand_file for which the hand that appears first
     in the pair beats the hand that appears second in the pair.
     """
-    since = time.time()
+    #since = time.time()
     res = 0
-    for i, (hand1_cards, hand2_cards) in\
-            enumerate(loadPokerHands(hand_file), start=1):
+    for i, (hand1_cards, hand2_cards) in enumerate(
+        loadPokerHands(hand_file, rel_package_src=rel_package_src),
+        start=1,
+    ):
         hand1 = PokerHand(hand1_cards)
         hand2 = PokerHand(hand2_cards)
         res += hand1 > hand2
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 55
@@ -1058,8 +1095,12 @@ def isPalindrome(num: int, base: int=10) -> bool:
             return False
     return True
 
-def isLychrel(num: int, seen: Dict[int, int], max_iter: int=50, base: int=10)\
-        -> bool:
+def isLychrel(
+    num: int,
+    seen: Dict[int, int],
+    max_iter: int=50,
+    base: int=10,
+) -> bool:
     """
     Assesses whether a non-negative integer num is not Lychrel or assumed to
     be Lychrel in the chosen base. A number is Lychrel in a given base if and
@@ -1107,7 +1148,7 @@ def isLychrel(num: int, seen: Dict[int, int], max_iter: int=50, base: int=10)\
     path = [num]
     for i in range(max_iter):
         num = reverseAdd(num)
-        if isPalindrome(num):
+        if isPalindrome(num, base=base):
             for j in range(i + 1):
                 seen[path[~j]] = j + 1
             #print(f"palindrome found ({num}):")
@@ -1137,10 +1178,14 @@ def isLychrel(num: int, seen: Dict[int, int], max_iter: int=50, base: int=10)\
     #print([(x, seen[x]) for x in path])
     return seen[num] == -1
 
-def countLychrelNumbers(n_max: int=10 ** 4, iter_cap: int=50, base: int=10)\
-        -> int:
+def countLychrelNumbers(
+    n_max: int=10 ** 4,
+    iter_cap: int=50,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #55
+    
     Counts the number of strictly positive integers no greater than n_max
     that are assumed to be Lychrel in the chosen base. See documentation
     of isLychrel() and reverseAdd() for more detail. A non-negative integer
@@ -1172,11 +1217,11 @@ def countLychrelNumbers(n_max: int=10 ** 4, iter_cap: int=50, base: int=10)\
     greater than n_max which are assumed to be Lychrel based on the
     specified parameters and assessment process outlined above.
     """
-    since = time.time()
+    #since = time.time()
     seen = {}
     res = sum(isLychrel(x, seen, max_iter=iter_cap - 1, base=base)\
             for x in range(1, n_max + 1))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 56
@@ -1203,9 +1248,10 @@ def digitSum(num: int, base: int=10) -> int:
         res += r
     return res
 
-def powerfulDigitSum(a_mx: int=99, b_mx: int=99, base: int=10):
+def powerfulDigitSum(a_mx: int=99, b_mx: int=99, base: int=10) -> int:
     """
     Solution to Project Euler #56
+
     Finds the maximum sum of digits in the given base of all numbers
     of the form a ** b where 0 <= a <= a_mx and 0 <= b <= b_mx.
     
@@ -1223,19 +1269,19 @@ def powerfulDigitSum(a_mx: int=99, b_mx: int=99, base: int=10):
     Integer (int) with the largest sum of digits in the given base
     for all the numbers of the given form.
     """
-    since = time.time()
+    #since = time.time()
     res = 1
     for a in range(a_mx + 1):
         num = 1
         for b in range(1, b_mx + 1):
             num *= a
             res = max(res, digitSum(num, base=base))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 57
-def gcd(a: int, b: int) -> int:
-    return a if not b else gcd(b, a % b)
+#def gcd(a: int, b: int) -> int:
+#    return a if not b else gcd(b, a % b)
 
 def nextRoot2MinusOneConvergent(prev: Tuple[int]) -> Tuple[int]:
     """
@@ -1283,10 +1329,13 @@ def countDigits(num: int, base: int=10) -> int:
         res += 1
     return res
 
-def squareRootTwoConvergents(n_expansions: int=1000, base: int=10)\
-        -> int:
+def squareRootTwoConvergents(
+    n_expansions: int=1000,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #57
+
     Calculates the number of the first n_expansions convergents of
     the square root of two for which the number of digits in the
     given base of the numerator exceeds that of the denominator.
@@ -1306,17 +1355,17 @@ def squareRootTwoConvergents(n_expansions: int=1000, base: int=10)\
     of digits in the given base of the numerator exceeds that
     of the denominator.
     """
-    since = time.time()
+    #since = time.time()
     curr = (0, 1)
     res = 0
     for _ in range(n_expansions):
         curr = nextRoot2MinusOneConvergent(curr)
         res += (countDigits(sum(curr), base=base) >\
                 countDigits(curr[1], base=base))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-# Problem 58- Try to make faster
+# Problem 58
 def spiralDiagonalGenerator() -> Generator[List[int], None, None]:
     """
     Suppose the natural numbers (starting with 1) are arranged in
@@ -1352,54 +1401,10 @@ def spiralDiagonalGenerator() -> Generator[List[int], None, None]:
         yield ans
     return
 
-def isqrt(n: int) -> int:
-    """
-    For a non-negative integer n, finds the largest integer m
-    such that m ** 2 <= n (or equivalently, the floor of the
-    positive square root of n)
-    
-    Args:
-        Required positional:
-        n (int): The number for which the above process is
-                performed.
-    
-    Returns:
-    Integer (int) giving the largest integer m such that
-    m ** 2 <= n.
-    
-    Examples:
-    >>> isqrt(4)
-    2
-    >>> isqrt(15)
-    3
-    """
-    # Newton's method
-    x2 = n
-    x1 = (n + 1) >> 1
-    while x1 < x2:
-        x2 = x1
-        x1 = (x2 + n // x2) >> 1
-    return x2
-
-def isPrime(num: int) -> bool:
-    """
-    Finds whether positive integer num is prime.
-    
-    Args:
-        Required positional:
-        num (int): The positive integer being assessed
-    
-    Returns:
-    Boolean (bool), True if num is prime, False otherwise
-    """
-    if not num & 1: return False
-    for p in range(3, isqrt(num) + 1, 2):
-        if not num % p: return False
-    return True
-
-def spiralPrimes(target_ratio: Union[int, float]=10) -> int:
+def spiralPrimes(target_ratio: Real=10) -> int:
     """
     Solution to Project Euler #58
+
     Suppose the natural numbers (starting with 1) are arranged in
     a square spiral, with one layer added at a time. This function
     finds how many layers of this spiral need to be added before
@@ -1418,7 +1423,12 @@ def spiralPrimes(target_ratio: Union[int, float]=10) -> int:
     to be added before the proportion of diagonal elements that
     are prime is less than 1 / target_ratio.
     """
-    since = time.time()
+    #since = time.time()
+
+    ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
+
     numer = 0
     denom = 1
     iter_obj = spiralDiagonalGenerator()
@@ -1427,18 +1437,21 @@ def spiralPrimes(target_ratio: Union[int, float]=10) -> int:
         denom += len(diag_lst)
         # Note the final element of the list is a square so
         # cannot be prime
-        numer += sum(isPrime(x) for x in diag_lst[:-1])
+        numer += sum(primeCheck(x) for x in diag_lst[:-1])
         #print(denom, numer, denom / numer)
         if numer * target_ratio < denom:
             break
     res = (i << 1) + 3
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-# Problem 59- try to make faster (consider reducing the search space
-#             using frequency analysis)
-def decryptGenerator(key: Tuple[int], encrypt: List[int])\
-        -> Generator[str, None, None]:
+# Problem 59
+# Review- try to make faster (consider reducing the search space
+#         using frequency analysis)
+def decryptGenerator(
+    key: Tuple[int],
+    encrypt: List[int],
+) -> Generator[str, None, None]:
     """
     Generator which, for a given key and encrypted text encrypt,
     performs rolling XOR decryption on encrypt and yields the
@@ -1450,9 +1463,9 @@ def decryptGenerator(key: Tuple[int], encrypt: List[int])\
         encrypt (list of ints): The encrypted text.
     
     Yields:
-    Each letter of the decrypted text in order
+    String (str) of length 1 providing each character of the decrypted
+    text in order.
     """
-    
     i = 0
     m = len(key)
     n = len(encrypt)
@@ -1464,10 +1477,16 @@ def decryptGenerator(key: Tuple[int], encrypt: List[int])\
         yield chr(encrypt[j] ^ key[j - i])
     return
 
-def xorDecryption(doc: str="p059_cipher.txt", key_len: int=3,\
-        auto_select: bool=True, n_candidates: int=3) -> int:
+def xorDecryption(
+    doc: str="project_euler_problem_data_files/p059_cipher.txt",
+    key_len: int=3,
+    auto_select: bool=True,
+    n_candidates: int=3,
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #59
+
     Using cribbing to decrypt the string contained in the text file doc,
     given that the text has been encrypted based on an XOR cypher using
     ASCII encoding of characters with a key of known length (key_len)
@@ -1477,7 +1496,7 @@ def xorDecryption(doc: str="p059_cipher.txt", key_len: int=3,\
         Optional named:
         doc (str): Relative or absolue path to the .txt file containing
                 the encrypted text
-            Default: "p059_cipher.txt"
+            Default: "project_euler_problem_data_files/p059_cipher.txt"
         key_len (int): The length of the key used to encrypt the text
             Default: 3
         auto_select (bool): If True, automatically selects the most
@@ -1492,6 +1511,11 @@ def xorDecryption(doc: str="p059_cipher.txt", key_len: int=3,\
                 to the user to select from (given in order of the
                 number of crib words the decoded text matches).
             Default: 3
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or the
+                package directory (True).
+            Default: False
     
     Returns:
     Integer (int) giving the sum of ASCII values of the characters in
@@ -1512,18 +1536,19 @@ def xorDecryption(doc: str="p059_cipher.txt", key_len: int=3,\
     decryption to the user to select the decryption that gives rise
     to a sensible text.
     """
-    since = time.time()
+    #since = time.time()
     cribs = {"the", "a", "an", "and", "it", "I", "me", "you", "he",\
             "him", "she", "her", "we", "us", "they", "them", "is",\
             "are", "am", "was", "were", "have", "has", "had", "how",\
             "where", "what", "why", "who", "from", "to",}
     if auto_select: n_candidates = 1
     
-    doc = doc.strip()
-    if not os.path.isfile(doc):
-        raise FileNotFoundError(f"There is no file at location {doc}")
-    with open(doc) as f:
-        txt = f.read()
+    #doc = doc.strip()
+    #if not os.path.isfile(doc):
+    #    raise FileNotFoundError(f"There is no file at location {doc}")
+    #with open(doc) as f:
+    #    txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     encrypt = [int(x) for x in txt.split(",")]
     #print(encrypt)
     w_lst = []
@@ -1545,6 +1570,7 @@ def xorDecryption(doc: str="p059_cipher.txt", key_len: int=3,\
         for _ in range(key_len):
             num, r = divmod(num, n_letters)
             key.append(r + ord("a"))
+        #print(list(decryptGenerator(key, encrypt)))
         occur_dict = ac.search(decryptGenerator(key, encrypt))
         score = sum(len(x) for x in occur_dict.values())
         #if score:
@@ -1569,13 +1595,14 @@ def xorDecryption(doc: str="p059_cipher.txt", key_len: int=3,\
                 f"to {len(best_scores)}: ").strip()) - 1
     key = best_scores[i][1]
     res = sum(ord(l) for l in decryptGenerator(key, encrypt))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-# Problem 60- Try to make faster. Consider using Miller-Rabin primality test
+# Problem 60
 def minimumPrimePairSetsSum(n_pair: int=5, base: int=10) -> int:
     """
     Solution to Project Euler #60
+
     Consider the collection of sets containing n_pair distinct
     primes such that concatenating any of the primes in the set with
     any other primes in the set in the chosen base in either order
@@ -1594,8 +1621,12 @@ def minimumPrimePairSetsSum(n_pair: int=5, base: int=10) -> int:
     Integer (int) giving the smallest possible sum of elements of
     all the sets in the collection described above.
     """
-    since = time.time()
-    ps = PrimeSPFsieve()
+    #since = time.time()
+    ps = SimplePrimeSieve()
+
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
+
     best_sums = [0, 2]
     best_sets = [set(), {2}]
     rm_heaps = [[], []]
@@ -1647,9 +1678,7 @@ def minimumPrimePairSetsSum(n_pair: int=5, base: int=10) -> int:
         for p1 in p_lst:
             if p1 >= curr1:
                 curr1 *= base
-            if not ps.isPrime(p2 + p1 * curr2, extend_sieve=False) or\
-                    not ps.isPrime(p1 + p2 * curr1,\
-                    extend_sieve=False):
+            if not primeCheck(p2 + p1 * curr2) or not primeCheck(p1 + p2 * curr1):
                 continue
             edges.add(p1)
         p_lst.add(p2)
@@ -1708,12 +1737,16 @@ def minimumPrimePairSetsSum(n_pair: int=5, base: int=10) -> int:
                 groups[i2] = connected
                 heapq.heappush(rm_heaps[len(connected)],\
                         (-sum(connected), i2))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 61
-def cyclicalFigurateNumbersSequences(n_dig: int, k_min: int, k_max: int,\
-        base: int=10) -> List[Tuple[int]]:
+def cyclicalFigurateNumbersSequences(
+    n_dig: int,
+    k_min: int,
+    k_max: int,
+    base: int=10,
+) -> List[Tuple[int]]:
     """
     A cyclical sequence of length m (where m is a non-negative integer) in
     a given base is a sequence of integers such that each integer has the
@@ -1842,10 +1875,15 @@ def cyclicalFigurateNumbersSequences(n_dig: int, k_min: int, k_max: int,\
         backtrack(num)
     return res
 
-def cyclicalFigurateNumbersSum(n_dig: int=4, k_min: int=3, k_max: int=8,\
-        base: int=10) -> int:
+def cyclicalFigurateNumbersSum(
+    n_dig: int=4,
+    k_min: int=3,
+    k_max: int=8,
+    base: int=10,
+) -> int:
     """
-    Solves Project Euler Problem #61
+    Solution to Project Euler #61
+
     Finds the smallest sum of terms out of all cyclical figurate
     numbers sequences in the given base for n_dig digit numbers for k
     between k_min and k_max inclusive (see documentation of
@@ -1872,12 +1910,12 @@ def cyclicalFigurateNumbersSum(n_dig: int=4, k_min: int=3, k_max: int=8,\
     fulfilling the described conditions. If no such sequences exist,
     returns -1.
     """
-    since = time.time()
+    #since = time.time()
     seqs = cyclicalFigurateNumbersSequences(n_dig=n_dig, k_min=k_min,\
             k_max=k_max, base=base)
     
     res = min(sum(x) for x in seqs) if seqs else -1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 62
@@ -1964,10 +2002,14 @@ def SmallestWithMNthPowerPermutations(m: int=5, n: int=3, base: int=10) -> int:
         b += 1
     return -1
 """
-def smallestWithMNthPowerPermutations(m: int=5, n: int=3,\
-        base: int=10) -> int:
+def smallestWithMNthPowerPermutations(
+    m: int=5,
+    n: int=3,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #62
+
     Finds the smallest non-negative integer which is itself the nth power
     of an integer and exactly m of the numbers formed by permutations of
     its digits in the given base (excluding those with leading zeros but
@@ -1987,7 +2029,7 @@ def smallestWithMNthPowerPermutations(m: int=5, n: int=3,\
     Integer (int) giving the smallest non-negative integer fulfilling
     the stated requirements.
     """
-    since = time.time()
+    #since = time.time()
     if n <= 1: return 0
     b = 1
     n_dig = 0
@@ -2016,13 +2058,14 @@ def smallestWithMNthPowerPermutations(m: int=5, n: int=3,\
             opts.remove(seen[k][0])
         seen[k][1] += 1
         b += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 63
 def powerfulDigits(base: int=10) -> int:
     """
     Solution to Project Euler #63
+
     The number of n-digit positive integers in the chosen base
     that are also the nth power of an integer for some positive
     integer n.
@@ -2051,7 +2094,7 @@ def powerfulDigits(base: int=10) -> int:
     that a ** m has fewer than m digits for all integers
     m >= n.
     """
-    since = time.time()
+    #since = time.time()
     k = 1
     res = 0
     n = 1
@@ -2064,7 +2107,7 @@ def powerfulDigits(base: int=10) -> int:
         #print(n, k)
         n += 1
         mn *= base
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 64
@@ -2131,6 +2174,7 @@ def sqrtCFCycleLengthParity(num: int) -> bool:
 def sqrtCFCycleLengthOddTotal(mx: int=10 ** 4) -> int:
     """
     Solution to Project Euler #64
+
     Calculates the number of positive integers not exceeding the
     integer mx whose continued fraction sequence cycles with an odd
     period.
@@ -2145,9 +2189,9 @@ def sqrtCFCycleLengthOddTotal(mx: int=10 ** 4) -> int:
     exceeding mx whose continued fraction sequence cycles with an
     odd period.
     """
-    since = time.time()
+    #since = time.time()
     res = sum(sqrtCFCycleLengthParity(i) for i in range(1, mx + 1))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 65
@@ -2185,8 +2229,9 @@ def nthConvergent(n: int, cf_func: Callable[[int], int]) -> Tuple[int]:
         res = (res[1] + cf_func(i) * res[0], res[0])
     return res
 
-def convergentGenerator(cf_func: Callable[[int], int])\
-        -> Generator[Tuple[int], None, None]:
+def convergentGenerator(
+    cf_func: Callable[[int], int],
+) -> Generator[Tuple[int], None, None]:
     """
     Generates the convergents in order of a given continued fraction
     representation of a non-negative number with terms as given in
@@ -2275,6 +2320,7 @@ def nthEConvergent(n: int) -> Tuple[int]:
 def convergentENumeratorDigitSum(n: int=100, base: int=10) -> int:
     """
     Solution to Project Euler #65
+
     Finds the sum of digits of the numerator of the nth
     covergent of e in the chosen base
     
@@ -2291,10 +2337,10 @@ def convergentENumeratorDigitSum(n: int=100, base: int=10) -> int:
     Integer (int) giving the sum of digits of the numerator
     of the nth convergent of e in the chosen base
     """
-    since = time.time()
+    #since = time.time()
     convergent = nthEConvergent(n)
     res = digitSum(convergent[0], base=base)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 66
@@ -2404,8 +2450,10 @@ def pellFundamentalSolution(D: int) -> Tuple[int]:
     return -1
     """
 
-def pellSolutionGenerator(D: int, negative: bool=False)\
-        -> Generator[Tuple[int], None, None]:
+def pellSolutionGenerator(
+    D: int,
+    negative: bool=False
+) -> Generator[Tuple[int], None, None]:
     """
     Generator that yields the positive integer solutions to Pell's
     equation or Pell's negative equation:
@@ -2475,6 +2523,7 @@ def pellSolutionGenerator(D: int, negative: bool=False)\
 def pellLargestFundamentalSolution(D_max: int=1000) -> int:
     """
     Solution to Project Euler #66
+
     Finds the value of strictly positive non-square integer
     value of D no greater than D_max, for which the x-value
     of the fundamental solution of Pell's equation:
@@ -2498,7 +2547,7 @@ def pellLargestFundamentalSolution(D_max: int=1000) -> int:
     positive integers x and y is largest of all strictly positive
     non-square D no greater than D_max.
     """
-    since = time.time()
+    #since = time.time()
     m = 2
     sq = m ** 2
     mx_x = -float("inf")
@@ -2513,10 +2562,100 @@ def pellLargestFundamentalSolution(D_max: int=1000) -> int:
         if x > mx_x:
             mx_x = x
             res = D
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-# Problem 67- see solution to Problem 18
+# Problem 67
+def loadTriangleFromFile(
+    doc: str,
+    rel_package_src: bool=False,
+) -> List[List[int]]:
+    """
+    Loads triangle of integers from .txt file located at doc.
+    The file should contain the rows of the triangle in order,
+    separated by line breaks ('\\n') and the integers in each
+    row separated by single spaces. For rows labelled in order
+    starting from 1, each row must contain exactly the same
+    number of elements as its row number.
+    
+    Args:
+        Required positional:
+        doc (str): The relative or absolution location of the .txt
+                file containing the triangle of integers.
+
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: False
+    
+    Returns:
+    List of lists of integers (int), with each list in the outer list
+    representing a row of the triangle, as a list of integers with
+    length equal to the row number (starting at 1).
+    """
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
+    res = txt.split("\n")
+    while not res[-1]: res.pop()
+    return [[int(x) for x in row.split(" ")] for row in res]
+
+def triangleMaxSumFromFile(
+    triangle_doc: str="project_euler_problem_data_files/p067_triangle.txt",
+    rel_package_src: bool=True,
+) -> int:
+    """
+    Solution to Project Euler #67
+
+    For a given triangle of integers contained in the .txt file
+    triangle_doc, (arranged as a grid where the first row has length
+    1 and every other row has length exactly one more than the
+    previous row) finds the maximum total that can be achieved by
+    travelling along a path from the top to the bottom, starting on
+    the single element of the first row and each step moving to the
+    next row, to either the element of that row with the same index
+    as the index on the current row or the element with index one
+    greater, and taking the total of the numbers of all elements of
+    the triangle this path encounters.
+    
+    Args:
+        Optional named:
+        triangle_doc (str): The relative or absolute path to the .txt
+                file containing the triangle of integers. In this file
+                the triangle should be represented as a series of
+                rows each separated by a single line break ('\n'),
+                with each integer in each row separated by a single
+                space (' ').
+            Default: "project_euler_problem_data_files/p067_triangle.txt"
+        rel_package_src (bool): Whether a relative path given by
+                triangle_doc is relative to the current directory (False)
+                or the package src directory (True).
+            Default: False
+        
+    Returns:
+    The maximum sum (int) that can be achieved by any traversal
+    of the triangle contained in the .txt file triangle_doc following
+    the restrictions given.
+    """
+    #since = time.time()
+    """
+    if isinstance(triangle, str):
+        triangle = loadTriangle(triangle)
+        preserve_triangle = False
+    # Converting the triangle into lists of integers
+    if isinstance(triangle[0], str):
+        if preserve_triangle:
+            triangle = list(triangle)
+        for i, row in enumerate(triangle):
+            triangle[i] = [int(x) for x in row.strip().split(" ")]
+    """
+    triangle = loadTriangleFromFile(
+        triangle_doc,
+        rel_package_src=rel_package_src,
+    )
+    return triangleMaxSum(
+        triangle=triangle,
+        preserve_triangle=False,
+    )
 
 # Problem 68
 """
@@ -2540,6 +2679,13 @@ for clarity):
 Concatenated (as is required of the solution):
 6531031914842725
 """
+def magic5gonRing() -> int:
+    """
+    Solution to Project Euler #68
+
+    TODO
+    """
+    return 6531031914842725
 
 # Problem 69
 def totientFunction(num: int, ps: Optional[PrimeSPFsieve]=None) -> int:
@@ -2580,6 +2726,7 @@ def totientFunction(num: int, ps: Optional[PrimeSPFsieve]=None) -> int:
 def totientMaximum(n_max: int=10 ** 6) -> int:
     """
     Solution to Project Euler #69
+
     Finds the strictly positive integer n not exceeding n_max
     such that n / phi(n) is maximised, where phi(n) is the Euler
     totient function.
@@ -2634,10 +2781,11 @@ def totientMaximum(n_max: int=10 ** 6) -> int:
     return res
     """
 
-# Problem 70- ?can be faster (most of the time is currently taken
-#             constructing the prime sieve (~22s out of ~32s total).
-#             Is there an alternative method that can avoid using
-#             the prime sieve with overall faster runtime?
+# Problem 70
+# Review- ?can be faster (most of the time is currently taken
+#         constructing the prime sieve (~22s out of ~32s total).
+#         Is there an alternative method that can avoid using
+#         the prime sieve with overall faster runtime?
 def numDigitDict(num: int, base: int=10) -> Dict[int, int]:
     """
     Creates a frequency dictionary of the digits of non-negative
@@ -2667,7 +2815,11 @@ def numDigitDict(num: int, base: int=10) -> Dict[int, int]:
         res[r] = res.get(r, 0) + 1
     return res
 
-def numDigitsMatch(num: int, comp: Union[int, Dict[int, int]], base: int=10) -> bool:
+def numDigitsMatch(
+    num: int,
+    comp: Union[int, Dict[int, int]],
+    base: int=10
+) -> bool:
     """
     Checks that the digits of non-negative integer num when expressed
     in the chosen base with no leading zeros contains the exact same
@@ -2703,10 +2855,14 @@ def numDigitsMatch(num: int, comp: Union[int, Dict[int, int]], base: int=10) -> 
         if res[r] > comp.get(r, 0): return False
     return res == comp
 
-def totientPermutation(num_mn: int=2, num_mx: int=10 ** 7 - 1,\
-        base: int=10) -> int:
+def totientPermutation(
+    num_mn: int=2,
+    num_mx: int=10 ** 7 - 1,
+    base: int=10,
+) -> int:
     """    
     Solution to Project Euler #70
+
     Finds the integer n between num_mn and num_mx inclusive such that
     the representation of n in the chosen base contains the same digits
     in the same frequency as the representation of the value of phi(n)
@@ -2729,7 +2885,7 @@ def totientPermutation(num_mn: int=2, num_mx: int=10 ** 7 - 1,\
     Integer (int) representing the value of the unique integer
     satisfying the described conditions.
     """
-    since = time.time()
+    #since = time.time()
     ps = PrimeSPFsieve(num_mx)
     #print(f"Prime sieve took {time.time() - since:.4f} seconds")
     sieve = ps.sieve
@@ -2754,11 +2910,17 @@ def totientPermutation(num_mn: int=2, num_mx: int=10 ** 7 - 1,\
             #print(num, ratio)
             best_ratio = ratio
             res = num
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 71
-def solveLinearHomogeneousDiophantineEquation(a: int, b: int) -> Tuple[int]:
+# Review- consider adding Farey sequence algorithms into
+#         the data_structures_and_algorithms package
+
+def solveLinearHomogeneousDiophantineEquation(
+    a: int,
+    b: int,
+) -> Tuple[int, int]:
     """
     Finds the set of solutions to the equation:
         a * x + b * y = 0
@@ -2776,7 +2938,7 @@ def solveLinearHomogeneousDiophantineEquation(a: int, b: int) -> Tuple[int]:
     g = gcd(a, b)
     return (b // g, -a // g)
 
-def extendedEuclideanAlgorithm(a: int, b: int) -> Tuple[int]:
+def extendedEuclideanAlgorithm(a: int, b: int) -> Tuple[int, int, int]:
     """
     Finds integers x and y such that:
         a * x + b * y = gcd(a, b)
@@ -2804,8 +2966,11 @@ def extendedEuclideanAlgorithm(a: int, b: int) -> Tuple[int]:
         x, y = y - stk.pop()[0] * x, x
     return (y, x, g) if rev else (x, y, g)
 
-def solveLinearNonHomogeneousDiophantineEquation(a: int, b: int, c: int)\
-        -> Tuple[int]:
+def solveLinearNonHomogeneousDiophantineEquation(
+    a: int,
+    b: int,
+    c: int,
+) -> Tuple[int]:
     """
     Finds the general solution for integers x and y in the equation:
         a * x + b * y = c
@@ -2834,8 +2999,12 @@ def solveLinearNonHomogeneousDiophantineEquation(a: int, b: int, c: int)\
     x, y, _ = extendedEuclideanAlgorithm(a, b)
     return (b, x * c, -a, y * c)
 
-def adjacentFarey(frac: Tuple[int], max_denom: int,\
-        nxt: bool=True, frac_farey: bool=False) -> Tuple[int]:
+def adjacentFarey(
+    frac: Tuple[int],
+    max_denom: int,
+    nxt: bool=True,
+    frac_farey: bool=False,
+) -> Tuple[int, int]:
     """
     For any fraction frac between 0 and 1 inclusive with denominator in
     lowest terms no greater than max_denom, finds the largest fraction
@@ -2920,10 +3089,13 @@ def adjacentFarey(frac: Tuple[int], max_denom: int,\
     if neg: k = -k
     return (y0 + dy * k, x0 + dx * k)
 
-def orderedFractions(frac: Tuple[int]=(3, 7), max_denom: int=10 ** 6)\
-        -> int:
+def orderedFractions(
+    frac: Tuple[int]=(3, 7),
+    max_denom: int=10 ** 6,
+) -> int:
     """
     Solution to Project Euler #71
+
     Finds the numerator of the largest fraction (in lowest terms) smaller
     than frac with denominator no greater than max_denom.
     
@@ -2942,9 +3114,9 @@ def orderedFractions(frac: Tuple[int]=(3, 7), max_denom: int=10 ** 6)\
     Integer (int) giving the numerator of the largest fraction (in lowest
     terms) smaller than frac with denominator no greater than max_denom.
     """
-    since = time.time()
+    #since = time.time()
     res = adjacentFarey(frac, max_denom, nxt=False)[0]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     """
     # Brute force solution
@@ -2961,6 +3133,7 @@ def orderedFractions(frac: Tuple[int]=(3, 7), max_denom: int=10 ** 6)\
 def countingFractions(max_denom: int=10 ** 6) -> int:
     """
     Solution to Project Euler #72
+
     Finds the number of distinct fractions with denominator no greater
     than max_denom and value between 0 and 1 exclusive
     
@@ -2974,19 +3147,22 @@ def countingFractions(max_denom: int=10 ** 6) -> int:
     Integer (int) giving the number of fractions satisfying the
     requirements given.
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     ps = PrimeSPFsieve(max_denom)
     for num in range(2, max_denom + 1):
         res += totientFunction(num, ps)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 73- try to make faster
 # Look into https://people.csail.mit.edu/mip/papers/farey/talk.pdf
 
-def fareyNext(n: int, curr: Tuple[int]=(0, 1),\
-        lowest_terms: bool=False) -> Tuple[int]:
+def fareyNext(
+    n: int,
+    curr: Tuple[int]=(0, 1),
+    lowest_terms: bool=False,
+) -> Tuple[int]:
     """
     Finds the smallest element of the Farey sequence of order n which
     is strictly larger than the fraction curr.
@@ -3043,8 +3219,11 @@ def fareyNext(n: int, curr: Tuple[int]=(0, 1),\
             res = (numer, denom)
     return res
 
-def fareySequence(n: int, mn: Tuple[int]=(0, 1), mx: Tuple[int]=(1, 1))\
-        -> Generator[Tuple[int], None, None]:
+def fareySequence(
+    n: int,
+    mn: Tuple[int]=(0, 1),
+    mx: Tuple[int]=(1, 1)
+) -> Generator[Tuple[int], None, None]:
     """
     Generator iterating over the elements of the Farey sequence of order
     n for elements with value between mn and mx (inclusive) in
@@ -3104,10 +3283,14 @@ def fareySequenceDenom(n: int) -> Generator[int, None, None]:
         yield curr
     return
 """
-def countingFractionsRange(lower_frac: Tuple[int]=(1, 3),\
-        upper_frac: Tuple[int]=(1, 2), max_denom: int=12 * 10 ** 3) -> int:
+def countingFractionsRange(
+    lower_frac: Tuple[int]=(1, 3),
+    upper_frac: Tuple[int]=(1, 2),
+    max_denom: int=12 * 10 ** 3,
+) -> int:
     """
     Solution to Project Euler #73
+    
     Counts the number of fractions with value between the fractions
     lower_frac and upper_frac exclusive with denominator no greater
     than max_denom.
@@ -3136,14 +3319,14 @@ def countingFractionsRange(lower_frac: Tuple[int]=(1, 3),\
     Integer (int) giving the number of fractions satisfying the given
     requirements.
     """
-    since = time.time()
+    #since = time.time()
     g1 = gcd(*lower_frac)
     lower_frac = tuple(x // g1 for x in lower_frac)
     g2 = gcd(*upper_frac)
     upper_frac = tuple(x // g2 for x in upper_frac)
     res = 0
     for _ in fareySequence(max_denom, lower_frac, upper_frac): res += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res - (lower_frac[1] <= max_denom and lower_frac[0] <= lower_frac[1])\
             - (upper_frac[1] <= max_denom and upper_frac[0] <= lower_frac[1])
     
@@ -3190,7 +3373,8 @@ def countingFractionsRange(lower_frac: Tuple[int]=(1, 3),\
     return res
     """
 
-# Problem 74- try to make faster
+# Problem 74
+# Review- try to make faster
 def digitFactorial(num: int, base: int=10) -> int:
     """
     The sum of the digits of the representation of non-negative integer
@@ -3213,8 +3397,11 @@ def digitFactorial(num: int, base: int=10) -> int:
         res += math.factorial(r)
     return res
 
-def digitFactorialChainLength(num: int, seen: Dict[int, int],\
-        base: int=10) -> int:
+def digitFactorialChainLength(
+    num: int,
+    seen: Dict[int, int],
+    base: int=10,
+) -> int:
     """
     Consider the sequence starting at num where a term in the
     sequence after the first is calculated by finding the sum of
@@ -3268,10 +3455,14 @@ def digitFactorialChainLength(num: int, seen: Dict[int, int],\
             seen[path[~j]] = j + add
     return seen[num0]
 
-def countDigitFactorialChains(chain_len: int=60,\
-        n_max: int=10 ** 6 - 1, base: int=10) -> int:
+def countDigitFactorialChains(
+    chain_len: int=60,
+    n_max: int=10 ** 6 - 1,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #74
+
     Finds the number of integers between 1 and n_max (inclusive) whose
     digit factorial chain length in the chosen base (see documentation
     of digitFactorialChainLength() for more details) is exactly
@@ -3292,18 +3483,19 @@ def countDigitFactorialChains(chain_len: int=60,\
     inclusive whose digit factorial chain length in the chosen base
     is exactly chain_len.
     """
-    since = time.time()
+    #since = time.time()
     seen = {}
     res = 0
     for i in range(1, n_max + 1):
         res += digitFactorialChainLength(i, seen, base=base) == chain_len
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
         
 # Problem 75
 def countUniquePythagoreanTripleSums(n_max: int=15 * 10 ** 5) -> int:
     """
     Solution to Project Euler #75
+
     Calculates the number of strictly positive integers not exceeding
     n_max such that there is exactly one Pythagorean triple whose sum
     is equal to this value.
@@ -3333,7 +3525,7 @@ def countUniquePythagoreanTripleSums(n_max: int=15 * 10 ** 5) -> int:
     value does not exceed n_max, counting the number of occurrences
     of each result and counting those that occur exactly once.
     """
-    since = time.time()
+    #since = time.time()
     f_dict = {}
     for m in range(1, (n_max >> 1) + 1):
         for n in range(1 + (m & 1),\
@@ -3344,11 +3536,11 @@ def countUniquePythagoreanTripleSums(n_max: int=15 * 10 ** 5) -> int:
                 ans = basic * k
                 f_dict[ans] = f_dict.get(ans, 0) + 1
     res = sum(x == 1 for x in f_dict.values())
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 76
-class Partition:
+class Partition(object):
     """
     Class whose instances calculate the partition function for
     non-negative integers (if specified, modulo a given integer).
@@ -3469,6 +3661,7 @@ class Partition:
 def partitionFunctionNontrivial(n: int=100) -> int:
     """
     Solution to Project Euler #76
+
     Finds the number of ways that the non-negative integer n can be
     expressed as the sum of at least two strictly positive integers
     (with different orderings of the same multiset of integers
@@ -3493,9 +3686,9 @@ def partitionFunctionNontrivial(n: int=100) -> int:
     # Using partition function recurrence relation (with Partition
     # class instance)
     # Time complexity O(n ** (3 / 2))
-    since = time.time()
+    #since = time.time()
     pf = Partition()
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return pf(n) - 1
     
     """
@@ -3511,8 +3704,10 @@ def partitionFunctionNontrivial(n: int=100) -> int:
     """
 
 # Problem 77
-def primeSummations(target_count: int=5000, batch_size: int=100)\
-        -> int:
+def primeSummations(
+    target_count: int=5000,
+    batch_size: int=100,
+) -> int:
     """
     Solution to Project Euler #77
     Finds the smallest strictly positive integer that can be expressed
@@ -3540,10 +3735,10 @@ def primeSummations(target_count: int=5000, batch_size: int=100)\
     # Try to optimise space usage by limiting the size of each row in the
     # dp array to max(batch_size, p) where p is the prime corresponding to
     # that row
-    since = time.time()
+    #since = time.time()
     if not target_count: return 0
     if target_count == 1: return 2
-    ps = PrimeSPFsieve()
+    ps = SimplePrimeSieve()
     res = float("inf")
     start = 1
     dp = []
@@ -3580,7 +3775,7 @@ def primeSummations(target_count: int=5000, batch_size: int=100)\
         start = end
         #print(dp)
     #print(dp[-1])
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
         
     """
@@ -3635,6 +3830,7 @@ def primeSummations(target_count: int=5000, batch_size: int=100)\
 def coinPartitions(div: int=10 ** 6) -> int:
     """
     Solution to Project Euler #78
+
     The smallest integer such that the number of integer partitions
     of that integer is divisible by the strictly positive integer
     div.
@@ -3650,7 +3846,7 @@ def coinPartitions(div: int=10 ** 6) -> int:
     number of integer partitions of that integer is divisible by
     div.
     """
-    since = time.time()
+    #since = time.time()
     pf = Partition(md=div)
     i = 0
     while True:
@@ -3658,11 +3854,14 @@ def coinPartitions(div: int=10 ** 6) -> int:
         #print(i, ans)
         if not ans: break
         i += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return i
 
 # Problem 79
-def loadStringsLineBreak(doc: str) -> List[str]:
+def loadStringsLineBreak(
+    doc: str,
+    rel_package_src: bool=False,
+) -> List[str]:
     """
     Loads a list of strings from a .txt file at relative or absolute
     file location doc.
@@ -3673,16 +3872,18 @@ def loadStringsLineBreak(doc: str) -> List[str]:
         Required positional:
         doc (str): The relative or absolute path to the .txt
                 file containing the strings.
+        
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: False
     
     Returns:
     List of strings (str), containing the strings in the .txt file
     at location doc in unchanged order.
     """
-    doc = doc.strip()
-    if not os.path.isfile(doc):
-        raise FileNotFoundError(f"There is no file at location {doc}.")
-    with open(doc) as f:
-        txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     return [row for row in txt.split("\n") if row]
 
 def shortestStringGivenSubsequences(subseqs: List[str]) -> str:
@@ -3889,8 +4090,10 @@ def shortestStringGivenSubsequencesTrie(subseqs: List[str]) -> str:
     backtrack()
     return "".join(best[1])
 
-def stringContainsSubsequencesCheck(s: str, subseqs: List[str])\
-        -> bool:
+def stringContainsSubsequencesCheck(
+    s: str,
+    subseqs: List[str]
+) -> bool:
     """
     Checks whether a string s contains every one of a list of
     strings subseqs as subsequences.
@@ -3926,10 +4129,13 @@ def stringContainsSubsequencesCheck(s: str, subseqs: List[str])\
             return False
     return True
 
-def testRandomShortestStringGivenSubsequences(orig_len: int=15,\
-        n_subseqs: int=30, subseq_lens: int=3,\
-        use_trie_method: bool=False, verbosity: int=1)\
-        -> Tuple[Union[bool, str, Tuple[str]]]:
+def testRandomShortestStringGivenSubsequences(
+    orig_len: int=15,
+    n_subseqs: int=30,
+    subseq_lens: int=3,
+    use_trie_method: bool=False,
+    verbosity: int=1,
+) -> Tuple[Union[bool, str, Tuple[str]]]:
     """
     Generates a random string of digits from which a number of random
     subsequences are extracted to test one of the functions:
@@ -4041,9 +4247,14 @@ def testRandomShortestStringGivenSubsequences(orig_len: int=15,\
         print(ps)
     return (b, orig, tuple(subseqs), res)
 
-def testMultipleRandomShortestStringGivenSubsequences(n_tests: int=20,\
-        orig_len: int=15, n_subseqs: int=30, subseq_lens: int=3,\
-        use_trie_method: bool=False, verbosity: int=1) -> bool:
+def testMultipleRandomShortestStringGivenSubsequences(
+    n_tests: int=20,
+    orig_len: int=15,
+    n_subseqs: int=30,
+    subseq_lens: int=3,
+    use_trie_method: bool=False,
+    verbosity: int=1,
+) -> bool:
     """
     Performs n_tests tests for one of the functions:
      - shortestStringGivenSubsequences() if use_trie_method False or
@@ -4118,9 +4329,12 @@ def testMultipleRandomShortestStringGivenSubsequences(n_tests: int=20,\
         print(f"Time taken = {time.time() - since:.4f} seconds")
     return n_pass == n_tests
 
-def shortestStringGivenSubsequencesCompareMethodTimes(orig_len: int=15,\
-        n_subseqs: int=30, subseq_lens: int=3, verbosity: int=1)\
-        -> Dict[str, float]:
+def shortestStringGivenSubsequencesCompareMethodTimes(
+    orig_len: int=15,
+    n_subseqs: int=30,
+    subseq_lens: int=3,
+    verbosity: int=1,
+) -> Dict[str, float]:
     """
     TODO
     """
@@ -4152,9 +4366,13 @@ def shortestStringGivenSubsequencesCompareMethodTimes(orig_len: int=15,\
         print(f"Time taken by {s} = {t_lst[i]:.4f}") 
     return {f[1]: t for f, t in zip(funcs, t_lst)}
 
-def passcodeDerivation(doc: str="0079_keylog.txt") -> str:
+def passcodeDerivation(
+    doc: str="project_euler_problem_data_files/0079_keylog.txt",
+    rel_package_src: bool=True,
+) -> str:
     """
     Solution to Project Euler #79
+
     For a set of strings contained in the .txt file at doc, finds the
     string such that every word in the set of strings is a subsequence
     of that string, and any other such string either contains more
@@ -4172,15 +4390,19 @@ def passcodeDerivation(doc: str="0079_keylog.txt") -> str:
                 of the .txt file containing the set of strings that
                 are each required to be a subsequence of the returned
                 string.
-            Default: "0081_matrix.txt"
+            Default: "project_euler_problem_data_files/0079_keylog.txt"
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     The string (str) satisfying the given requirements.
     """
-    since = time.time()
-    code_lst = loadStringsLineBreak(doc=doc)
+    #since = time.time()
+    code_lst = loadStringsLineBreak(doc=doc, rel_package_src=rel_package_src)
     res = shortestStringGivenSubsequences(code_lst)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 80
@@ -4200,7 +4422,6 @@ def sqrtDecimal(x: Union[float, int], accuracy: float=10 ** -6) -> int:
     The positive square root of x up to the requred accuracy
     """
     # Newton's method
-    #print(accuracy)
     if isinstance(x, int):
         y1 = isqrt(x)
         if y1 * y1 == x: return float(y1)
@@ -4213,10 +4434,14 @@ def sqrtDecimal(x: Union[float, int], accuracy: float=10 ** -6) -> int:
         #print(y1, y2, abs(y1 - y2))
     return y1
 
-def squareRootDigitalExpansionSum(num_max: int=100, n_dig: int=100,\
-        base: int=10) -> int:
+def squareRootDigitalExpansionSum(
+    num_max: int=100,
+    n_dig: int=100,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #80
+    
     Finds the sum over the first n_dig digits of the representation
     in the chosen base (with no leading zeros) of the positive square
     root of all non-square positive integers no greater than num_max.
@@ -4239,7 +4464,7 @@ def squareRootDigitalExpansionSum(num_max: int=100, n_dig: int=100,\
     zeros) of the positive square root of all non-square positive
     integers no greater than num_max.
     """
-    since = time.time()
+    #since = time.time()
     sq_set = set()
     num = 1
     while True:
@@ -4260,11 +4485,14 @@ def squareRootDigitalExpansionSum(num_max: int=100, n_dig: int=100,\
         while ans:
             ans, r = divmod(ans, base)
             res += r
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 81
-def loadGrid(doc: str) -> List[List[int]]:
+def loadGrid(
+    doc: str,
+    rel_package_src: bool=False,
+) -> List[List[int]]:
     """
     Loads a rectangular grid from a .txt file at relative or
     absolute file location doc.
@@ -4276,20 +4504,30 @@ def loadGrid(doc: str) -> List[List[int]]:
         Required positional:
         doc (str): The relative or absolute path to the .txt
                 file containing the rectangular grid
+        
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     A list of list of ints, representing the rectangular (2
     dimensional) grid.
     """
-    doc = doc.strip()
-    if not os.path.isfile(doc):
-        raise FileNotFoundError(f"There is no file at location {doc}.")
-    with open(doc) as f:
-        txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
+    #doc = doc.strip()
+    #if not os.path.isfile(doc):
+    #    raise FileNotFoundError(f"There is no file at location {doc}.")
+    #with open(doc) as f:
+    #    txt = f.read()
     return [[int(x) for x in row.split(",")]\
             for row in txt.split("\n") if row]
 
-def gridPathTwoWayMatrix(mat: List[List[int]], deepcopy_mat: bool=True) -> int:
+def gridPathTwoWayMatrix(
+    mat: List[List[int]],
+    preserve_mat: bool=True,
+) -> int:
     """
     For an integer grid mat with r rows and c columns, finds the
     minimum cost of traversing the grid from coordinates (0, 0) to
@@ -4308,7 +4546,7 @@ def gridPathTwoWayMatrix(mat: List[List[int]], deepcopy_mat: bool=True) -> int:
                 each other and contain only non-negative integers.
         
         Optional named:
-        deepcopy_mat (bool): Whether a deep copy of mat should be
+        preserve_mat (bool): Whether a deep copy of mat should be
                 created, as the process changes mat and it will
                 not be able to be used for any other purposes.
             Default: True
@@ -4317,7 +4555,7 @@ def gridPathTwoWayMatrix(mat: List[List[int]], deepcopy_mat: bool=True) -> int:
     Integer (int) giving the minimum possible cost of traversing
     the grid based on the described conditions.
     """
-    if deepcopy_mat: mat = [list(row) for row in mat]
+    if preserve_mat: mat = [list(row) for row in mat]
     shape = (len(mat), len(mat[0]))
     for i2 in range(1, shape[1]):
         mat[0][i2] += mat[0][i2 - 1]
@@ -4327,9 +4565,13 @@ def gridPathTwoWayMatrix(mat: List[List[int]], deepcopy_mat: bool=True) -> int:
             mat[i1][i2] += min(mat[i1][i2 - 1], mat[i1 - 1][i2])
     return mat[-1][-1]
 
-def gridPathTwoWayFromFile(doc: str="0081_matrix.txt") -> int:
+def gridPathTwoWayFromFile(
+    doc: str="project_euler_problem_data_files/0081_matrix.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #81
+
     For a rectangular grid given in the .txt file doc, finds the
     smallest cost to traverse the grid from the top left hand
     corner to the bottom right hand corner while taking steps only
@@ -4348,24 +4590,36 @@ def gridPathTwoWayFromFile(doc: str="0081_matrix.txt") -> int:
         Optional named:
         doc (str): String giving the relative or absolute location
                 of the .txt file containing the rectangular grid.
-            Default: "0081_matrix.txt"
+            Default: "project_euler_problem_data_files/0081_matrix.txt"
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     This smallest cost of any traversal of the grid contained in
     doc from the top left hand corner to the bottom right hand
     corner.
     """
-    since = time.time()
-    mat = loadGrid(doc)
-    res = gridPathTwoWayMatrix(mat, deepcopy_mat=False)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #since = time.time()
+    mat = loadGrid(doc, rel_package_src=rel_package_src)
+    res = gridPathTwoWayMatrix(mat, preserve_mat=False)
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 82
-def gridPathThreeWayFromFile(doc: str="0082_matrix.txt",\
-        alg: Optional[str]=None, bidirectional: bool=True) -> int:
+# Review- consider enabling the use of the shortest path faster
+#         algorithms
+
+def gridPathThreeWayFromFile(
+    doc: str="project_euler_problem_data_files/0082_matrix.txt",
+    alg: str="findShortestPath",
+    bidirectional: bool=True,
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #82
+
     For a rectangular grid given in the .txt file doc, finds
     smallest cost to traverse the grid from any element along
     the left hand edge of the grid to any element along the
@@ -4384,19 +4638,34 @@ def gridPathThreeWayFromFile(doc: str="0082_matrix.txt",\
     Assumes that the grid does not contain any negative values.
     
     Args:
+        Optional named:
         doc (str): String giving the relative or absolute location
                 of the .txt file containing the rectangular grid.
+            Default: "project_euler_problem_data_files/0082_matrix.txt"
+        alg (str or None): String indicating which path finding
+                algorithm to use. The options are:
+                 - "dijkstra" (Uses the Dijkstra algorithms)
+                 - "findShortestPath" (the graph_classes package selects
+                    the most appropriate algorithm)
+            Default: "findShortestPath"
+        bidirectional (bool): Whether the search should be bidirectional
+                (if given as True) or unidirectional (if given as False).
+                Bidirectional is in general faster.
+            Default: True
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     This smallest cost of any traversal of the grid contained in
     doc from the left hand edge to the right hand edge with steps
     only in the up, down and right directions.
     """
-    since = time.time()
-    arr = loadGrid(doc)
+    #since = time.time()
+    arr = loadGrid(doc, rel_package_src=rel_package_src)
     grid = Grid(2, arr)
     has_neg = any(x < 0 for x in grid.arr_flat)
-    if alg is None: alg = "findShortestPath"
     
     #def restrictDirect(grid_idx: int, mv_idx: int) -> bool:
     #    dim_i = 1
@@ -4420,13 +4689,17 @@ def gridPathThreeWayFromFile(doc: str="0082_matrix.txt",\
     
     weight_func = lambda grid, grid_idx1, state_idx1, grid_idx2,\
             state_idx2, mv, n_step: grid.arr_flat[grid_idx2]
-    graph = GridWeightedDirectedGraph(grid, move_kwargs=move_kwargs,\
-                weight_func=weight_func, neg_weight_edge=has_neg)
+    graph = GridWeightedDirectedGraph(
+        grid,
+        move_kwargs=move_kwargs,
+        weight_func=weight_func,
+        neg_weight_edge=has_neg
+    )
     starts = {((x, 0), 0): grid[x, 0] for x in range(grid.shape[0])}
     ends = {((x, grid.shape[1] - 1), 0): 0 for x in range(grid.shape[0])}
     func = getattr(graph, alg)
     res = func(starts, ends, bidirectional=bidirectional)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[0]
     """
     since = time.time()
@@ -4458,10 +4731,15 @@ def gridPathThreeWayFromFile(doc: str="0082_matrix.txt",\
     """
     
 # Problem 83
-def gridPathFourWayFromFile(doc: str="0083_matrix.txt",\
-        alg: Optional[str]=None, bidirectional: bool=True) -> int:
+def gridPathFourWayFromFile(
+    doc: str="project_euler_problem_data_files/0083_matrix.txt",
+    alg: str="findShortestPath",
+    bidirectional: bool=True,
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #83
+
     For a rectangular grid given in the .txt file doc, finds
     smallest cost to traverse the grid from the top left hand
     corner to the bottom right hand corner. A traversal of the
@@ -4476,16 +4754,32 @@ def gridPathFourWayFromFile(doc: str="0083_matrix.txt",\
     Assumes that the grid does not contain any negative values.
     
     Args:
+        Optional named:
         doc (str): String giving the relative or absolute location
                 of the .txt file containing the rectangular grid.
+            Default: "project_euler_problem_data_files/0083_matrix.txt"
+        alg (str or None): String indicating which path finding
+                algorithm to use. The options are:
+                 - "dijkstra" (Uses the Dijkstra algorithms)
+                 - "findShortestPath" (the graph_classes package selects
+                    the most appropriate algorithm)
+            Default: "findShortestPath"
+        bidirectional (bool): Whether the search should be bidirectional
+                (if given as True) or unidirectional (if given as False).
+                Bidirectional is in general faster.
+            Default: True
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     This smallest cost of any traversal of the grid contained in
     doc from the top left hand corner to the bottom right hand
     corner.
     """
-    since = time.time()
-    arr = loadGrid(doc)
+    #since = time.time()
+    arr = loadGrid(doc, rel_package_src=rel_package_src)
     grid = Grid(2, arr)
     has_neg = any(x < 0 for x in grid.arr_flat)
     if alg is None: alg = "findShortestPath"
@@ -4499,7 +4793,7 @@ def gridPathFourWayFromFile(doc: str="0083_matrix.txt",\
     ends = {(tuple(x - 1 for x in grid.shape), 0): 0}
     func = getattr(graph, alg)
     res = func(starts, ends, bidirectional=bidirectional)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[0]
     """
     since = time.time()
@@ -4513,8 +4807,10 @@ def gridPathFourWayFromFile(doc: str="0083_matrix.txt",\
     """
 
 # Problem 84
-def diceDistributionRepeats(n_faces: int, n_dice: int)\
-        -> Tuple[Union[Dict[int, Tuple[int]], int]]:
+def diceDistributionRepeats(
+    n_faces: int,
+    n_dice: int,
+) -> Tuple[Union[Dict[int, Tuple[int]], int]]:
     # Review- simplify documentation. Repeated use of the word
     # value in multiple different contexts
     """
@@ -4642,9 +4938,10 @@ def diceDistributionRepeats(n_faces: int, n_dice: int)\
         tots[k] = tuple(tots[k])
     return (tots, n_faces ** n_dice)
 
-def monopolyTransitionFunction(start_idx: int,\
-        dice_distr: Tuple[Union[Dict[int, Tuple[int]], int]])\
-        -> Dict[Tuple[Union[int, bool]], float]:
+def monopolyTransitionFunction(
+    start_idx: int,\
+    dice_distr: Tuple[Union[Dict[int, Tuple[int]], int]]
+) -> Dict[Tuple[Union[int, bool]], float]:
     """
     From a given starting square on the Monopoly board, and a given
     probability distribution of dice roll results, determines the
@@ -4811,9 +5108,12 @@ def monopolyTransitionFunction(start_idx: int,\
                         p_pair2))
     return res
 
-def monopolyOdds(n_dice_faces: int=6, n_dice: int=2,\
-        n_double_jail: Optional[int]=3,\
-        jail_resets_doubles: bool=True) -> List[float]:
+def monopolyOdds(
+    n_dice_faces: int=6,
+    n_dice: int=2,
+    n_double_jail: Optional[int]=3,
+    jail_resets_doubles: bool=True
+) -> List[float]:
     """
     Calculates the expected proportion of turns in a Monopoly game
     that end on each square, where the sum of rolls of n_dice fair
@@ -4977,11 +5277,16 @@ def monopolyOdds(n_dice_faces: int=6, n_dice: int=2,\
         res[i % n] += v
     return res
 
-def monopolyOddsMostVisited(n_dice_faces: int=4, n_dice: int=2,\
-        n_double_jail: Optional[int]=3,\
-        jail_resets_doubles: bool=False, n_return: int=3) -> str:
+def monopolyOddsMostVisited(
+    n_dice_faces: int=4,
+    n_dice: int=2,
+    n_double_jail: Optional[int]=3,
+    jail_resets_doubles: bool=False,
+    n_return: int=3,
+) -> str:
     """
     Solution to Project Euler #84
+
     Finds the n_return squares on the Monopoly board on which the
     greatest expected proportion of turns end where the sum of rolls
     of n_dice fair dice with n_dice_faces (where the faces are labelled
@@ -5066,7 +5371,7 @@ def monopolyOddsMostVisited(n_dice_faces: int=4, n_dice: int=2,\
     they all contain exactly 2 digits. For instance, 0 is included as
     "00" and 2 is included as "02").
     """
-    since = time.time()
+    #since = time.time()
     p_lst = monopolyOdds(n_dice_faces=n_dice_faces, n_dice=n_dice,\
             n_double_jail=n_double_jail,\
             jail_resets_doubles=jail_resets_doubles)
@@ -5077,13 +5382,14 @@ def monopolyOddsMostVisited(n_dice_faces: int=4, n_dice: int=2,\
     res = []
     for i in range(min(n_return, n)):
         res.append(str(p_lst_sort[~i][0]).zfill(return_num_lens))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return "".join(res)
 
 # Problem 85
 def countingRectangles(target_count: int=2 * 10 ** 6) -> int:
     """
     Solution to Project Euler #85
+
     Consider a rectangular grid with integer side lengths and grid
     lines every unit starting from and parallel to each of the
     edges on the interior and edges of the rectangle. A certain
@@ -5112,7 +5418,7 @@ def countingRectangles(target_count: int=2 * 10 ** 6) -> int:
     which the number of distinct rectangles that can be formed
     in the manner described is closest to target_count.
     """
-    since = time.time()
+    #since = time.time()
     m = 1
     best_diff = float("inf")
     res = 0
@@ -5137,12 +5443,14 @@ def countingRectangles(target_count: int=2 * 10 ** 6) -> int:
         #print(m, n, a, diff1, diff2)
         m += 1
     #print(res, best_diff)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 86
-def pythagoreanTripleABMaxRangeGenerator(ab_mx_max: int,\
-        ab_mx_min: int=0) -> Generator[Tuple[int], None, None]:
+def pythagoreanTripleABMaxRangeGenerator(
+    ab_mx_max: int,
+    ab_mx_min: int=0,
+) -> Generator[Tuple[int], None, None]:
     """
     TODO
     """
@@ -5161,8 +5469,10 @@ def pythagoreanTripleABMaxRangeGenerator(ab_mx_max: int,\
                 yield tuple(k * x for x in primitive)
     return
 
-def pythagoreanTripleABMinRangeGenerator(ab_mn_max: int,\
-        ab_mn_min: int=0) -> Generator[Tuple[int], None, None]:
+def pythagoreanTripleABMinRangeGenerator(
+    ab_mn_max: int,
+    ab_mn_min: int=0,
+) -> Generator[Tuple[int], None, None]:
     """
     TODO
     """
@@ -5179,9 +5489,13 @@ def pythagoreanTripleABMinRangeGenerator(ab_mn_max: int,\
                 yield tuple(k * x for x in primitive)
     return
 
-def integerMinCuboidRoute(target_count: int=10 ** 6, increment: int=500):
+def integerMinCuboidRoute(
+    target_count: int=10 ** 6,
+    increment: int=500,
+) -> int:
     """
     Solution to Project Euler #86
+
     Consider the set of cuboids whose side lengths are all integers and the
     shortest path along the surface of the cuboid between opposite vertices
     is an integer. This function finds the smallest integer such that
@@ -5210,7 +5524,7 @@ def integerMinCuboidRoute(target_count: int=10 ** 6, increment: int=500):
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     start = 0
     prev_cumu = 0
     while True:
@@ -5230,24 +5544,29 @@ def integerMinCuboidRoute(target_count: int=10 ** 6, increment: int=500):
             cumu[a - start] += max(0, (b >> 1) + a - b + 1)
         if cumu[0] > target_count:
             #print(cumu)
-            print(f"Time taken = {time.time() - since:.4f} seconds")
+            #print(f"Time taken = {time.time() - since:.4f} seconds")
             return start
         for i in range(1, increment):
             cumu[i] += cumu[i - 1]
             if cumu[i] > target_count:
                 #print(cumu)
-                print(f"Time taken = {time.time() - since:.4f} seconds")
+                #print(f"Time taken = {time.time() - since:.4f} seconds")
                 return start + i
         start = end
         prev_cumu = cumu[-1]
         #print(start, cumu)
     return -1
 
-# Problem 87- try to make faster
-def countPrimePowerNTuples(mx_sum: int=5 * 10 ** 7 - 1, mn_pow: int=2,\
-        mx_pow: int=4) -> int:
+# Problem 87
+# Review- try to make faster
+def countPrimePowerNTuples(
+    mx_sum: int=5 * 10 ** 7 - 1,
+    mn_pow: int=2,
+    mx_pow: int=4,
+) -> int:
     """
     Solution to Project Euler #87
+
     Finds the number of integers not exceeding mx_sum which can be
     expressed as a sum of prime powers as follows:
         (sum from k=mn_pow to mx_pow) p_k ** k
@@ -5267,7 +5586,7 @@ def countPrimePowerNTuples(mx_sum: int=5 * 10 ** 7 - 1, mn_pow: int=2,\
     that can be expressed as the sum of prime powers in the manner
     described.
     """
-    since = time.time()
+    #since = time.time()
     m = mx_pow
     ps = PrimeSPFsieve()
     curr = {0}
@@ -5279,13 +5598,15 @@ def countPrimePowerNTuples(mx_sum: int=5 * 10 ** 7 - 1, mn_pow: int=2,\
                 num2 = num + p ** m
                 if num2 > mx_sum: break
                 curr.add(num2)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return len(curr)
 
 # Problem 88
-def factorisationGenerator(num: int, proper: bool=False,\
-        ps: Optional[PrimeSPFsieve]=None)\
-        -> Generator[Tuple[int], None, None]:
+def factorisationGenerator(
+    num: int,
+    proper: bool=False,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> Generator[Tuple[int], None, None]:
     """
     Generator iterating over the possible positive factorisations
     of a given positive integer such that each factor is greater
@@ -5367,6 +5688,7 @@ def factorisationGenerator(num: int, proper: bool=False,\
 def productSumNumbers(k_mn: int=2, k_mx: int=12000) -> int:
     """
     Solution to Project Euler #88
+
     Consider the set of all strictly positive integers such that there
     exists a multiset of between k_mn and k_mx (inclusive) strictly
     positive integers whose sum and product equals that integer.
@@ -5385,7 +5707,7 @@ def productSumNumbers(k_mn: int=2, k_mx: int=12000) -> int:
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     k_mn = max(k_mn, 1)
     seen_k = {1} if k_mn < 2 else set()
     res = {1} if k_mn < 2 else set()
@@ -5416,7 +5738,7 @@ def productSumNumbers(k_mn: int=2, k_mx: int=12000) -> int:
             break
         fact_lst.append(([num], num))
         factorisations.append(fact_lst)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res2
     """        
     since = time.time()
@@ -5445,7 +5767,10 @@ def productSumNumbers(k_mn: int=2, k_mx: int=12000) -> int:
 
 # Problem 89- this is overkill. Try looking directly at patterns in
 #             the numerals that can be shortened
-def loadRoman(doc: str) -> List[str]:
+def loadRoman(
+    doc: str,
+    rel_package_src: bool=False,
+) -> List[str]:
     """
     Loads a sequence of numbers expressed as Roman numerals from the
     .txt file at relative or absolute location doc, where the different
@@ -5456,14 +5781,19 @@ def loadRoman(doc: str) -> List[str]:
         doc (str): The relative or absolute location of the .txt file
                 containing the sequence of numbers expressed as
                 Roman numerals
+
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     List of strings (str) with the numbers expressed as Roman numerals
     in the .txt file at location doc in the order they appear in that
     file.
     """
-    with open(doc) as f:
-        txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     return [x.strip() for x in txt.split("\n")]
 
 def romanToInt(numeral: str) -> int:
@@ -5472,6 +5802,7 @@ def romanToInt(numeral: str) -> int:
     numeral.
     
     Args:
+        Required positional:
         numeral (str): String representing the Roman numeral.
     
     Returns:
@@ -5495,6 +5826,7 @@ def intToRoman(num: int) -> str:
     that value.
     
     Args:
+        Required positional:
         num (int): The strictly positive integer to be expressed as a
                 Roman numeral
     
@@ -5524,8 +5856,10 @@ def intToRoman(num: int) -> str:
             res.extend([numeral_vals[-1][1]] * (num * 2))
     return "".join(res[::-1])
 
-def romanNumeralsSimplificationScoreFromFile(\
-        doc: str="0089_roman.txt") -> int:
+def romanNumeralsSimplificationScoreFromFile(
+    doc: str="project_euler_problem_data_files/0089_roman.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #89
     For a sequence of Roman numeral expressions in the .txt file doc,
@@ -5535,10 +5869,15 @@ def romanNumeralsSimplificationScoreFromFile(\
     expressed in Roman numerals.
     
     Args:
+        Optional named:
         doc (str): The .txt file containing the sequence of Roman
                 numeral expressions, with each expression separated
                 by a line break ('\\n')
-            Default: "0089_roman.txt"
+            Default: "project_euler_problem_data_files/0089_roman.txt"
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
+            Default: True
     
     Returns:
     Integer (int) giving the total number of characters used to express
@@ -5546,20 +5885,27 @@ def romanNumeralsSimplificationScoreFromFile(\
     that could have been used to express the same sequence of values
     as Roman numerals.
     """
-    since = time.time()
-    numerals = loadRoman(doc)
+    #since = time.time()
+    numerals = loadRoman(doc, rel_package_src=rel_package_src)
     res = 0
     for s in numerals:
         num = romanToInt(s)
         s2 = intToRoman(num)
         #print(s, num, s2)
         res += len(s) - len(s2)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-# Problem 90- Needs tidying and/or simplifying
-def possibleCubes(targets: Set[Tuple[Tuple]],\
-        multiplicity: Dict[int, int], n_faces: int=6) -> List[Set[int]]:
+# Problem 90
+# Review- Needs tidying and/or simplifying
+def possibleCubes(
+    targets: Set[Tuple[Tuple]],
+    multiplicity: Dict[int, int],
+    n_faces: int=6,
+) -> List[Set[int]]:
+    """
+    TODO
+    """
 
     def addExtras(nums_lst: List[int], extra_lst: List[Tuple[int]])\
             -> Generator[List[Tuple[int]], None, None]:
@@ -5632,8 +5978,13 @@ def possibleCubes(targets: Set[Tuple[Tuple]],\
             res.add(tuple(nums))
     return res
 
-def combinationsWithReplacement(n: int, k: int)\
-        -> Generator[Tuple[int], None, None]:
+def combinationsWithReplacement(
+    n: int,
+    k: int
+) -> Generator[Tuple[int], None, None]:
+    """
+    TODO
+    """
     curr = []
     def recur(i: int=0, remain: int=k) -> Generator[Tuple[int], None, None]:
         if not remain:
@@ -5651,12 +6002,16 @@ def combinationsWithReplacement(n: int, k: int)\
     yield from recur(i=0, remain=k)
     return
 
-def cubeDigitPairs(n_cubes: int=2, n_faces: int=6, base: int=10,\
-        interchangeable: Tuple[Set[int]]=({6, 9},)) -> int:
+def cubeDigitPairsCount(
+    n_cubes: int=2,
+    n_faces: int=6,
+    base: int=10,
+    interchangeable: Tuple[Set[int]]=({6, 9},),
+) -> int:
     """
     Solution to Project Euler #90
     """
-    since = time.time()
+    #since = time.time()
     interchange_dict = {}
     multiplicity = {x: 1 for x in range(base)}
     for nums in interchangeable:
@@ -5720,13 +6075,15 @@ def cubeDigitPairs(n_cubes: int=2, n_faces: int=6, base: int=10,\
             for i in idx:
                 mult *= counts[i]
             res += mult
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
         
 
 # Problem 91
-def countRightTrianglesWithIntegerCoordinates(x_mx: int=50,\
-        y_mx: int=50) -> int:
+def countRightTrianglesWithIntegerCoordinates(
+    x_mx: int=50,
+    y_mx: int=50
+) -> int:
     """
     Solution to Project Euler #91
     Identifies the number of distinct right angled triangles that can
@@ -5753,7 +6110,7 @@ def countRightTrianglesWithIntegerCoordinates(x_mx: int=50,\
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     res = 3 * x_mx * y_mx
     for x in range(1, x_mx + 1):
         for y in range(1, y_mx + 1):
@@ -5761,10 +6118,11 @@ def countRightTrianglesWithIntegerCoordinates(x_mx: int=50,\
             vec = (y // g, -x // g)
             res += min((x_mx - x) // vec[0], y // (-vec[1]))
             res += min(x // vec[0], (y_mx - y) // (-vec[1]))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-# Problem 92- Try to make faster
+# Problem 92
+# Review- Try to make faster
 def squareDigitSum(num: int, base: int=10) -> int:
     """
     Finds the sum of the squares of the digits of non-negative
@@ -5793,6 +6151,7 @@ def squareDigitSum(num: int, base: int=10) -> int:
 def squareDigitChains(num_mx: int=10 ** 7 - 1) -> int:
     """
     Solution to Project Euler #92
+
     Consider the set of infinite integer sequences  where the first
     term is a strictly positive integer and every term after the first
     is the sum of the squares of the digits of the previous term when
@@ -5817,7 +6176,7 @@ def squareDigitChains(num_mx: int=10 ** 7 - 1) -> int:
     # smaller than that number for any number with at least 3
     # digits. Therefore, for integer n:
     #     squareDigitSum(num, base=10) <= max(num, 2 * 9 ** 2)
-    since = time.time()
+    #since = time.time()
     memo = [None for _ in range(max(num_mx, 2 * 9 ** 2)  + 1)]
     memo[1] = False
     memo[89] = True
@@ -5829,7 +6188,7 @@ def squareDigitChains(num_mx: int=10 ** 7 - 1) -> int:
         b = memo[stk.pop()]
         while stk: memo[stk.pop()] = b
         res += memo[num]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res 
             
 # Problem 93
@@ -5897,10 +6256,14 @@ def reachableIntegerRanges(nums: Set[int]) -> Tuple[Tuple[int]]:
             res[rng[0]] = res.popitem(i + 1)[1]
     return tuple((x, y) for x, y in res.items())
     
-def arithmeticExpressions(n_num: int=4, num_mn: int=1, num_mx: int=9)\
-        -> str:
+def arithmeticExpressions(
+    n_num: int=4,
+    num_mn: int=1,
+    num_mx: int=9,
+) -> str:
     """
     Solution to Project Euler #93
+    
     Finds a set of n_num distinct integers between num_mn and num_mx
     inclusive such that for an integer m, every integer between 1 and
     m inclusive can be expressed as an arithmetic expression involving
@@ -5929,7 +6292,7 @@ def arithmeticExpressions(n_num: int=4, num_mn: int=1, num_mx: int=9)\
     of the set of integers found concatenated in order of increasing
     size.
     """
-    since = time.time()
+    #since = time.time()
     if not n_num: return ""
     curr = [0] * n_num
     def recur(i: int=0, mn: int=num_mn) -> Generator[int, None, None]:
@@ -5948,14 +6311,16 @@ def arithmeticExpressions(n_num: int=4, num_mn: int=1, num_mx: int=9)\
         best = max(best, (rngs[i][1], nums))
     if not best[1]: return ""
     #print(best)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return "".join([str(x) for x in best[1]])
 
 # Problem 94
-def almostEquilateralTriangles(perimeter_max: int=10 ** 9)\
-        -> int:
+def almostEquilateralTriangles(
+    perimeter_max: int=10 ** 9,
+) -> int:
     """
     Solution to Project Euler #94
+
     An almost equilateral triangle is a triangle for which
     two sides are the same length and the third differs in
     length from the other two by no more than one unit.
@@ -6288,7 +6653,7 @@ def almostEquilateralTriangles(perimeter_max: int=10 ** 9)\
     the desired quantity (in this case the sum over all the
     perimeters) can be evaluated.
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for x, y in pellSolutionGenerator(D=3, negative=False):
         #print(f"x = {x}, y = {y}")
@@ -6299,10 +6664,11 @@ def almostEquilateralTriangles(perimeter_max: int=10 ** 9)\
             res += perim1
         if perim2 > perimeter_max: break
         res += perim2
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
         
-# Problem 95- try to make faster
+# Problem 95
+# Review- try to make faster
 def properFactorSum(num: int, ps: Optional[PrimeSPFsieve]=None) -> int:
     """
     For a strictly positive integer num, returns the sum of its positive
@@ -6335,6 +6701,7 @@ def properFactorSum(num: int, ps: Optional[PrimeSPFsieve]=None) -> int:
 def amicableChains(num_mx: int=10 ** 6) -> int:
     """
     Solution to Project Euler #95
+
     An amicable chain is a finite sequence of positive integers such
     that any element of the sequence other than the first is equal
     to the sum of proper positive factors of the preceding element
@@ -6360,7 +6727,7 @@ def amicableChains(num_mx: int=10 ** 6) -> int:
     an amicable chain of length m + 1 for which none of its elements
     exceed num_mx.
     """
-    since = time.time()
+    #since = time.time()
     ps = PrimeSPFsieve(num_mx)
     seen = {0, 1}
     res = (0, ())
@@ -6388,12 +6755,15 @@ def amicableChains(num_mx: int=10 ** 6) -> int:
             continue
         chain = (stk[i:] + stk[i0:i]) if i else stk[i0:]
         res = (length, tuple(chain))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
-    print(res)
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(res)
     return res[1][0]
 
 # Problem 96- try to incorporate more advanced solve techniques, e.g. pairs
-def loadSudokus(doc: str) -> Dict[str, List[str]]:
+def loadSudokusFromFile(
+    doc: str,
+    rel_package_src: bool=False,
+) -> Dict[str, List[str]]:
     """
     Loads a list of sudokus from the .txt file at relative or absolute
     location doc. Each sudoku in the .txt file should be separated
@@ -6405,10 +6775,17 @@ def loadSudokus(doc: str) -> Dict[str, List[str]]:
     Note that this currently does not support sudokus containing digits
     exceeding 9 (so for instance does not support 16x16 sudokus)
     
-    Required positional:
+    Args:
+        Required positional:
         doc (str): The relative or absolute path to the .txt
                 file containing the sudokus
-    
+
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or the
+                package directory (True).
+            Default: False
+
     Returns:
     Dictionary whose keys are the names of the sudokus in the .txt file
     at location doc, and for each key the corrseponding value is that
@@ -6416,8 +6793,7 @@ def loadSudokus(doc: str) -> Dict[str, List[str]]:
     a concatenation of the digits in the corresponding row of the
     sudoku with "0" used for blank squares.
     """
-    with open(doc) as f:
-        txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     lines = [x for x in txt.split("\n") if x]
     sudoku_dict = {}
     curr = None
@@ -6679,7 +7055,8 @@ class Sudoku:
                 n_opts_arr = get_func(idx, board=self.board_n_opts)
                 bm_arr = get_func(idx, board=self.board_bm)
                 n_opts_arr -= ((bm_arr & bm) != 0)
-                bm_arr &= np.array(~bm, dtype=self.bm_dtype)
+                bm2 = ((1 << self.length) - 1) & ~bm
+                bm_arr &= np.array(bm2, dtype=self.bm_dtype)
                 if np.any((val_arr == 0) & (n_opts_arr == 0)):
                     return False
                 idx_arr = get_func(idx, board=self.idx_arr)
@@ -6738,7 +7115,10 @@ class Sudoku:
                     if val: bm |= 1 << (val - 1)
                 if not bm: continue
                 bm_arr = get_func(idx, board=self.board_bm)
-                bm_arr &= np.array(~bm, dtype=self.bm_dtype)
+                #print(bm_arr)
+                #print(bm)
+                bm2 = ((1 << self.length) - 1) & ~bm
+                bm_arr &= np.array(bm2, dtype=self.bm_dtype)
         val_dict = {}
         for i1, i2_set in self.unset_idx.items():
             for i2 in i2_set:
@@ -6802,26 +7182,43 @@ class Sudoku:
         return
             
 
-def sudokusSolutionUpperLeftSumFromFile(doc: str="p096_sudoku.txt",\
-        print_time: bool=True) -> int:
+def sudokusSolutionUpperLeftSumFromFile(
+    sudoku_doc: str="project_euler_problem_data_files/p096_sudoku.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #96
+
+    TODO
+
+    Args:
+        Optional named:
+        sudoku_doc (str): The relative or absolute path to the .txt
+                file containing the sudokus
+            Default: "project_euler_problem_data_files/p096_sudoku.txt"
+        rel_package_src (bool): Whether a relative path given by
+                sudoku_doc is relative to the current directory (False)
+                or the package directory (True).
+            Default: True
+
     """
-    since = time.time()
-    board_dict = loadSudokus(doc)
+    #since = time.time()
+    board_dict = loadSudokusFromFile(sudoku_doc, rel_package_src=rel_package_src)
     empty_symbol = "0"
     
     sudoku_dict = {}
     res = 0
     for k, board in board_dict.items():
-        print(f"\n{k}")
+        #print(f"\n{k}")
         symbols = [str(x) for x in range(1, len(board) + 1)]
         sudoku_dict[k] = Sudoku(board, symbols,\
                 empty_symbol=empty_symbol)
-        print("Original board:")
-        print(str(sudoku_dict[k]))
-        solutions = list(sudoku_dict[k].backtrackSolve(\
-                print_time=print_time, check_solutions=True))
+        #print("Original board:")
+        #print(str(sudoku_dict[k]))
+        solutions = list(sudoku_dict[k].backtrackSolve(
+            print_time=False,
+            check_solutions=True,
+        ))
         if not solutions:
             raise ValueError(f"No solution found for {k}")
         elif len(solutions) > 1:
@@ -6829,17 +7226,21 @@ def sudokusSolutionUpperLeftSumFromFile(doc: str="p096_sudoku.txt",\
             raise ValueError(f"Multiple soluctions found for "
                     "{k}:{sol_str}")
         sol = solutions[0]
-        print("Solution:")
-        print(str(sol))
+        #print("Solution:")
+        #print(str(sol))
         sol_lst = sol.array2Symbol(sol.board)
         res += int("".join(sol_lst[0][:3]))
-    if print_time:
-        print(f"\nTotal time taken = {time.time() - since:.4f} seconds")
+    #if print_time:
+    #    print(f"\nTotal time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 97
-def largePowerModulo(a: int, b: int, md: int,\
-        ps: Optional[PrimeSPFsieve]=None) -> int:
+def largePowerModulo(
+    a: int,
+    b: int,
+    md: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
     """
     For integer a, non-negative integer b and strictly positive
     integer md, finds (a ** b) % md (i.e. a to the power of b
@@ -6885,12 +7286,18 @@ def largePowerModulo(a: int, b: int, md: int,\
         b >>= 1
     return res
 
-def largeNonMersennePrimeLastDigits(mult: int=28433, a: int=2,\
-        b: int=7830457, add: int=1, n_dig: int=10, base: int=10)\
-        -> int:
+def largeNonMersennePrimeLastDigits(
+    mult: int=28433,
+    a: int=2,
+    b: int=7830457,
+    add: int=1,
+    n_tail_dig: int=10,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #97
-    For integers mult, a, b and add, finds that last n_dig digits of
+
+    For integers mult, a, b and add, finds that rightmost n_dig digits of
     (mult * a ** b + add) when expressed in the chosen base.
     
     Args:
@@ -6903,7 +7310,8 @@ def largeNonMersennePrimeLastDigits(mult: int=28433, a: int=2,\
             Default: 7830457
         add (int): The integer add in the above equation
             Default: 1
-        n_dig (int): The number of digits in the chosen base to return
+        n_tail_dig (int): The number of rightmost digits of the solution
+                to return when represented in the chosen base.
             Default: 10
         base (int): The base in which the number is to be expressed
             Default: 10
@@ -6912,32 +7320,15 @@ def largeNonMersennePrimeLastDigits(mult: int=28433, a: int=2,\
     Integer (int) giving the value of the last n_dig digits of
     (mult * a ** b + add) when expressed in the chosen base
     """
-    since = time.time()
-    md = base ** 10
+    #since = time.time()
+    md = base ** n_tail_dig
     res = largePowerModulo(a, b, md)
     res = (res * (mult % md)) % md
     res = (res + (add % md)) % md
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 98- tidy up and try to speed up
-def loadWords(doc: str) -> List[str]:
-    """
-    Loads a list of words from a .txt file at relative or absolute
-    location doc, where the words in the file are separated by
-    commas and each surrounded by double quotation marks.
-    
-    Required positional:
-        doc (str): The relative or absolute path to the .txt
-                file containing the words
-    
-    Returns:
-    List of strs, containing the words in the .txt file doc
-    with the double quotation marks stripped.
-    """
-    with open(doc) as f:
-        s = f.read()
-    return [w.strip().strip("\"") for w in s.split(",")]
 
 def anagramSets(words: List[str]) -> Dict[int, List[Set[str]]]:
     """
@@ -6985,10 +7376,15 @@ def anagramSets(words: List[str]) -> Dict[int, List[Set[str]]]:
     return res
 
 
-def anagramicSquares(doc: str="0098_words.txt", base: int=10) -> int:
+def anagramicSquares(
+    doc: str="project_euler_problem_data_files/0098_words.txt",
+    base: int=10,
+    rel_package_src: bool=True,
+) -> int:
     # Review wording of documentation
     """
     Solution to Project Euler #98
+    
     Given a list of words in the .txt file doc and a given base,
     consider the set of pairs of these words such that the two
     words in the pair are different and are anagrams of each other
@@ -7012,7 +7408,7 @@ def anagramicSquares(doc: str="0098_words.txt", base: int=10) -> int:
                 should be contain the words separated by
                 commas with each word surrounded by double
                 quotation marks.
-            Default: 
+            Default: "project_euler_problem_data_files/0098_words.txt"
         base (int): The base from which the digits to which the
                 characters of the words are mapped to and in
                 which the resultant series of digits are
@@ -7020,6 +7416,10 @@ def anagramicSquares(doc: str="0098_words.txt", base: int=10) -> int:
                 This must be at least as large as the number
                 of distinct characters in any of the words
             Default: 10
+        rel_package_src (bool): Whether a relative path given by
+                doc is relative to the current directory (False)
+                or the package directory (True).
+            Default: True
     
     Returns:
     Integer (int) giving the largest value that any valid word pair
@@ -7027,8 +7427,8 @@ def anagramicSquares(doc: str="0098_words.txt", base: int=10) -> int:
     expressed in the chosen base. If there are no valid word pair and
     bijection combinations, returns 0.
     """
-    since = time.time()
-    words = loadWords(doc)
+    #since = time.time()
+    words = loadStringsFromFile(doc, rel_package_src=rel_package_src)
     anagrams = anagramSets(words)
     lengths = sorted(anagrams.keys())
     mx_n_dig = lengths[-1]
@@ -7127,13 +7527,16 @@ def anagramicSquares(doc: str="0098_words.txt", base: int=10) -> int:
                             res = max(res, (ans, w1, w2))
         if res[0] != -1: break
     else: return 0
-    print(f"Best anagram pair was ({res[1]}, {res[2]}), with "
-            f"corresponding larger square {res[0]}")
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Best anagram pair was ({res[1]}, {res[2]}), with "
+    #        f"corresponding larger square {res[0]}")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[0]
 
 # Problem 99
-def loadExponentPairs(doc: str) -> List[Tuple[int]]:
+def loadExponentPairsFromFile(
+    doc: str,
+    rel_package_src: bool=True,
+) -> List[Tuple[int]]:
     """
     Loads a list of base exponent pairs from a .txt file at
     relative or absolute location doc, where the pairs are
@@ -7142,9 +7545,16 @@ def loadExponentPairs(doc: str) -> List[Tuple[int]]:
     with the base before the comma and exponent after the
     comma.
     
-    Required positional:
+    Args:
+        Required positional:
         doc (str): The relative or absolute path to the .txt
                 file containing the base exponent pairs
+
+        Optional named:
+        rel_package_src (bool): Whether a relative path given by
+                doc is relative to the current directory (False)
+                or the package directory (True).
+            Default: False
     
     Returns:
     List of 2-tuples of ints, with each 2-tuple containing
@@ -7153,8 +7563,7 @@ def loadExponentPairs(doc: str) -> List[Tuple[int]]:
     pairs are in the list in the same order they appear in
     doc.
     """
-    with open(doc) as f:
-        txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     return [tuple(int(y) for y in x.split(",")) for x in txt.split("\n")]
 
 def largestLogExponential(exp_pairs: List[Tuple[int]]) -> int:
@@ -7186,9 +7595,13 @@ def largestLogExponential(exp_pairs: List[Tuple[int]]) -> int:
         res = max(res, (pair[1] * math.log(pair[0]), i))
     return res
 
-def largestExponential(doc: str="0099_base_exp.txt"):
+def largestExponential(
+    doc: str="project_euler_problem_data_files/0099_base_exp.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #99
+
     For a .txt file at relative or absolute location doc
     containing base exponent pairs (where the pairs are
     separated from each other by line breaks- '\\n'- and the
@@ -7203,7 +7616,11 @@ def largestExponential(doc: str="0099_base_exp.txt"):
         Optional named:
         doc (str): The relative or absolute path to the .txt
                 file containing the base exponent pairs
-            Default: "0099_base_exp.txt"
+            Default: "project_euler_problem_data_files/0099_base_exp.txt"
+        rel_package_src (bool): Whether a relative path given by
+                doc is relative to the current directory (False)
+                or the package directory (True).
+            Default: True
     
     Returns:
     The line number of the base exponent pairs in the .txt
@@ -7211,16 +7628,17 @@ def largestExponential(doc: str="0099_base_exp.txt"):
     the exponent is largest, with the lowest of the relevant
     line numbers being chosen in the case of a tie.
     """
-    since = time.time()
-    exp_pairs = loadExponentPairs(doc)
+    #since = time.time()
+    exp_pairs = loadExponentPairsFromFile(doc, rel_package_src=rel_package_src)
     res = largestLogExponential(exp_pairs)[1] + 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 100
 def arrangedProbability(min_tot: int=10 ** 12 + 1) -> int:
     """
     Solution to Project Euler #100
+
     Consider the set of boxes containing an integer number
     of blue discs and an integer number of red discs such
     that there are at least max(mn, 2) discs in each box and
@@ -7274,11 +7692,11 @@ def arrangedProbability(min_tot: int=10 ** 12 + 1) -> int:
     that x' and y' are both odd does not need to be separately
     checked.
     """
-    since = time.time()
+    #since = time.time()
     target_x_ = 2 * min_tot - 1
     for x_, y_ in pellSolutionGenerator(D=2, negative=True):
         if x_ > target_x_: break
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return (y_ + 1) >> 1
 
 ##############
@@ -7298,6 +7716,317 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
         )
         print(f"Solution to Project Euler #51 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 52 in eval_nums:
+        since = time.time()
+        res = permutedMultiples(n_permutes=6, n_dig_mx=10, base=10)
+        print(f"Solution to Project Euler #52 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 53 in eval_nums:
+        since = time.time()
+        res = combinatoricSelections(n_mn=1, n_mx=100, cutoff=10 ** 6)
+        print(f"Solution to Project Euler #53 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 54 in eval_nums:
+        since = time.time()
+        res = numberOfPokerHandsWon(
+            hand_file="project_euler_problem_data_files/p054_poker.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #54 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 55 in eval_nums:
+        since = time.time()
+        res = countLychrelNumbers(n_max=10 ** 4, iter_cap=50, base=10)
+        print(f"Solution to Project Euler #55 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 56 in eval_nums:
+        since = time.time()
+        res = powerfulDigitSum(a_mx=99, b_mx=99, base=10)
+        print(f"Solution to Project Euler #56 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 57 in eval_nums:
+        since = time.time()
+        res = squareRootTwoConvergents(n_expansions=1000, base=10)
+        print(f"Solution to Project Euler #57 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 58 in eval_nums:
+        since = time.time()
+        res = spiralPrimes(target_ratio=10)
+        print(f"Solution to Project Euler #58 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 59 in eval_nums:
+        since = time.time()
+        res = xorDecryption(
+            doc="project_euler_problem_data_files/p059_cipher.txt",
+            key_len=3,
+            auto_select=True,
+            n_candidates=3,
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #59 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 60 in eval_nums:
+        since = time.time()
+        res = minimumPrimePairSetsSum(n_pair=5, base=10)
+        print(f"Solution to Project Euler #60 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 61 in eval_nums:
+        since = time.time()
+        res = cyclicalFigurateNumbersSum(n_dig=4, k_min=3, k_max=8, base=10)
+        print(f"Solution to Project Euler #61 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 62 in eval_nums:
+        since = time.time()
+        res = smallestWithMNthPowerPermutations(m=5, n=3, base=10)
+        print(f"Solution to Project Euler #62 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 63 in eval_nums:
+        since = time.time()
+        res = powerfulDigits(base=10)
+        print(f"Solution to Project Euler #63 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 64 in eval_nums:
+        since = time.time()
+        res = sqrtCFCycleLengthOddTotal(mx=10 ** 4)
+        print(f"Solution to Project Euler #64 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 65 in eval_nums:
+        since = time.time()
+        res = convergentENumeratorDigitSum(n=100, base=10)
+        print(f"Solution to Project Euler #65 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 66 in eval_nums:
+        since = time.time()
+        res = pellLargestFundamentalSolution(D_max=1000)
+        print(f"Solution to Project Euler #66 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 67 in eval_nums:
+        since = time.time()
+        res = triangleMaxSumFromFile(
+            triangle_doc="project_euler_problem_data_files/p067_triangle.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #67 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 68 in eval_nums:
+        since = time.time()
+        res = magic5gonRing()
+        print(f"Solution to Project Euler #68 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 69 in eval_nums:
+        since = time.time()
+        res = totientMaximum(n_max=10 ** 6)
+        print(f"Solution to Project Euler #69 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 70 in eval_nums:
+        since = time.time()
+        res = totientPermutation(num_mn=2, num_mx=10 ** 7 - 1, base=10)
+        print(f"Solution to Project Euler #70 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 71 in eval_nums:
+        since = time.time()
+        res = orderedFractions(frac=(3, 7), max_denom=10 ** 6)
+        print(f"Solution to Project Euler #71 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 72 in eval_nums:
+        since = time.time()
+        res = countingFractions(max_denom=10 ** 6)
+        print(f"Solution to Project Euler #72 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 73 in eval_nums:
+        since = time.time()
+        res = countingFractionsRange(
+            lower_frac=(1, 3),
+            upper_frac=(1, 2),
+            max_denom=12 * 10 ** 3,
+        )
+        print(f"Solution to Project Euler #73 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 74 in eval_nums:
+        since = time.time()
+        res = countDigitFactorialChains(chain_len=60, n_max=10 ** 6 - 1, base=10)
+        print(f"Solution to Project Euler #74 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 75 in eval_nums:
+        since = time.time()
+        res = countUniquePythagoreanTripleSums(n_max=15 * 10 ** 5)
+        print(f"Solution to Project Euler #75 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 76 in eval_nums:
+        since = time.time()
+        res = partitionFunctionNontrivial(n=100)
+        print(f"Solution to Project Euler #76 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 77 in eval_nums:
+        since = time.time()
+        res = primeSummations(target_count=5000, batch_size=100)
+        print(f"Solution to Project Euler #77 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 78 in eval_nums:
+        since = time.time()
+        res = coinPartitions(div=10 ** 6)
+        print(f"Solution to Project Euler #78 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 79 in eval_nums:
+        since = time.time()
+        res = passcodeDerivation(
+            doc="project_euler_problem_data_files/0079_keylog.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #79 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 80 in eval_nums:
+        since = time.time()
+        res = squareRootDigitalExpansionSum(num_max=100, n_dig=100, base=10)
+        print(f"Solution to Project Euler #80 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 81 in eval_nums:
+        since = time.time()
+        res = gridPathTwoWayFromFile(
+            doc="project_euler_problem_data_files/0081_matrix.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #81 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 82 in eval_nums:
+        since = time.time()
+        res = gridPathThreeWayFromFile(
+            doc="project_euler_problem_data_files/0082_matrix.txt",
+            alg="findShortestPath",
+            bidirectional=True,
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #82 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 83 in eval_nums:
+        since = time.time()
+        res = gridPathFourWayFromFile(
+            doc="project_euler_problem_data_files/0083_matrix.txt",
+            alg="findShortestPath",
+            bidirectional=True,
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #83 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 84 in eval_nums:
+        since = time.time()
+        res = monopolyOddsMostVisited(
+            n_dice_faces=4,
+            n_dice=2,
+            n_double_jail=3,
+            jail_resets_doubles=False,
+            n_return=3,
+        )
+        print(f"Solution to Project Euler #84 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 85 in eval_nums:
+        since = time.time()
+        res = countingRectangles(target_count=2 * 10 ** 6)
+        print(f"Solution to Project Euler #85 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 86 in eval_nums:
+        since = time.time()
+        res = integerMinCuboidRoute(
+            target_count=10 ** 6,
+            increment=500,
+        )
+        print(f"Solution to Project Euler #86 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 87 in eval_nums:
+        since = time.time()
+        res = countPrimePowerNTuples(
+            mx_sum=5 * 10 ** 7 - 1,
+            mn_pow=2,
+            mx_pow=4,
+        )
+        print(f"Solution to Project Euler #87 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 88 in eval_nums:
+        since = time.time()
+        res = productSumNumbers(k_mn=2, k_mx=12000)
+        print(f"Solution to Project Euler #88 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 89 in eval_nums:
+        since = time.time()
+        res = romanNumeralsSimplificationScoreFromFile(
+            doc="project_euler_problem_data_files/0089_roman.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #89 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 90 in eval_nums:
+        since = time.time()
+        res = cubeDigitPairsCount(n_cubes=2, n_faces=6, base=10, interchangeable=({6, 9},))
+        print(f"Solution to Project Euler #90 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 91 in eval_nums:
+        since = time.time()
+        res = countRightTrianglesWithIntegerCoordinates(x_mx=50, y_mx=50)
+        print(f"Solution to Project Euler #91 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 92 in eval_nums:
+        since = time.time()
+        res = squareDigitChains(num_mx=10 ** 7 - 1)
+        print(f"Solution to Project Euler #92 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 93 in eval_nums:
+        since = time.time()
+        res = arithmeticExpressions(n_num=4, num_mn=1, num_mx=9)
+        print(f"Solution to Project Euler #93 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 94 in eval_nums:
+        since = time.time()
+        res = almostEquilateralTriangles(perimeter_max=10 ** 9)
+        print(f"Solution to Project Euler #94 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 95 in eval_nums:
+        since = time.time()
+        res = amicableChains(num_mx=10 ** 6)
+        print(f"Solution to Project Euler #95 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 96 in eval_nums:
+        since = time.time()
+        res = sudokusSolutionUpperLeftSumFromFile(
+            sudoku_doc="project_euler_problem_data_files/p096_sudoku.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #96 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 97 in eval_nums:
+        since = time.time()
+        res = largeNonMersennePrimeLastDigits(
+            mult=28433,
+            a=2,
+            b=7830457,
+            add=1,
+            n_tail_dig=10,
+            base=10,
+        )
+        print(f"Solution to Project Euler #97 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 98 in eval_nums:
+        since = time.time()
+        res = anagramicSquares(
+            doc="project_euler_problem_data_files/0098_words.txt",
+            base=10,
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #98 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 99 in eval_nums:
+        since = time.time()
+        res = largestExponential(
+            doc="project_euler_problem_data_files/0099_base_exp.txt",
+            rel_package_src=True,
+        )
+        print(f"Solution to Project Euler #99 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 100 in eval_nums:
+        since = time.time()
+        res = arrangedProbability(min_tot=10 ** 12 + 1)
+        print(f"Solution to Project Euler #100 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+
 if __name__ == "__main__":
-    eval_nums = {51}
+    eval_nums = {100}
     evaluateProjectEulerSolutions1to50(eval_nums)
