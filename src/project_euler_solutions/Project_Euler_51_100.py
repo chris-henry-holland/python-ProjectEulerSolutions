@@ -6968,7 +6968,15 @@ def loadSudokusFromFile(
             sudoku_dict[curr].append(line2)
     return sudoku_dict
 
-class Sudoku:
+# Review- revise naming. In particular board, which at some points
+#   refers to the symbol representation and at others the integer
+#   numpy array representation.
+
+# Review- consider splitting this off into its own project to
+# experiment with more advanced logic, including pairs and triples
+# to reduce the extent to which backtracking is required and so
+# speed up evaluation time.
+class Sudoku(object):
     """
     Class whose instances represent sudokus, containing methods to
     check that the sudoku is valid and solve the sudoku.
@@ -6995,6 +7003,8 @@ class Sudoku:
     Attributes:
         length (int): The number of small squares in each side of the
                 sudoku board. Is a square number.
+        square_len (int): The number of elements in each side of the squares.
+                This is the square root of the attribute length.
         symbol_lst (list of hashable objects): A complete list of the
                 symbols used in the sudoku including the symbol
                 representing an empty square (i.e. initialsiation
@@ -7043,11 +7053,11 @@ class Sudoku:
         if length != len(symbols):
             raise ValueError("board must have dimensions equal to the "
                         "number of symbols")
-        sz = isqrt(length)
-        if sz * sz != length:
+        square_len = isqrt(length)
+        if square_len * square_len != length:
             raise ValueError("board must have dimensions which equal "
                     "an exact square")
-        self.sz = sz
+        self.square_len = square_len
         self.length = length
         for i in range(len(self.bm_dict), length):
             self.bm_dict[1 << i] = i + 1
@@ -7079,6 +7089,23 @@ class Sudoku:
         return res
     
     def array2Symbol(self, arr: np.ndarray) -> List[List[Hashable]]:
+        """
+        Method converting an integer array board representation into
+        a list of list of symbols, based on self.symbol_list.
+
+        Args:
+            arr (self.length x self.length numpy array): An array
+                    of integers representing the board state to be
+                    converted.
+
+        Returns:
+        List of lists of hashable objects, representing the same board
+        state in symbols as arr represents with integers based on the
+        correspondence defined by the attributes self.symbol_list and
+        self.symbol_dict. The outer list and every inner list have
+        length self.length and contain as elements the contents of
+        self.symbol_list.
+        """
         res = [[0 for _ in range(self.length)] for _ in range(self.length)]
         for i1, row in enumerate(arr):
             for i2, num in enumerate(row):
@@ -7086,6 +7113,23 @@ class Sudoku:
         return res
     
     def symbol2Array(self, board: List[List[Hashable]]) -> np.ndarray:
+        """
+        Method converting a list of lists of symbols board representation
+        into an integer array board representation, based on self.symbol_list.
+
+        Args:
+            board (list of lists of hashable objects): A list of lists of
+                    symbols representing the board state to be converted,
+                    with symbols all present in the attribute
+                    self.symbol_list. The outer list and each inner list
+                    should have length self.length.
+
+        Returns:
+        A self.length x self.length integer numpy array, representing the
+        same board state as board represents with symbols based on the
+        correspondence defined by the attributes self.symbol_list and
+        self.symbol_dict.
+        """
         res = np.zeros((self.length, self.length), dtype=self.val_dtype)
         for i1, row in enumerate(board):
             for i2, s in enumerate(row):
@@ -7105,19 +7149,28 @@ class Sudoku:
                 n_spc_suff = d - n_spc_pref
                 row_print.append("".join([" " * (n_spc_pref + bool(j)),\
                         s, " " * n_spc_suff]))
-                if j % self.sz == self.sz - 1 and j != len(row) - 1:
+                if j % self.square_len == self.square_len - 1 and j != len(row) - 1:
                     row_print.append(' |')
             res.append(''.join(row_print))
-            if i % self.sz == self.sz - 1 and i != len(self.board) - 1:
+            if i % self.square_len == self.square_len - 1 and i != len(self.board) - 1:
                 res.append("-" * len(res[-1]))
         return "\n".join(res)
     
     def resetBoard(self) -> None:
+        """
+        Method resetting the sudoku to its original state.
+
+        Args:
+            None
+
+        Returns:
+        None
+        """
         #print("reset")
         self.board = copy.deepcopy(self.board_orig)
         board = self.board
         length = self.length
-        empty_symbol = self.symbol_lst[0]
+        #empty_symbol = self.symbol_lst[0]
         self.board_bm = np.zeros((length, length), dtype=self.bm_dtype)
         self.board_n_opts = np.full((length, length), length,\
                                     dtype=self.val_dtype)
@@ -7137,42 +7190,161 @@ class Sudoku:
                     self.board_n_opts[idx] = 0
         return
     
-    def rowIdxGenerator(self) -> Generator[Tuple[int], None, None]:
+    def rowIdxGenerator(self) -> Generator[Tuple[int, int], None, None]:
+        """
+        Generator yielding the indices of one element in each
+        different row.
+
+        Args:
+            None
+
+        Yields:
+        2-tuple of ints giving the indices of an element of the
+        board, with each yielded corresponding to a different
+        row and all rows represented.
+        """
         for i1 in range(self.length):
             yield (i1, 0)
         return
     
     def columnIdxGenerator(self) -> Generator[Tuple[int], None, None]:
+        """
+        Generator yielding the indices of one element in each
+        different column.
+
+        Args:
+            None
+
+        Yields:
+        2-tuple of ints giving the indices of an element of the
+        board, with each yielded corresponding to a different
+        column and all columns represented.
+        """
         for i2 in range(self.length):
             yield (0, i2)
         return
     
     def squareIdxGenerator(self) -> Generator[Tuple[int], None, None]:
-        for i1 in range(0, self.length, self.sz):
-            for i2 in range(0, self.length, self.sz):
+        """
+        Generator yielding the indices of one element in each
+        different square.
+
+        Args:
+            None
+
+        Yields:
+        2-tuple of ints giving the indices of an element of the
+        board, with each yielded corresponding to a different
+        square and all squares represented.
+        """
+        for i1 in range(0, self.length, self.square_len):
+            for i2 in range(0, self.length, self.square_len):
                 yield (i1, i2)
         return
     
-    def getRow(self, idx: Tuple[int], board: Optional[np.ndarray]=None)\
-            -> np.ndarray:
+    def getRow(
+        self,
+        idx: Tuple[int, int],
+        board: Optional[np.ndarray]=None,
+    ) -> np.ndarray:
+        """
+        Method giving the section of the board belonging to the row
+        containing the element at index idx, as a 1 x self.length
+        integer numpy array.
+
+        Args:
+            Required positional:
+            idx (2-tuple of ints): The indices of one of the elements
+                    the row to be returned belongs.
+            
+            Optional named:
+            board (self.length x self.length numpy array or None): If
+                    specified, the board from which the row is to be
+                    extracted. Otherwise, the row is extracted from
+                    self.board.
+        
+        Returns:
+        1 x self.length integer numpy array representing the state
+        of the selected row.
+        """
         if board is None: board = self.board
         slc = (slice(idx[0], idx[0] + 1), slice(None))
         return board[slc]
     
-    def getColumn(self, idx: Tuple[int], board: Optional[np.ndarray]=None)\
-            -> np.ndarray:
+    def getColumn(
+        self,
+        idx: Tuple[int, int],
+        board: Optional[np.ndarray]=None
+    ) -> np.ndarray:
+        """
+        Method giving the section of the board belonging to the column
+        containing the element at index idx, as a self.length x 1
+        integer numpy array.
+
+        Args:
+            Required positional:
+            idx (2-tuple of ints): The indices of one of the elements
+                    the column to be returned belongs.
+            
+            Optional named:
+            board (self.length x self.length numpy array or None): If
+                    specified, the board from which the column is to be
+                    extracted. Otherwise, the column is extracted from
+                    self.board.
+        
+        Returns:
+        self.length x 1 integer numpy array representing the state
+        of the selected column.
+        """
         if board is None: board = self.board
         slc = (slice(None), slice(idx[1], idx[1] + 1))
         return board[slc]
     
-    def getSquare(self, idx: Tuple[int], board: Optional[np.ndarray]=None)\
-            -> np.ndarray:
+    def getSquare(
+        self,
+        idx: Tuple[int, int],
+        board: Optional[np.ndarray]=None
+    ) -> np.ndarray:
+        """
+        Method giving the section of the board belonging to the square
+        containing the element at index idx, as a
+        self.square_len x self.square_len integer numpy array.
+
+        Args:
+            Required positional:
+            idx (2-tuple of ints): The indices of one of the elements
+                    the square to be returned belongs.
+            
+            Optional named:
+            board (self.length x self.length numpy array or None): If
+                    specified, the board from which the square is to be
+                    extracted. Otherwise, the square is extracted from
+                    self.board.
+        
+        Returns:
+        self.square_len x self.square_len integer numpy array representing
+        the state of the selected square.
+        """
         if board is None: board = self.board
-        idx2 = tuple((x // self.sz) * self.sz for x in idx)
-        slc = tuple(slice(x, x + self.sz, 1) for x in idx2)
+        idx2 = tuple((x // self.square_len) * self.square_len for x in idx)
+        slc = tuple(slice(x, x + self.square_len, 1) for x in idx2)
         return board[slc]
     
     def isValid(self) -> bool:
+        """
+        Method checking whether the current state contains any
+        direct conflicts (i.e. the same element more than once
+        in any square, row or column).
+        Note that a returned value of True does not guarantee
+        that a solution for the current state exists.
+
+        Args:
+            None
+
+        Returns:
+        Boolean (bool) giving False if the current state contains
+        a direct conflict, True otherwise.
+        """
         for (idx_gen, get_func) in ((self.rowIdxGenerator, self.getRow),\
                 (self.columnIdxGenerator, self.getColumn),\
                 (self.squareIdxGenerator, self.getSquare)):
@@ -7187,25 +7359,78 @@ class Sudoku:
         return True
     
     def checkSolution(self) -> bool:
-        if self.board.shape != self.board_orig.shape  or 0 in self.board or not self.isValid():
+        """
+        Method checking whether the current state constitutes
+        a valid solution for the initial state. This constitutes:
+         1) Checking that the board still has the same dimensions
+         2) The current state has no direct conflicts
+         3) There are no unset elements
+         4) All set elements in the initial state have their
+            corresponding elements in the current state set to
+            the same value.
+        
+        Args:
+            None
+
+        Returns:
+        Boolean (bool) giving True if the current state constitutes
+        a valid solution for the initial state, otherwise False.
+        """
+        if self.board.shape != self.board_orig.shape or 0 in self.board or not self.isValid():
             return False
         for row1, row2 in zip(self.board_orig, self.board):
             for num1, num2 in zip(row1, row2):
                 if num1 and num1 != num2: return False
         return True
     
-    def setValues(self, val_dict: Dict[Tuple[int], str],\
-            recursive: bool=True) -> bool:
-        return self._setValue({idx: self.symbol_dict[val] for idx, val in val_dict.items()},\
-                recursive=recursive)
+    def setValues(
+        self,
+        val_dict: Dict[Tuple[int], str],
+        recursive: bool=True
+    ) -> bool:
+        """
+        Method setting the values at given positions on the board,
+        and (if recursive is set to True) propogating those changes
+        forwards to see if they affect the possible values at other
+        positions.
+
+        Args:
+            Required positional:
+            val_dict (dict): Dictionary whose keys are 2-tuples of
+                    ints indicating the indices of the position on
+                    the board to be set and corresponding value being
+                    the symbol to which that the position should be set.
+
+            Optional named:
+            recursive (bool): Indicates whether to recursively propogate
+                    this result (if True) or simply update the values
+                    directly affected (if False)
+                Default: True
+        
+        Returns:
+        Boolean (bool) indicating whether setting the given values gave
+        rise to a valid state (if True) or gave rise to a contradiction
+        (either through a direct conflict or a conflict arising through
+        recursive propogation if the input recursive is True).
+        """
+        return self._setValue(
+            {idx: self.symbol_dict[val] for idx, val in val_dict.items()},
+            recursive=recursive
+        )
     
-    def _setValues(self, val_dict: Dict[Tuple[int], int],\
-            recursive: bool=True, find_forces: bool=True) -> bool:
+    def _setValues(
+        self,
+        val_dict: Dict[Tuple[int], int],
+        recursive: bool=True,
+        find_forces: bool=True
+    ) -> bool:
+        # The potentially recursive implementation behind the setValues()
+        # method that should be accessed through that function.
         if not val_dict: return True
         add_idx = set()
         for idx, val in val_dict.items():
             bm = 1 << (val - 1)
-            if not self.board_bm[idx] or not self.board_bm[idx] & bm:
+            if not self.board_bm[idx] & bm:
                 return False
             self.board_bm[idx] = 0
             self.board[idx] = val
@@ -7235,12 +7460,38 @@ class Sudoku:
                 val_dict_nxt[k] = v
         return self._setValues(val_dict_nxt, recursive=True)
     
-    def findForces(self) -> Tuple[Union[bool, Dict[Tuple[int], int]]]:
+    def findForces(self) -> Tuple[bool, Dict[Tuple[int], int]]:
+        """
+        Method that for the current state calculates whether there
+        are any positions that are not set and are directly prevented
+        from taking any value (implying that the current state is
+        unsolvable) and if not finds any positions that are not
+        currently set but are directly prevented from taking all but
+        one value (and so can and should be set to that value).
+
+        Args:
+            None
+        
+        Returns:
+        2-tuple where:
+         - Index 0 contains a boolean (bool) indicating whether all
+           positions that are not set are able to take at least one
+           value.
+         - Index 1 contains a dictionary (dict). If the boolean in 
+           index 0 is False, then the dictionary is empty. Otherwise,
+           it contains as keys 2-tuples of ints giving the indices
+           of the positions that are not currently set but are
+           directly prevented from taking all but one value (and so
+           can and should be set to that value), with the
+           corresponding dictionary value being that value.
+        """
         #print("using findForces()")
         val_dict_nxt = {}
-        for (idx_gen, get_func) in ((self.rowIdxGenerator, self.getRow),\
-                (self.columnIdxGenerator, self.getColumn),\
-                (self.squareIdxGenerator, self.getSquare)):
+        for (idx_gen, get_func) in (
+            (self.rowIdxGenerator, self.getRow),
+            (self.columnIdxGenerator, self.getColumn),
+            (self.squareIdxGenerator, self.getSquare),
+        ):
             for idx in idx_gen():
                 bm_arr = get_func(idx, board=self.board_bm)
                 bm_cumu = []
@@ -7262,11 +7513,26 @@ class Sudoku:
                             return (False, {})
                         val_dict_nxt[(idx[0] + i1, idx[1] + i2)] = self.bm_dict[bm2]
         return (True, val_dict_nxt)
-                        
-                            
     
     def setupBoard(self) -> bool:
-        
+        """
+        Method initialising the variables related to the board
+        in the initial state, in particular calculating which
+        values each non-set position can take and recursively
+        setting any non-set positions that logically can take
+        one and only one value.
+
+        Args:
+            None
+
+        Returns:
+        Boolean (bool) indicating whether the starting state
+        leads to an unavoidable conflict (in which case False is
+        returned, indicating that there cannot exist solutions),
+        or this initial setup did not encounter any unavoidable
+        conflicts (in which case True is returned, indicating that
+        there may or may not exist one or more solutions).
+        """
         for (idx_gen, get_func) in ((self.rowIdxGenerator, self.getRow),\
                 (self.columnIdxGenerator, self.getColumn),\
                 (self.squareIdxGenerator, self.getSquare)):
@@ -7298,8 +7564,38 @@ class Sudoku:
     
     
     
-    def backtrackSolve(self, print_time: bool=False, check_solutions: bool=True)\
-            -> Generator["Sudoku", None, None]:
+    def backtrackSolve(
+        self,
+        print_time: bool=False,
+        check_solutions: bool=True
+    ) -> Generator["Sudoku", None, None]:
+        """
+        Generator using backtracking with pruning through using
+        simple logical deductions to rule out impossible states
+        in order to yield all possible solutions to the sudoku
+        given the initial state provided.
+
+        Args:
+            Optional named:
+            print_time (bool): Indicates whether the time taken
+                    to solve should be printed to console (True)
+                    or not (False).
+                Default: False
+            check_solutions (bool): Whether each solution should
+                    be double-checked to ensure it is a valid
+                    solution to the initial state (if True then
+                    yes, if False then no). This is for the purpose
+                    of debugging, as if the method is working
+                    correctly it should not be necessary. As such,
+                    if this is set to True and an invalid solution
+                    is identified, then a ValueError will be raised.
+                Default: True
+        Yields:
+        A Sudoku object that is a valid solution to the initial
+        state. Collectively, all possible such solutions are yielded.
+        These are yielded in the order they are discovered, which
+        has no special significance.
+        """
         since = time.time()
         if not self.setupBoard():
             #print("hello")
@@ -7307,7 +7603,11 @@ class Sudoku:
         def backtrack() -> Generator[np.ndarray, None, None]:
             if not self.unset_idx:
                 if check_solutions and not self.checkSolution():
-                    raise ValueError(f"Prospective solution is not a solution:\n{str(self)}")
+                    raise ValueError("State identified by backtrackSolve() "
+                            "as a solution s not a valid "
+                            f"solution:\n{str(self)}\nThis indicates an "
+                            "error in one or more of the methods in the "
+                            "Sudoku class.")
                 yield copy.deepcopy(self)
                 return
             best = (float("inf"),)
@@ -7351,7 +7651,21 @@ def sudokusSolutionUpperLeftSumFromFile(
     """
     Solution to Project Euler #96
 
-    TODO
+    For a collection of sudokus contained in the .txt document
+    sudoku_doc that are guaranteed to have unique solutions, calculates
+    the sum of the top-leftmost entry over each sudoku for its
+    unique solution.
+
+    Each sudoku in the .txt file should be separated from the
+    previous one (if applicable) by a line break ('\\n') and
+    its first line be the name of the sudoku. Subsequent lines should
+    be the concatenation of the digits in the rows of the sudoku
+    in order, with "0" used for blank squares.
+
+    Note that while currently does not support sudokus containing digits
+    exceeding 9 (so for instance does not support 16x16 or larger sudokus).
+    This limitation is due to parsing of the .txt file, not a limitation
+    of the solution method.
 
     Args:
         Optional named:
@@ -7363,9 +7677,15 @@ def sudokusSolutionUpperLeftSumFromFile(
                 or the package directory (True).
             Default: True
 
+    Returns:
+    Integer (int) giving the described sum of the top-leftmost entries
+    of the solved sudokus.
     """
     #since = time.time()
-    board_dict = loadSudokusFromFile(sudoku_doc, rel_package_src=rel_package_src)
+    board_dict = loadSudokusFromFile(
+        sudoku_doc,
+        rel_package_src=rel_package_src,
+    )
     empty_symbol = "0"
     
     sudoku_dict = {}
