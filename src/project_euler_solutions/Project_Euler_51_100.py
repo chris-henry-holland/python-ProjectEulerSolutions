@@ -2135,8 +2135,8 @@ def sqrtCF(num: int) -> Tuple[Union[Tuple[int], int]]:
     seen = {}
     res = []
     curr = (0, 1)
-    sqrt = isqrt(num)
-    if sqrt ** 2 == num: return ((sqrt,), -1)
+    rt = isqrt(num)
+    if rt ** 2 == num: return ((rt,), -1)
     while True:
         if curr in seen.keys():
             return (tuple(res), seen[curr])
@@ -6025,118 +6025,76 @@ def romanNumeralsSimplificationScoreFromFile(
 
 # Problem 90
 # Review- Needs tidying and/or simplifying
-def possibleCubes(
-    targets: Set[Tuple[Tuple]],
-    multiplicity: Dict[int, int],
-    n_faces: int=6,
-) -> List[Set[int]]:
-    """
-    TODO
-    """
-
-    def addExtras(nums_lst: List[int], extra_lst: List[Tuple[int]])\
-            -> Generator[List[Tuple[int]], None, None]:
-        cumu_lst = [0] * (len(extra_lst) + 1)
-        curr = 0
-        for i in reversed(range(len(extra_lst))):
-            curr += extra_lst[i][1]
-            cumu_lst[i] = curr
-        nums_dict = {x: 1 for x in nums_lst}
-        def recur(remain: int, i: int) -> Generator[List[Tuple[int]], None, None]:
-            #print(remain, len(nums_lst))
-            if not remain:
-                yield sorted([(x, y) for x, y in nums_dict.items()])
-                return
-            num = extra_lst[i][0]
-            f_orig = nums_dict.get(num, 0)
-            start = max(0, remain - cumu_lst[i + 1])
-            end = min(remain, extra_lst[i][1])
-            if end < start:
-                return
-            if start: nums_dict[num] = nums_dict.get(num, 0) + start
-            for j in range(start, end):
-                yield from recur(remain - j, i + 1)
-                nums_dict[num] = nums_dict.get(num, 0) + 1
-            yield from recur(remain - end, i + 1)
-            if num in nums_dict.keys():
-                if not f_orig: nums_dict.pop(num)
-                else: nums_dict[num] = f_orig
-            return
-        yield from recur(n_faces - len(nums_dict), 0)
-        return
-
-    def coreGenerator(mx_sz: int=n_faces) -> Generator[Tuple[int], None, None]:
-        targets2 = [{y[0] for y in x} for x in targets]
-        n_target = len(targets2)
-        
-        curr = set()
-        def recur(i: int) -> Generator[Tuple[int], None, None]:
-            if len(curr) == n_faces or i == n_target:
-                for j in range(i, n_target):
-                    if curr.isdisjoint(targets2[i]):
-                        break
-                else: yield tuple(sorted(curr))
-                return
-            new_nums = targets2[i].difference(curr)
-            if len(new_nums) < len(targets2[i]):
-                # i.e there is a non-zero intersection between
-                # targets2[i] and curr
-                yield from recur(i + 1)
-            for num in new_nums:
-                curr.add(num)
-                yield from recur(i + 1)
-                curr.remove(num)
-            return
-        yield from recur(0)
-        return
-
-    res = set()
-    for nums_tup in coreGenerator(mx_sz=n_faces):
-        if len(nums_tup) == n_faces:
-            res.add(tuple((x, 1) for x in nums_tup))
-            continue
-        extra_lst = []
-        nums_set = set(nums_tup)
-        for num in sorted(multiplicity.keys()):
-            cnt = multiplicity[num] - (num in nums_set)
-            if not cnt: continue
-            extra_lst.append((num, cnt))
-        for nums in addExtras(nums_tup, extra_lst):
-            res.add(tuple(nums))
-    return res
-
-def combinationsWithReplacement(
-    n: int,
-    k: int
-) -> Generator[Tuple[int], None, None]:
-    """
-    TODO
-    """
-    curr = []
-    def recur(i: int=0, remain: int=k) -> Generator[Tuple[int], None, None]:
-        if not remain:
-            yield tuple(curr)
-            return
-        elif i == n - 1:
-            yield tuple(curr + ([i] * remain))
-            return
-        for j in range(remain + 1):
-            yield from recur(i + 1, remain=remain - j)
-            curr.append(i)
-        for j in range(remain + 1):
-            curr.pop()
-        return
-    yield from recur(i=0, remain=k)
-    return
-
-def cubeDigitPairsCount(
-    n_cubes: int=2,
-    n_faces: int=6,
+def polyhedraNumberedFacesFormingSquareNumbersCount(
+    n_polyhedra: int=2,
+    polyhedron_n_faces: int=6,
     base: int=10,
     interchangeable: Tuple[Set[int]]=({6, 9},),
 ) -> int:
     """
     Solution to Project Euler #90
+
+    Consider n_polyhedra polyhedra, each with polyhedron_n_faces
+    faces that are numbered with digits in the chosen base. This
+    function calculates the number of ways such polyhedra can
+    be labelled such that the representations of all the strictly
+    positive square numbers in the chosen base with at most
+    n_polyhedra digits (potentially with leading zeros) can be
+    constructed by selecting the digit on exactly one face from
+    each of the polyhedra, where:
+     - Two polyhedra with the same counts of each digit over all
+       of their faces are considered identical (so permutation of
+       the digits between the faces does not result in a different
+       polyhedron)
+     - Digits in the same set in the collection of sets interchangeable
+       can replace each other (for example, in base 10, 6 and 9
+       can be used in place of one another by being turned upside
+       down). However, if two polyhedra are labelled such that the
+       only faces that differ after pairing all equal faces have
+       different but interchangeable digits, the labellings are still
+       considered to be different.
+     - If two labellings such that each polyhedron in one labelling
+       can be paired to a different polyhedron in the other labelling
+       in such a way that every pair of polyhedra are the same, then
+       those two labellings are the same (so permutation of the
+       polyhedra does not result in a different labelling).
+
+    Args:
+        Optional named:
+        n_polyhedra (int): The number of polyhedra used, equal to
+                the largest number of digits allowed in the
+                representation in the chosen base of the square
+                numbers that must be able to be formed by any
+                counted labelling.
+            Default: 2
+        polyhedron_n_faces (int): The number of faces of each
+                polyhedron (for the platonic solids, this would
+                be 4 for a tetrahedron, 6 for a cube, 8 for an
+                octohedron, 12 for a dodecohedron and 20 for an
+                icosohedron).
+            Default: 6
+        base (int): Integer no less than 2 giving the base in which
+                the square numbers are to be represented (potentially
+                with leading zeros).
+            Default: 10
+        interchangeable (tuple of sets of ints): Sets of digit values
+                in the chosen base, whose representations are considered
+                to be interchangeable (for instance, in arabic numerals
+                6 and 9 can be considered interchangeable as their
+                forms can be mapped onto each other by being turned
+                upside down)
+            Default: ({6, 9},)
+        
+    Returns:
+    Integer (int) giving teh number of distinct possible labellings
+    of the polyhedra such that the representation of all squares with
+    no more than n_polyhedra digits in the chosen base can be formed
+    (possibly with leading zeros) by selecting the digit (or one of
+    its interchangeable counterparts) from exactly one face from each
+    of the polyhedra.
+
+    Outline of rationale:
+    TODO
     """
     #since = time.time()
     interchange_dict = {}
@@ -6147,23 +6105,100 @@ def cubeDigitPairsCount(
             interchange_dict[nums_lst[i]] = nums_lst[0]
             multiplicity.pop(nums_lst[i])
         multiplicity[nums_lst[0]] = len(nums)
-    
+    #print(multiplicity)
     targets = []
-    sqrt = isqrt(base ** n_cubes)
-    for i in range(1, sqrt):
+    rt = isqrt(base ** n_polyhedra)
+    for i in range(1, rt):
         num = i ** 2
         targets.append({})
-        for i in range(n_cubes):
+        for i in range(n_polyhedra):
             num, r = divmod(num, base)
             r2 = interchange_dict.get(r, r)
             targets[-1][r2] = targets[-1].get(r2, 0) + 1
         else: continue
-        targets[-1][0] = targets[-1].get(0, 0) + n_cubes - i
+        #targets[-1][0] = targets[-1].get(0, 0) + n_cubes - i
     targets = {tuple(sorted([(k, v) for k, v in x.items()])) for x in targets}
-    
+    #print(targets)
+
     # Reducing the number of options by ensuring that every cube has at least
     # one digit of every target number (which is a requirement)
-    cube_opts = list(possibleCubes(targets, multiplicity, n_faces=n_faces))
+    def possiblePolyhedra(
+        targets: Set[Tuple[Tuple]],
+        multiplicity: Dict[int, int],
+        n_faces: int=6,
+    ) -> List[Set[int]]:
+        def addExtras(nums_lst: List[int], extra_lst: List[Tuple[int]])\
+                -> Generator[List[Tuple[int]], None, None]:
+            cumu_lst = [0] * (len(extra_lst) + 1)
+            curr = 0
+            for i in reversed(range(len(extra_lst))):
+                curr += extra_lst[i][1]
+                cumu_lst[i] = curr
+            nums_dict = {x: 1 for x in nums_lst}
+            def recur(remain: int, i: int) -> Generator[List[Tuple[int]], None, None]:
+                #print(remain, len(nums_lst))
+                if not remain:
+                    yield sorted([(x, y) for x, y in nums_dict.items()])
+                    return
+                num = extra_lst[i][0]
+                f_orig = nums_dict.get(num, 0)
+                start = max(0, remain - cumu_lst[i + 1])
+                end = min(remain, extra_lst[i][1])
+                if end < start:
+                    return
+                if start: nums_dict[num] = nums_dict.get(num, 0) + start
+                for j in range(start, end):
+                    yield from recur(remain - j, i + 1)
+                    nums_dict[num] = nums_dict.get(num, 0) + 1
+                yield from recur(remain - end, i + 1)
+                if num in nums_dict.keys():
+                    if not f_orig: nums_dict.pop(num)
+                    else: nums_dict[num] = f_orig
+                return
+            yield from recur(n_faces - len(nums_dict), 0)
+            return
+
+        def coreGenerator(mx_sz: int=n_faces) -> Generator[Tuple[int], None, None]:
+            targets2 = [{y[0] for y in x} for x in targets]
+            n_target = len(targets2)
+            
+            curr = set()
+            def recur(i: int) -> Generator[Tuple[int], None, None]:
+                if len(curr) == n_faces or i == n_target:
+                    for j in range(i, n_target):
+                        if curr.isdisjoint(targets2[i]):
+                            break
+                    else: yield tuple(sorted(curr))
+                    return
+                new_nums = targets2[i].difference(curr)
+                if len(new_nums) < len(targets2[i]):
+                    # i.e there is a non-zero intersection between
+                    # targets2[i] and curr
+                    yield from recur(i + 1)
+                for num in new_nums:
+                    curr.add(num)
+                    yield from recur(i + 1)
+                    curr.remove(num)
+                return
+            yield from recur(0)
+            return
+
+        res = set()
+        for nums_tup in coreGenerator(mx_sz=n_faces):
+            if len(nums_tup) == n_faces:
+                res.add(tuple((x, 1) for x in nums_tup))
+                continue
+            extra_lst = []
+            nums_set = set(nums_tup)
+            for num in sorted(multiplicity.keys()):
+                cnt = multiplicity[num] - (num in nums_set)
+                if not cnt: continue
+                extra_lst.append((num, cnt))
+            for nums in addExtras(nums_tup, extra_lst):
+                res.add(tuple(nums))
+        return res
+
+    cube_opts = list(possiblePolyhedra(targets, multiplicity, n_faces=polyhedron_n_faces))
     
     counts = [1] * len(cube_opts)
     for i, tup in enumerate(cube_opts):
@@ -6191,7 +6226,7 @@ def cubeDigitPairsCount(
         return recur(0)
     
     res = 0
-    for idx in itertools.combinations_with_replacement(range(n_opts), n_cubes):
+    for idx in itertools.combinations_with_replacement(range(n_opts), n_polyhedra):
             #combinationsWithReplacement(n_opts, n_cubes):
         cubes = [cube_opts2[i] for i in idx]
         for target in targets:
@@ -6209,7 +6244,7 @@ def cubeDigitPairsCount(
 # Problem 91
 def countRightTrianglesWithIntegerCoordinates(
     x_mx: int=50,
-    y_mx: int=50
+    y_mx: int=50,
 ) -> int:
     """
     Solution to Project Euler #91
@@ -6935,7 +6970,7 @@ def loadSudokusFromFile(
 
 class Sudoku:
     """
-    Class whose instances represent sudokus and contains methods to
+    Class whose instances represent sudokus, containing methods to
     check that the sudoku is valid and solve the sudoku.
     
     Initialisation args:
@@ -8083,7 +8118,12 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
 
     if 90 in eval_nums:
         since = time.time()
-        res = cubeDigitPairsCount(n_cubes=2, n_faces=6, base=10, interchangeable=({6, 9},))
+        res = polyhedraNumberedFacesFormingSquareNumbersCount(
+            n_polyhedra=2,
+            polyhedron_n_faces=6,
+            base=10,
+            interchangeable=({6, 9},),
+        )
         print(f"Solution to Project Euler #90 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 91 in eval_nums:
@@ -8155,5 +8195,5 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
 
 
 if __name__ == "__main__":
-    eval_nums = {86}
+    eval_nums = {90}
     evaluateProjectEulerSolutions1to50(eval_nums)
