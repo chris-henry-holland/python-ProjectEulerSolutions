@@ -5448,25 +5448,87 @@ def countingRectangles(target_count: int=2 * 10 ** 6) -> int:
 
 # Problem 86
 def pythagoreanTripleABMaxRangeGenerator(
-    ab_mx_max: int,
+    ab_mx_max: Optional[int]=None,
     ab_mx_min: int=0,
-) -> Generator[Tuple[int], None, None]:
+) -> Generator[Tuple[int, int, int], None, None]:
     """
-    TODO
+    Generator iterating over Pythagorean triples, yielding them
+    in order of increasing size of the larger of the two
+    catheti (i.e. the number that is neither the smallest nor
+    largest value in the Pythagorean triple), for values of this
+    cathetus between ab_mx_min and ab_mx_max inclusive (or
+    endlessly if ab_mx_max is not given or given as None).
+
+    A cathetus (pl. catheti) of a right angled triangle is one
+    of the sides adjacent to the right angle (i.e. one of the
+    two sides that are not the hypotenuse).
+
+    Args:
+        Optional named:
+        ab_mx_max (None or int): If given, specifies the
+                inclusive upper bound on the value of the
+                larger cathetus of any Pythagorean triple
+                yielded.
+                If this is not given or given as None, the
+                iterator will not self-terminate, so any loop
+                based around this iterator must contain a
+                mechanism to break the loop (e.g. break or
+                return) to avoid an infinite loop.
+            Default: None
+        ab_mx_max (int): Specifies the inclusive lower bound
+                on the value of the larger cathetus of
+                any Pythagorean triple yielded.
+            Default: 0
+    
+    Yields:
+    3-tuple of integers (int) specifying the corresponding
+    Pythagorean triple, with the 3 items ordered in increasing
+    size (so the hypotenuse is last).
+    The triples are yielded in order of increasing size of
+    the middle of these three values, with triples with the
+    same such value yielded in increasing order of the smallest
+    of the three values (the shorter cathetus).
     """
-    if not ab_mx_max or ab_mx_max < ab_mx_min: return
+    if ab_mx_max is None:
+        ab_mx_max = float("inf")
+    elif ab_mx_max < ab_mx_min: return
+
+    h = []
+
+    def yieldCurrent(ab_mx_ub: Real) -> Generator[Tuple[int, int, int], None, None]:
+        while h and h[0][0] < ab_mx_ub:
+            _, prim, k = heapq.heappop(h)
+            yield tuple(k * x for x in prim)
+            k2 = k + 1
+            mid = prim[1] * k2
+            if mid > ab_mx_max: continue
+            heapq.heappush(h, (mid, prim, k2))
+        return
+    
     #sqrt = isqrt(ab_mx_max)
     #for m in range(1, sqrt + 1):
+    
     for m in range(1, (ab_mx_max >> 1) + 1):
+        n1 = isqrt(2 * m ** 2) - 1
+        n1 -= not ((m - n1) & 1)
+        n2 = n1 + 1
+        ab_mx_lb = min(m ** 2 - n1 ** 2, 2 * m * n2)
+        if ab_mx_lb > ab_mx_max: break
+        yield from yieldCurrent(ab_mx_lb)
         for n in range(1 + (m & 1), m, 2):
             if gcd(m, n) != 1: continue
             primitive = sorted([m ** 2 - n ** 2, 2 * m * n,\
                     m ** 2 + n ** 2])
             primitive_ab_mx = primitive[1]
-            for k in range(max(1,\
-                    (-((-ab_mx_min) // primitive_ab_mx))),\
-                    ab_mx_max // primitive_ab_mx + 1):
-                yield tuple(k * x for x in primitive)
+            k0 = max(1, ((ab_mx_min - 1) // primitive_ab_mx) + 1)
+            mid = primitive_ab_mx * k0
+            if mid <= ab_mx_max:
+                heapq.heappush(h, (mid, primitive, k0))
+            #for k in range(max(1,\
+            #        (-((-ab_mx_min) // primitive_ab_mx))),\
+            #        ab_mx_max // primitive_ab_mx + 1):
+            #    yield tuple(k * x for x in primitive)
+    yield from yieldCurrent(float("inf"))
     return
 
 def pythagoreanTripleABMinRangeGenerator(
@@ -5474,19 +5536,80 @@ def pythagoreanTripleABMinRangeGenerator(
     ab_mn_min: int=0,
 ) -> Generator[Tuple[int], None, None]:
     """
-    TODO
+    Generator iterating over Pythagorean triples, yielding them
+    in order of increasing size of the smaller of the two
+    catheti (i.e. the smallest value in the Pythagorean triple),
+    for values of this cathetus between ab_mn_min and ab_mn_max
+    inclusive (or endlessly if ab_mn_max is not given or given
+    as None).
+
+    A cathetus (pl. catheti) of a right angled triangle is one
+    of the sides adjacent to the right angle (i.e. one of the
+    two sides that are not the hypotenuse).
+
+    Args:
+        Optional named:
+        ab_mn_max (None or int): If given, specifies the
+                inclusive upper bound on the value of the
+                smaller cathetus of any Pythagorean triple
+                yielded.
+                If this is not given or given as None, the
+                iterator will not self-terminate, so any loop
+                based around this iterator must contain a
+                mechanism to break the loop (e.g. break or
+                return) to avoid an infinite loop.
+            Default: None
+        ab_mn_max (int): Specifies the inclusive lower bound
+                on the value of the larger cathetus of
+                any Pythagorean triple yielded.
+            Default: 0
+    
+    Yields:
+    3-tuple of integers (int) specifying the corresponding
+    Pythagorean triple, with the 3 items ordered in increasing
+    size (so the hypotenuse is last).
+    The triples are yielded in order of increasing size of
+    the smallest of these three values, with triples with the
+    same such value yielded in increasing order of the middle
+    of the three values (the longer cathetus).
     """
+    if ab_mn_max is None:
+        ab_mn_max = float("inf")
+    elif ab_mn_max < ab_mn_min: return
+
+    h = []
+
+    def yieldCurrent(ab_mn_ub: Real) -> Generator[Tuple[int, int, int], None, None]:
+        while h and h[0][0] < ab_mn_ub:
+            _, prim, k = heapq.heappop(h)
+            yield tuple(k * x for x in prim)
+            k2 = k + 1
+            lo = prim[0] * k2
+            if lo > ab_mn_max: continue
+            heapq.heappush(h, (lo, prim, k2))
+        return
+
     if not ab_mn_max or ab_mn_max < ab_mn_min: return
     for m in range(1, ((ab_mn_max + 1) >> 1) + 1):
+        n1 = 1 + (m & 1)
+        n2 = m - 1
+        n2 -= not ((m - n2) & 1)
+        ab_mn_lb = min(m ** 2 - n2 ** 2, 2 * m * n1)
+        if ab_mn_lb > ab_mn_max: break
+        yield from yieldCurrent(ab_mn_lb)
         for n in range(1 + (m & 1), m, 2):
             if gcd(m, n) != 1: continue
             primitive = sorted([m ** 2 - n ** 2, 2 * m * n,\
                     m ** 2 + n ** 2])
             primitive_ab_mn = primitive[0]
-            for k in range(max(1,\
-                    (-((-ab_mn_min) // primitive_ab_mn))),\
-                    ab_mn_max // primitive_ab_mn + 1):
-                yield tuple(k * x for x in primitive)
+            k0 = max(1, ((ab_mn_min - 1) // primitive_ab_mn) + 1)
+            lo = primitive_ab_mn * k0
+            if lo <= ab_mn_max:
+                heapq.heappush(h, (lo, primitive, k0))
+            #for k in range(max(1,\
+            #        (-((-ab_mn_min) // primitive_ab_mn))),\
+            #        ab_mn_max // primitive_ab_mn + 1):
+            #    yield tuple(k * x for x in primitive)
     return
 
 def integerMinCuboidRoute(
@@ -5533,13 +5656,17 @@ def integerMinCuboidRoute(
         cumu[0] = prev_cumu
         #print(f"Range = ({start}, {end - 1})")
         #print(f"max:")
-        for triple in pythagoreanTripleABMaxRangeGenerator(ab_mx_max=end - 1,\
-                ab_mx_min=start):
+        for triple in pythagoreanTripleABMaxRangeGenerator(
+            ab_mx_max=end - 1,
+            ab_mx_min=start,
+        ):
             a, b = triple[:2]
             cumu[b - start] += (a >> 1)
         #print(f"min:")
-        for triple in pythagoreanTripleABMinRangeGenerator(ab_mn_max=end - 1,\
-                ab_mn_min=start):
+        for triple in pythagoreanTripleABMinRangeGenerator(
+            ab_mn_max=end - 1,
+            ab_mn_min=start,
+        ):
             a, b = triple[:2]
             cumu[a - start] += max(0, (b >> 1) + a - b + 1)
         if cumu[0] > target_count:
@@ -8028,5 +8155,5 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
 
 
 if __name__ == "__main__":
-    eval_nums = {100}
+    eval_nums = {86}
     evaluateProjectEulerSolutions1to50(eval_nums)
