@@ -17,7 +17,6 @@ import copy
 import heapq
 import itertools
 import math
-import os
 import random
 import time
 
@@ -2141,11 +2140,11 @@ def sqrtCF(num: int) -> Tuple[Union[Tuple[int], int]]:
         if curr in seen.keys():
             return (tuple(res), seen[curr])
         seen[curr] = len(res)
-        a = (sqrt + curr[0]) // curr[1]
+        a = (rt + curr[0]) // curr[1]
         res.append(a)
         b = curr[0] - a * curr[1]
         curr = (-b, (num - b ** 2) // curr[1])
-        prev = curr
+        #prev = curr
     return ()
 
 def sqrtCFCycleLengthParity(num: int) -> bool:
@@ -8515,5 +8514,5 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
 
 
 if __name__ == "__main__":
-    eval_nums = {90}
+    eval_nums = {51}
     evaluateProjectEulerSolutions1to50(eval_nums)

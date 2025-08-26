@@ -19,147 +19,25 @@ import math
 import os
 import time
 
-import numpy as np
-import scipy.special as sp
 import sympy as sym
 
 from collections import deque
 from sortedcontainers import SortedDict, SortedList
 
-from data_structures.prime_sieves import PrimeSPFsieve
 from data_structures.addition_chains import AdditionChainCalculator
+from data_structures.fractions import CustomFraction
+from data_structures.prime_sieves import PrimeSPFsieve
 
-from algorithms.continued_fractions_and_Pell_equations import generalisedPellSolutionGenerator, pellSolutionGenerator
-
-def gcd(a: int, b: int) -> int:
-    """
-    For non-negative integers a and b (not both zero),
-    calculates the greatest common divisor of the two, i.e.
-    the largest positive integer that is an exact divisor
-    of both a and b.
-
-    Args:
-        Required positional:
-        a (int): Non-negative integer which is the first
-                which the greatest common divisor must
-                divide.
-        b (int): Non-negative integer which is the second
-                which the greatest common divisor must
-                divide. Must be non-zero if a is zero.
-    
-    Returns:
-    Strictly positive integer giving the greatest common
-    divisor of a and b.
-    """
-    #return a if not b else gcd(b, a % b)
-    while b != 0:
-        a, b = b, a % b
-    return a
-    
-def lcm(a: int, b: int) -> int:
-    """
-    For non-negative integers a and b (not both zero),
-    calculates the lowest common multiple of the two, i.e.
-    the smallest positive integer that is a multiple
-    of both a and b.
-
-    Args:
-        Required positional:
-        a (int): Non-negative integer which is the first
-                which must divide the lowest common multiple.
-        b (int): Non-negative integer which is the second
-                which must divide the lowest common multiple.
-                Must be non-zero if a is zero.
-    
-    Returns:
-    Strictly positive integer giving the lowest common
-    multiple of a and b.
-    """
-
-    return a * (b // gcd(a, b))
-
-def isqrt(n: int) -> int:
-    """
-    For a non-negative integer n, finds the largest integer m
-    such that m ** 2 <= n (or equivalently, the floor of the
-    positive square root of n).
-    Uses the Newton-Raphson method.
-    
-    Args:
-        Required positional:
-        n (int): The number for which the above process is
-                performed.
-    
-    Returns:
-    Integer (int) giving the largest integer m such that
-    m ** 2 <= n.
-    
-    Examples:
-    >>> isqrt(4)
-    2
-    >>> isqrt(15)
-    3
-    """
-    x2 = n
-    x1 = (n + 1) >> 1
-    while x1 < x2:
-        x2 = x1
-        x1 = (x2 + n // x2) >> 1
-    return x2
-
-def integerNthRoot(m: int, n: int) -> int:
-    """
-    For an integer m and a strictly positive integer n,
-    finds the largest integer a such that a ** n <= m (or
-    equivalently, the floor of the largest real n:th root
-    of m. Note that for even n, m must be non-negative.
-    Uses the Newton-Raphson method.
-    
-    Args:
-        Required positional:
-        m (int): Integer giving the number whose root is
-                to be calculated. Must be non-negative
-                if n is even.
-        n (int): Strictly positive integer giving the
-                root to be calculated.
-    
-    Returns:
-    Integer (int) giving the largest integer a such that
-    m ** n <= a.
-    
-    Examples:
-    >>> integerNthRoot(4, 2)
-    2
-    >>> integerNthRoot(15, 2)
-    3
-    >>> integerNthRoot(27, 3)
-    3
-    >>> integerNthRoot(-26, 3)
-    -3
-    """
-
-    # Finds the floor of the n:th root of m, using the positive
-    # root in the case that n is even.
-    # Newton-Raphson method
-    if n < 1:
-        raise ValueError("n must be strictly positive")
-    if m < 0:
-        if n & 1:
-            neg = True
-            m = -m
-        else:
-            raise ValueError("m can only be negative if n is odd")
-    else: neg = False
-    if not m: return 0
-    x2 = float("inf")
-    x1 = m
-    while x1 < x2:
-        x2 = x1
-        x1 = ((n - 1) * x2 + m // x2 ** (n - 1)) // n
-    if not neg: return x2
-    if x2 ** n < m:
-        x2 += 1
-    return -x2
+from algorithms.continued_fractions_and_Pell_equations import (
+    generalisedPellSolutionGenerator,
+    pellSolutionGenerator,
+)
+from algorithms.number_theory_algorithms import (
+    gcd,
+    lcm,
+    isqrt,
+    integerNthRoot,
+)
 
 def addFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[int, int]:
     """
@@ -205,7 +83,8 @@ def multiplyFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[i
     g = gcd(frac_prov[0], frac_prov[1])
     return (-(frac_prov[0] // g) if neg else (frac_prov[0] // g), frac_prov[1] // g)
 
-# Problem 101- Look into Lagrange polynomial interpolation
+# Problem 101
+# Review- Look into Lagrange polynomial interpolation
 def polynomialFit(seq: List[int], n0=0) -> Tuple[Tuple[int], int]:
     """
     For an integer sequence seq such that the first value in seq
@@ -251,8 +130,9 @@ def polynomialFit(seq: List[int], n0=0) -> Tuple[Tuple[int], int]:
             denom = lcm(denom, frac.denominator)
     return (tuple(int(x * denom) for x in res), denom)
 
-def optimumPolynomial(coeffs: Tuple[int]=(1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1))\
-        -> Union[int, float]:
+def optimumPolynomial(
+    coeffs: Tuple[int]=(1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1)
+) -> Union[int, float]:
     """
     Solution to Project Euler #101
     Consider a polynomial P(n) (where n is the variable of the
@@ -1284,7 +1164,7 @@ def specialSubsetSumsComparisons(n: int=12) -> int:
     res = 0
     for i in range(2, (n >> 1) + 1):
         # Using Catalan numbers
-        res += (sp.comb(n, 2 * i, exact=True) * sp.comb(2 * i, i, exact=True) *\
+        res += (math.comb(n, 2 * i) * math.comb(2 * i, i) *\
                 (i - 1)) // (2 * (i + 1))
     return res
 
@@ -6045,7 +5925,10 @@ if __name__ == "__main__":
         print(f"Solution to Project Euler #145 = {res}")
 
     if not to_evaluate or 146 in to_evaluate:
-        res = investigatingAPrimePatternSum(n_max=150 * 10 ** 6 - 1, add_nums=[1, 3, 7, 9, 13, 27])
+        res = investigatingAPrimePatternSum(
+            n_max=150 * 10 ** 6 - 1,
+            add_nums=[1, 3, 7, 9, 13, 27],
+        )
         print(f"Solution to Project Euler #146 = {res}")
 
     if not to_evaluate or 147 in to_evaluate:
@@ -6062,5 +5945,11 @@ if __name__ == "__main__":
     
     if not to_evaluate or 150 in to_evaluate:
         #res = subTriangleMinSum(triangle=[[15], [-14, -7], [20, -13, -5], [-3, 8, 23, -26], [1, -4, -5, -18, 5], [-16, 31, 2, 9, 28, 3]])
-        res = subLinearCongruentialTriangleSubTriangleSum(n_rows=1000, l_cong_k=615949, l_cong_m=797807, min_triangle_value=-(1 << 19), max_triangle_value=(1 << 19) - 1)
+        res = subLinearCongruentialTriangleSubTriangleSum(
+            n_rows=1000,
+            l_cong_k=615949,
+            l_cong_m=797807,
+            min_triangle_value=-(1 << 19),
+            max_triangle_value=(1 << 19) - 1,
+        )
         print(f"Solution to Project Euler #150 = {res}")
