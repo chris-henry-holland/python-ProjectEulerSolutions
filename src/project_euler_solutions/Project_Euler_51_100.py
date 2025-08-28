@@ -8183,7 +8183,7 @@ def arrangedProbability(min_tot: int=10 ** 12 + 1) -> int:
 ##############
 project_euler_num_range = (51, 100)
 
-def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> None:
+def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> None:
     if not eval_nums:
         eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
     
@@ -8515,4 +8515,4 @@ def evaluateProjectEulerSolutions1to50(eval_nums: Optional[Set[int]]=None) -> No
 
 if __name__ == "__main__":
     eval_nums = {51}
-    evaluateProjectEulerSolutions1to50(eval_nums)
+    evaluateProjectEulerSolutions51to100(eval_nums)

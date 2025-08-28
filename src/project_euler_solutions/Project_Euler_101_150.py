@@ -174,7 +174,7 @@ def optimumPolynomial(
     Returns:
     Number (int/float) giving the described sum.
     """
-    since = time.time()
+    #since = time.time()
     n = len(coeffs)
     res = [0, 1]
     ans_real = sum(coeffs)
@@ -207,7 +207,7 @@ def optimumPolynomial(
         i += 1
     #print(seq)
     res2 = res[0] if res[1] == 1 else res[0] / res[1]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res2
 
 # Problem 102
@@ -604,12 +604,12 @@ def triangleContainment(p: Tuple[int]=(0, 0), doc: str="0102_triangles.txt",\
     p, subject to the specified classification of points falling
     exactly on an edge or vertex of a triangle.
     """
-    since = time.time()
+    #since = time.time()
     triangles = loadTriangles(doc, relative_to_program_file_directory=relative_to_program_file_directory)
     res = sum(triangleContainsPoint(p, x,\
             include_surface=include_surface) for x in triangles)
     #res = sum(triangleContainsOrigin(*x) for x in triangles)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 103
@@ -922,9 +922,9 @@ def specialSubsetSumsOptimum(n: int=7) -> str:
     in the set from smallest to largest), where the numbers are
     concatenated in order from smallest to largest.
     """
-    since = time.time()
+    #since = time.time()
     res = findOptimalSpecialSumSets(n)[0]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return "".join([str(x) for x in res])
 
 # Problem 104
@@ -1096,7 +1096,7 @@ def pandigitalFibonacciEnds(base: int=10) -> int:
     Integer (int) giving the value of the smallest Fibonacci number that
     fulfills the stated requirement.
     """
-    since = time.time()
+    #since = time.time()
     if base == 2: return 1
     curr = [1, 1]
     i = 2
@@ -1117,7 +1117,7 @@ def pandigitalFibonacciEnds(base: int=10) -> int:
         i += 1
         #if not i % 1000:
         #    print(i)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return i
 
 # Problem 105
@@ -1149,11 +1149,11 @@ def specialSubsetSumsTesting(doc: str="0105_sets.txt", relative_to_program_file_
                 current working directory.
             Default: True
     """
-    since = time.time()
+    #since = time.time()
     sp_sets = loadSets(doc, relative_to_program_file_directory=relative_to_program_file_directory)
     #print(sp_sets)
     res = sum(sum(x) for x in sp_sets if isSpecialSumSet(x, nums_sorted=False))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 106
@@ -1254,7 +1254,7 @@ def diophantineReciprocals(min_n_solutions: int=1001) -> int:
     Solution to Project Euler #108 and Project Euler #110 (with
     min_n_solutions=4 * 10 ** 6 + 1)
     """
-    since = time.time()
+    #since = time.time()
     n_p = 0
     num = 1
     while num < min_n_solutions:
@@ -1285,7 +1285,7 @@ def diophantineReciprocals(min_n_solutions: int=1001) -> int:
                     mx_count=j)
         return
     recur()
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return curr_best[0]
             
 
@@ -1310,7 +1310,7 @@ def dartCheckouts(mx_score: int=99) -> int:
     out without missing over all scores no greater than mx_score
     subject to the definition of distinct checkouts given above.
     """
-    since = time.time()
+    #since = time.time()
     double_dict = SortedDict()
     for num in range(1, min(20, mx_score >> 1) + 1):
         double_dict[num << 1] = 1
@@ -1347,7 +1347,7 @@ def dartCheckouts(mx_score: int=99) -> int:
             sm = num1 + num2
             if sm > mx_score: break
             curr[sm] = curr.get(sm, 0) + f1 * f2
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return sum(curr.values())
     
 # Problem 110- see Problem 108
@@ -1433,11 +1433,11 @@ def primesWithRuns(n_dig: int=10, base: int=10,\
     """
     Solution for Project Euler #111
     """
-    since = time.time()
+    #since = time.time()
     if ps is None: ps = PrimeSPFsieve()
     res = sum(sum(mostRepeatDigitPrimes(n_dig, d, base=10, ps=ps)[0])\
             for d in range(base))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
         
 
@@ -1469,7 +1469,7 @@ def bouncyProportions(prop_numer: int=99, prop_denom: int=100) -> int:
     """
     Solution to Project Euler #112
     """
-    since = time.time()
+    #since = time.time()
     bouncy_cnt = 0
     g = gcd(prop_numer, prop_denom)
     prop_numer //= g
@@ -1480,7 +1480,7 @@ def bouncyProportions(prop_numer: int=99, prop_denom: int=100) -> int:
         if bouncy_cnt * prop_denom == (rng[1] - 1) * prop_numer:
             break
         rng = (rng[1], rng[1] + prop_denom)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return rng[1] - 1
 
 # Problem 113
@@ -1515,10 +1515,10 @@ def nonBouncyNumbers(mx_n_dig: int=100, base: int=10) -> int:
     """
     Solution to Project Euler #113
     """
-    since = time.time()
+    #since = time.time()
     nbc = NonBouncyCounter(n_dig=mx_n_dig, base=base)
     res = sum(nbc(i) for i in range(1, mx_n_dig + 1))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 114
@@ -1526,13 +1526,13 @@ def countingBlockCombinations(tot_len: int=50, min_large_len: int=3) -> int:
     """
     Solution to Project Euler #114
     """
-    since = time.time()
+    #since = time.time()
     qu = deque([1] * (min_large_len + 1))
     tot = 0
     for _ in range(min_large_len + 1, tot_len + 2):
         tot += qu.popleft()
         qu.append(qu[-1] + tot)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return qu[-1]
 
 # Problem 115
@@ -1540,7 +1540,7 @@ def countingBlockCombinationsII(min_large_len: int=50, target_count: int=10 ** 6
     """
     Solution to Project Euler #115
     """
-    since = time.time()
+    #since = time.time()
     if target_count <= 1: return 0
     qu = deque([1] * (min_large_len + 1))
     n = min_large_len - 1
@@ -1549,7 +1549,7 @@ def countingBlockCombinationsII(min_large_len: int=50, target_count: int=10 ** 6
         tot += qu.popleft()
         qu.append(qu[-1] + tot)
         n += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return n
 
 # Problem 116
@@ -1558,14 +1558,14 @@ def redGreenOrBlueTiles(tot_len: int=50, min_large_len: int=2,\
     """
     Solution to Project Euler #116
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for large_len in range(min_large_len, max_large_len + 1):
         qu = deque([1] * (large_len))
         for _ in range(large_len, tot_len + 1):
             qu.append(qu[-1] + qu.popleft())
         res += qu[-1]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res - (max_large_len - min_large_len + 1)
 
 # Problem 117
@@ -1574,7 +1574,7 @@ def redGreenAndBlueTiles(tot_len: int=50, min_large_len: int=2,\
     """
     Solution to Project Euler #117
     """
-    since = time.time()
+    #since = time.time()
     qu1 = deque([1] * (min_large_len))
     tot = 0
     qu2 = deque()
@@ -1587,7 +1587,7 @@ def redGreenAndBlueTiles(tot_len: int=50, min_large_len: int=2,\
         tot += qu2[-1]
         tot -= qu2.popleft()
         qu1.append(qu1[-1] + tot)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return qu1[-1]
 
 # Problem 118- try to make faster
@@ -1595,7 +1595,7 @@ def pandigitalPrimeSets(base: int=10) -> int:
     """
     Solution to Project Euler #118
     """
-    since = time.time()
+    #since = time.time()
     ps = PrimeSPFsieve(isqrt(base ** base))
     res = [0]
     def recur(nums: Tuple[int], i: int=0, prev: int=0, prev_n_dig: int=0) -> None:
@@ -1636,7 +1636,7 @@ def pandigitalPrimeSets(base: int=10) -> int:
         recur(perm)
         #print(perm, res)
     res[0] += all(ps.isPrime(x) for x in range(1, base))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[0]
 
 # Problem 119
@@ -1836,11 +1836,11 @@ def digitPowerSum(n: int=30, base: int=10) -> int:
     digits taken to the power of that exponent is equal to the
     integer itself.
     """
-    since = time.time()
+    #since = time.time()
     seq = digitPowerSumSequence(n, base=base)
     res = seq[-1][0]
     #print(seq)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 120
@@ -2022,7 +2022,7 @@ def efficientExponentiation(sum_min: int=1, sum_max: int=200, method: Optional[s
     sum_min to sum_max for the chosen method, with this being guranteed
     to be the optimum if the method "exact" is chosen.
     """
-    since = time.time()
+    #since = time.time()
     if method is None:
         method = "exact"
     
@@ -2037,7 +2037,7 @@ def efficientExponentiation(sum_min: int=1, sum_max: int=200, method: Optional[s
         func = addition_chain_calculator.shortestAddPathBinary
     
     res = sum(len(func(i)) - 1 for i in range(sum_min, sum_max + 1))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 123
@@ -2088,7 +2088,7 @@ def primeSquareRemainders(target_remainder: int=10 ** 10 + 1):
     # try to find further rules that restricts the search space,
     # or enables direct calculation of the answer- see solution to
     # Project Euler #120
-    since = time.time()
+    #since = time.time()
     ps = PrimeSPFsieve()
     # p_n^2 must be strictly greater than the square root of target_remainder,
     # as the remainder on dividing by p_n^2 is strictly smaller than p_n^2.
@@ -2105,7 +2105,7 @@ def primeSquareRemainders(target_remainder: int=10 ** 10 + 1):
             ps.extendSieve(mx)
         #print(i + 1, ps.p_lst[i], calculateSquareRemainder(ps.p_lst[i], i + 1))
         if calculateSquareRemainder(ps.p_lst[i], i + 1) >= target_remainder:
-            print(f"Time taken = {time.time() - since:.4f} seconds")
+            #print(f"Time taken = {time.time() - since:.4f} seconds")
             return i + 1
         i += 2
     return -1
@@ -2203,9 +2203,9 @@ def orderedRadicals(n: int=100000, k: int=10000) -> int:
         Thus, for n = 10, k = 4 gives the 4th item on this list
         (8) while k = 6 gives the 6th item in this list (9).
     """
-    since = time.time()
+    #since = time.time()
     if k == 1:
-        print(f"Time taken = {time.time() - since:.4f} seconds")
+        #print(f"Time taken = {time.time() - since:.4f} seconds")
         return 1
     ps = PrimeSPFsieve(n_max=k)
     """
@@ -2252,7 +2252,7 @@ def orderedRadicals(n: int=100000, k: int=10000) -> int:
 
     recur(1, p_i=0)
     res = -heap[0] * rad
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 125
@@ -2357,7 +2357,7 @@ def palindromicConsecutiveSquareSums(mx: int=100000000 - 1, base: int=10) -> int
     greater than mx that are palindromic and can be expressed as the
     sum of at least two consecutive integer squares.
     """
-    since = time.time()
+    #since = time.time()
     end = isqrt(mx >> 1)
     res = 0
     palindromic_set = set()
@@ -2370,7 +2370,7 @@ def palindromicConsecutiveSquareSums(mx: int=100000000 - 1, base: int=10) -> int
         res += sum(lst)
     #print(count)
     res = sum(palindromic_set)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 126
@@ -2420,7 +2420,7 @@ def cuboidHasLayerSize(dims: Tuple[int, int, int], target_layer_size: int) -> bo
     return rad_sqrt >= b
 
 def cuboidLayers(target_layer_size_count: int=1000, step_size: int=10000) -> int:
-    since = time.time()
+    #since = time.time()
 
     #step_size = 20000
     sz_rng = [1, step_size]
@@ -2461,7 +2461,7 @@ def cuboidLayers(target_layer_size_count: int=1000, step_size: int=10000) -> int
     #print(f"tot = {tot}")
     #print(f"tot2 = {tot2}")
     res = candidates[0]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 127
@@ -2493,7 +2493,7 @@ def abcHits(c_max: int=199999) -> int:
     unique a, b, c combinations that satisfy all of the
     described properties.
     """
-    since = time.time()
+    #since = time.time()
 
     # Note that if a + b = c and gcd(b, c) = 1 then gcd(a, c) = 1
     # and gcd(a, b) = 1 and rad(abc) = rad(a) * rad(b) * rad(c).
@@ -2533,7 +2533,7 @@ def abcHits(c_max: int=199999) -> int:
         #b_facts = ps.primeFactors(b)
         if radicals[b] <= rad_ab_mx:
             res += c
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     
 # Problem 128
@@ -2741,7 +2741,7 @@ def hexagonalTileDifferences(sequence_number: int=2000) -> int:
     number to calculate those candidate differences.
     TODO
     """
-    since = time.time()
+    #since = time.time()
     ps = PrimeSPFsieve(12 * sequence_number)
 
     if sequence_number <= 2: return sequence_number
@@ -2752,7 +2752,7 @@ def hexagonalTileDifferences(sequence_number: int=2000) -> int:
         count += len(layer_candidates)
         #if layer_candidates: print(layer_candidates)
         if count >= sequence_number:
-            print(f"Time taken = {time.time() - since:.4f} seconds")
+            #print(f"Time taken = {time.time() - since:.4f} seconds")
             return layer_candidates[~(count - sequence_number)]
 
         layer += 1
@@ -2868,13 +2868,13 @@ def repunitDivisibility(target_repunit_length: int=1000000, base: int=10) -> int
     repunit is divisible by k) then the first such occurrence
     must be for a repunit of length no greater than k.
     """
-    since = time.time()
+    #since = time.time()
     num = target_repunit_length
     while True:
         if findSmallestRepunitDivisibleByK(num, base=base) >= target_repunit_length:
             break
         num += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return num
 
 def compositesWithPrimeRepunitProperty(n_smallest: int, base: int=10) -> List[int]:
@@ -2965,9 +2965,9 @@ def sumCompositesWithPrimeRepunitProperty(n_to_sum=25, base: int=10) -> List[int
     integers with the described property in strictly increasing
     order.
     """
-    since = time.time()
+    #since = time.time()
     res = sum(compositesWithPrimeRepunitProperty(n_to_sum, base=base))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 131
@@ -3102,9 +3102,9 @@ def primeCubePartnership(p_max: int=999999) -> int:
     """
     Solution to Project Euler #131
     """
-    since = time.time()
+    #since = time.time()
     res = len(findPrimeCubePartnerships(p_max))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 132
@@ -3214,11 +3214,11 @@ def repunitPrimeFactorsSum(n_ones: int=1000000000, n_p: int=40, base: int=10) ->
     Integer (int), giving the sum of the n_p smallest distinct
     prime factors of the chosen base's repunit of length n_ones.
     """
-    since = time.time()
+    #since = time.time()
     p_lst = repunitPrimeFactors(n_ones, n_p, base=base)
     #print(p_lst)
     res = sum(p_lst)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 133
@@ -3306,11 +3306,11 @@ def repunitPowBaseNonFactorsSum(p_max: int=99_999, base: int=10) -> List[int]:
     than p_max that do not divide any of the chosen base's repunits
     with length base^n for any non-negative integer n.
     """
-    since = time.time()
+    #since = time.time()
     repunit_nonfactors = repunitPowBaseNonFactors(p_max, base=10)
     print(repunit_nonfactors)
     res = sum(repunit_nonfactors)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 134
@@ -3504,9 +3504,9 @@ def primePairConnectionsSum(p1_min: int=5, p1_max: int=1_000_000, base: int=10) 
     expression of p1 in than base (without leading zeroes) as
     a suffix, if such a value exists (otherwise the term is 0).
     """
-    since = time.time()
+    #since = time.time()
     if p1_min > p1_max:
-        print(f"Time taken = {time.time() - since:.4f} seconds")
+        #print(f"Time taken = {time.time() - since:.4f} seconds")
         return 0
     ps = PrimeSPFsieve()
     p_gen = ps.endlessPrimeGenerator()
@@ -3520,7 +3520,7 @@ def primePairConnectionsSum(p1_min: int=5, p1_max: int=1_000_000, base: int=10) 
         connect = primeConnection(p1, p2, base=base)
         res += 0 if connect == -1 else connect
         p1 = p2
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 135
@@ -3551,7 +3551,7 @@ def sameDifferences(n_max: int=999_999, target_count: int=10) -> int:
     such that there exists exactly target_count distinct positive
     integer triples that satisfy all of the stated conditions.
     """
-    since = time.time()
+    #since = time.time()
     counts = {}
     rng = [float("inf"), -float("inf")]
     for a in range(1, n_max + 1):
@@ -3573,7 +3573,7 @@ def sameDifferences(n_max: int=999_999, target_count: int=10) -> int:
     #print([x >> 5 for x in res if not x & 31])
     #print([x for x in res if x & 1])
     #res = sum(x for x in counts.values() if x == target_count)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return len(res)
 
 def singletonDifferences(n_max: int=49_999_999) -> int:
@@ -3605,7 +3605,7 @@ def singletonDifferences(n_max: int=49_999_999) -> int:
      2) n is 1 or an odd prime multiplied by 4 or 16
     TODO- prove this
     """
-    since = time.time()
+    #since = time.time()
     ps = PrimeSPFsieve(n_max=n_max)
     print("finished creating prime sieve")
     res = 0
@@ -3620,7 +3620,7 @@ def singletonDifferences(n_max: int=49_999_999) -> int:
             res += 1
             if 16 * p <= n_max:
                 res += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 137
@@ -3659,11 +3659,11 @@ def modifiedFibonacciGoldenNugget(nugget_number: int=15, G1: int=1, G2: int=1) -
     """
     Solution to Project Euler #137
     """
-    since = time.time()
+    #since = time.time()
     G0 = G2 - G1
     res = modifiedFibonacciGoldenNuggetsList(nugget_number, G0=G0, G1=G1)
     print(res)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[-1]
 
 # Problem 138
@@ -3779,10 +3779,10 @@ def specialIsocelesTriangleSum(n_smallest_to_sum: int=12) -> int:
     Outline of rationale:
     See documentation for specialIsocelesTriangles()
     """
-    since = time.time()
+    #since = time.time()
     lst = specialIsocelesTriangles(n_smallest_to_sum)
     res = sum(x[2] for x in lst)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 139
@@ -4033,7 +4033,7 @@ def pythagoreanTiles(max_triangle_perimeter: int=99_999_999) -> int:
     print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for neg in (False, True):
         for x, y in pellSolutionGenerator(2, negative=neg):
@@ -4045,7 +4045,7 @@ def pythagoreanTiles(max_triangle_perimeter: int=99_999_999) -> int:
             if gcd(m, n) != 1 or m & 1 == n & 1: continue
             #print(sorted([m ** 2 - n ** 2, 2 * m * n, m ** 2 + n ** 2]))
             res += max_triangle_perimeter // perim
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     
     
@@ -4054,13 +4054,13 @@ def modifiedFibonacciGoldenNuggetSum(n_nugget_numbers: int=30, G1: int=1, G2: in
     """
     Solution to Project Euler #140
     """
-    since = time.time()
+    #since = time.time()
     G0 = G2 - G1
     lst = modifiedFibonacciGoldenNuggetsList(n_nugget_numbers, G0=G0, G1=G1)
     res = sum(lst)
     #print(lst)
     #print(res)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 141
@@ -4091,10 +4091,10 @@ def squareProgressiveNumbersSum(n_max: int=10 ** 12 - 1) -> int:
     """
     Solution to Project Euler #141
     """
-    since = time.time()
+    #since = time.time()
     nums = {x[1] for x in squareProgressiveNumbers(n_max)}
     res = sum(nums)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 #Problem 142
@@ -4125,11 +4125,11 @@ def perfectSquareCollection() -> int:
     """
     Solution to Project Euler #142
     """
-    since = time.time()
+    #since = time.time()
     #for coll in perfectSquareCollectionGenerator():
     #    break
     res = next(perfectSquareCollectionGenerator())[0]#coll[0]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 143
@@ -4195,7 +4195,7 @@ def torricelliTriangleUniqueLengthSum(sm_max: int=12 * 10 ** 4) -> int:
         c ** 2 = p ** 2 + q ** 2 + p * q
     TODO- complete outline of rationale
     """
-    since = time.time()
+    #since = time.time()
     m_mx = isqrt(sm_max) - 1
     seen = {}
     lengths = set()
@@ -4226,7 +4226,7 @@ def torricelliTriangleUniqueLengthSum(sm_max: int=12 * 10 ** 4) -> int:
                 seen[y][x] = z
     #print(seen)
     res = sum(lengths)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 
@@ -4466,7 +4466,7 @@ def laserBeamEllipseReflectionCount(
     to illustrate that at least in theory, an exact solution in rationals
     is possible.
     """
-    since = time.time()
+    #since = time.time()
     #print(reflect1)
     res = 1
     closest = float("inf")
@@ -4497,7 +4497,7 @@ def laserBeamEllipseReflectionCount(
                 break
             res += 1
             #print(f"n_reflections = {res}")
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 145
@@ -4721,13 +4721,13 @@ def reversibleNumbersCount(n_dig_max: int=9, base: int=10) -> int:
     in the chosen base consists of at most n_dig digits without
     leading zeros that satisfy the stated requirements.
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for n_dig in range(1, n_dig_max + 1):
         ans = nDigitReversibleNumbersCount(n_dig, base=base)
         #print(f"n_dig = {n_dig}, count = {ans}")
         res += ans
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 146
@@ -4966,10 +4966,10 @@ def investigatingAPrimePatternSum(n_max: int=150 * 10 ** 6 - 1, add_nums: List[i
     See Brief outline of rationale in the documentation for the
     function investigatingAPrimePatternList().
     """
-    since = time.time()
+    #since = time.time()
     lst = investigatingAPrimePatternList(n_max=n_max, add_nums=add_nums)
     res = sum(lst)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 147
@@ -4977,7 +4977,7 @@ def rectanglesInCrossHatchedGrids(m: int=47, n: int=43) -> int:
     """
     Solution to Project Euler #147
     """
-    since = time.time()
+    #since = time.time()
     if n < m: m, n = n, m
     res = math.comb(m + 2, 3) * math.comb(n + 2, 3)\
             + 24 * math.comb(m + 5, 6)\
@@ -4985,7 +4985,7 @@ def rectanglesInCrossHatchedGrids(m: int=47, n: int=43) -> int:
             + 2 * (4 * math.comb(n + 1, 2) + 12 * n + 21) * math.comb(m + 3, 4)\
             - (8 * math.comb(n + 1, 2) + 9 * n + 10) * math.comb(m + 2, 3)\
             + math.comb(n + 1, 2) * math.comb(m + 1, 2)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 148
@@ -5094,7 +5094,7 @@ def pascalTrianglePrimeNondivisorCount(p: int=7, n_rows: int=10 ** 9) -> int:
         (sum i = 0 to k) (p * (p + 1) / 2) ** i * (a_i * (a_i + 1))
                 * ((prod j = i + 1 to k) (a_j + 1))
     """
-    since = time.time()
+    #since = time.time()
     n2 = n_rows
     #base_p_digs = []
     res = 0
@@ -5115,7 +5115,7 @@ def pascalTrianglePrimeNondivisorCount(p: int=7, n_rows: int=10 ** 9) -> int:
         term = curr * ((p * (p + 1) // 2) ** i) * (d * (d + 1) // 2)
         res += term
         curr *= d + 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     #for i, d in enumerate(base)
 
@@ -5382,7 +5382,7 @@ def maximumLaggedFibonacciGridSumSubsequence(
     """
     Solution to Project Euler #149
     """
-    since = time.time()
+    #since = time.time()
     grid = constructLaggedFibonacciGrid(shape, l_fib_poly_coeffs=l_fib_poly_coeffs, l_fib_lags=l_fib_lags, min_grid_val=min_grid_val, max_grid_val=max_grid_val)
     """
     it = laggedFibonacciGenerator()
@@ -5393,7 +5393,7 @@ def maximumLaggedFibonacciGridSumSubsequence(
             grid[-1].append(next(it))
     """
     res = maximumGridSumSubsequence(grid)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 150
@@ -5727,190 +5727,238 @@ def subLinearCongruentialTriangleSubTriangleSum(n_rows: int=1000, l_cong_k: int=
     subTriangleMinSum().
     """
     
-    since = time.time()
+    #since = time.time()
     triangle = constructLinearCongruentialTriangle(n_rows, l_cong_k=l_cong_k, l_cong_m=l_cong_m, min_triangle_value=min_triangle_value, max_triangle_value=max_triangle_value)
     #print(triangle)
     #print("Generated triangle")
     res = subTriangleMinSum(triangle)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-if __name__ == "__main__":
-    to_evaluate = {151}
+##############
+project_euler_num_range = (51, 100)
 
-    if not to_evaluate or 101 in to_evaluate:
+def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) -> None:
+    if not eval_nums:
+        eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
+
+    if 101 in eval_nums:
+        since = time.time()
         res = optimumPolynomial(((1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1)))
-        print(f"Solution to Project Euler #101 = {res}")
+        print(f"Solution to Project Euler #101 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 102 in to_evaluate:
+    if 102 in eval_nums:
+        since = time.time()
         res = triangleContainment(p=(0, 0), doc="0102_triangles.txt", relative_to_program_file_directory=True, include_surface=True)
-        print(f"Solution to Project Euler #102 = {res}")
+        print(f"Solution to Project Euler #102 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 103 in to_evaluate:
+    if 103 in eval_nums:
+        since = time.time()
         res = specialSubsetSumsOptimum(n=7)
-        print(f"Solution to Project Euler #103 = {res}")
+        print(f"Solution to Project Euler #103 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 104 in to_evaluate:
+    if 104 in eval_nums:
+        since = time.time()
         res = pandigitalFibonacciEnds(base=10)
-        print(f"Solution to Project Euler #104 = {res}")
+        print(f"Solution to Project Euler #104 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 105 in to_evaluate:
+    if 105 in eval_nums:
+        since = time.time()
         res = specialSubsetSumsTesting(doc="0105_sets.txt", relative_to_program_file_directory=True)
-        print(f"Solution to Project Euler #105 = {res}")
+        print(f"Solution to Project Euler #105 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 106 in to_evaluate:
+    if 106 in eval_nums:
+        since = time.time()
         res = specialSubsetSumsComparisons(n=12)
-        print(f"Solution to Project Euler #106 = {res}")
+        print(f"Solution to Project Euler #106 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 107 in to_evaluate:
+    if 107 in eval_nums:
+        since = time.time()
         res = minimalNetwork(doc="0107_network.txt", relative_to_program_file_directory=True)
-        print(f"Solution to Project Euler #107 = {res}")
+        print(f"Solution to Project Euler #107 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 108 in to_evaluate:
+    if 108 in eval_nums:
+        since = time.time()
         res = diophantineReciprocals(min_n_solutions=1001)
-        print(f"Solution to Project Euler #108 = {res}")
+        print(f"Solution to Project Euler #108 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 109 in to_evaluate:
+    if 109 in eval_nums:
+        since = time.time()
         res = dartCheckouts(mx_score=99)
-        print(f"Solution to Project Euler #109 = {res}")
+        print(f"Solution to Project Euler #109 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 110 in to_evaluate:
+    if 110 in eval_nums:
+        since = time.time()
         res = diophantineReciprocals(min_n_solutions=4 * 10 ** 6 + 1)
-        print(f"Solution to Project Euler #110 = {res}")
+        print(f"Solution to Project Euler #110 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 111 in to_evaluate:
+    if 111 in eval_nums:
+        since = time.time()
         res = primesWithRuns(n_dig=10, base=10, ps=None)
-        print(f"Solution to Project Euler #111 = {res}")
+        print(f"Solution to Project Euler #111 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 112 in to_evaluate:
+    if 112 in eval_nums:
+        since = time.time()
         res = bouncyProportions(prop_numer=99, prop_denom=100)
-        print(f"Solution to Project Euler #112 = {res}")
+        print(f"Solution to Project Euler #112 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 113 in to_evaluate:
+    if 113 in eval_nums:
+        since = time.time()
         res = nonBouncyNumbers(mx_n_dig=100, base=10)
-        print(f"Solution to Project Euler #113 = {res}")
+        print(f"Solution to Project Euler #113 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 114 in to_evaluate:
+    if 114 in eval_nums:
+        since = time.time()
         res = countingBlockCombinations(tot_len=50, min_large_len=3)
-        print(f"Solution to Project Euler #114 = {res}")
+        print(f"Solution to Project Euler #114 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 115 in to_evaluate:
+    if 115 in eval_nums:
+        since = time.time()
         res = countingBlockCombinationsII(min_large_len=50, target_count=10 ** 6 + 1)
-        print(f"Solution to Project Euler #115 = {res}")
+        print(f"Solution to Project Euler #115 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 116 in to_evaluate:
+    if 116 in eval_nums:
+        since = time.time()
         res = redGreenOrBlueTiles(tot_len=50, min_large_len=2, max_large_len=4)
-        print(f"Solution to Project Euler #116 = {res}")
+        print(f"Solution to Project Euler #116 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 117 in to_evaluate:
+    if 117 in eval_nums:
+        since = time.time()
         res = redGreenAndBlueTiles(tot_len=50, min_large_len=2, max_large_len=4)
-        print(f"Solution to Project Euler #117 = {res}")
+        print(f"Solution to Project Euler #117 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 118 in to_evaluate:
+    if 118 in eval_nums:
+        since = time.time()
         res = pandigitalPrimeSets(base=10)
-        print(f"Solution to Project Euler #118 = {res}")
+        print(f"Solution to Project Euler #118 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 119 in to_evaluate:
+    if 119 in eval_nums:
+        since = time.time()
         res = digitPowerSum(n=30, base=10)
-        print(f"Solution to Project Euler #119 = {res}")
+        print(f"Solution to Project Euler #119 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 120 in to_evaluate:
+    if 120 in eval_nums:
+        since = time.time()
         res = squareRemainders(a_min=3, a_max=1000)
-        print(f"Solution to Project Euler #120 = {res}")
+        print(f"Solution to Project Euler #120 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 121 in to_evaluate:
+    if 121 in eval_nums:
+        since = time.time()
         res = diskGameMaximumNonLossPayout(15)
-        print(f"Solution to Project Euler #121 = {res}")
+        print(f"Solution to Project Euler #121 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 122 in to_evaluate:
+    if 122 in eval_nums:
+        since = time.time()
         res = efficientExponentiation(sum_min=1, sum_max=200, method="exact")
-        print(f"Solution to Project Euler #122 = {res}")
+        print(f"Solution to Project Euler #122 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 123 in to_evaluate:
+    if 123 in eval_nums:
+        since = time.time()
         res = primeSquareRemainders(target_remainder=10 ** 10 + 1)
-        print(f"Solution to Project Euler #123 = {res}")
+        print(f"Solution to Project Euler #123 = {res}, calculated in {time.time() - since:.4f} seconds")
         
-    if not to_evaluate or 124 in to_evaluate:
+    if 124 in eval_nums:
+        since = time.time()
         res = orderedRadicals(n=100000, k=10000)
-        print(f"Solution to Project Euler #124 = {res}")
+        print(f"Solution to Project Euler #124 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 125 in to_evaluate:
+    if 125 in eval_nums:
+        since = time.time()
         res = palindromicConsecutiveSquareSums(mx=100000000 - 1, base=10)
-        print(f"Solution to Project Euler #125 = {res}")
+        print(f"Solution to Project Euler #125 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 126 in to_evaluate:
+    if 126 in eval_nums:
+        since = time.time()
         res = cuboidLayers(target_layer_size_count=1000, step_size=10000)
-        print(f"Solution to Project Euler #126 = {res}")
+        print(f"Solution to Project Euler #126 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 127 in to_evaluate:
+    if 127 in eval_nums:
+        since = time.time()
         res = abcHits(c_max=119999)
-        print(f"Solution to Project Euler #127 = {res}")
+        print(f"Solution to Project Euler #127 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 128 in to_evaluate:
+    if 128 in eval_nums:
+        since = time.time()
         res = hexagonalTileDifferences(sequence_number=2000)
-        print(f"Solution to Project Euler #128 = {res}")
+        print(f"Solution to Project Euler #128 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 129 in to_evaluate:
+    if 129 in eval_nums:
+        since = time.time()
         res = repunitDivisibility(target_repunit_length=1000000, base=10)
-        print(f"Solution to Project Euler #129 = {res}")
+        print(f"Solution to Project Euler #129 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 130 in to_evaluate:
+    if 130 in eval_nums:
+        since = time.time()
         res = sumCompositesWithPrimeRepunitProperty(n_to_sum=25, base=10)
-        print(f"Solution to Project Euler #130 = {res}")
+        print(f"Solution to Project Euler #130 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 131 in to_evaluate:
+    if 131 in eval_nums:
+        since = time.time()
         res = primeCubePartnership(p_max=999_999)
-        print(f"Solution to Project Euler #131 = {res}")
+        print(f"Solution to Project Euler #131 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 132 in to_evaluate:
+    if 132 in eval_nums:
+        since = time.time()
         res = repunitPrimeFactorsSum(n_ones=1_000_000_000, n_p=40, base=10) 
-        print(f"Solution to Project Euler #132 = {res}")
+        print(f"Solution to Project Euler #132 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 133 in to_evaluate:
+    if 133 in eval_nums:
+        since = time.time()
         res = repunitPowBaseNonFactorsSum(p_max=99_999, base=10)
-        print(f"Solution to Project Euler #133 = {res}")
+        print(f"Solution to Project Euler #133 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 134 in to_evaluate:
+    if 134 in eval_nums:
+        since = time.time()
         res = primePairConnectionsSum(p1_min=5, p1_max=1_000_000, base=10)
-        print(f"Solution to Project Euler #134 = {res}")
+        print(f"Solution to Project Euler #134 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 135 in to_evaluate:
+    if 135 in eval_nums:
+        since = time.time()
         res = sameDifferences(n_max=999_999, target_count=10)
-        print(f"Solution to Project Euler #135 = {res}")
+        print(f"Solution to Project Euler #135 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 136 in to_evaluate:
+    if 136 in eval_nums:
+        since = time.time()
         res = singletonDifferences(n_max=49_999_999)
-        print(f"Solution to Project Euler #136 = {res}")
+        print(f"Solution to Project Euler #136 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 137 in to_evaluate:
+    if 137 in eval_nums:
+        since = time.time()
         res = modifiedFibonacciGoldenNugget(nugget_number=15, G1=1, G2=1)
-        print(f"Solution to Project Euler #137 = {res}")
+        print(f"Solution to Project Euler #137 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 138 in to_evaluate:
+    if 138 in eval_nums:
+        since = time.time()
         res = specialIsocelesTriangleSum(n_smallest_to_sum=12)
-        print(f"Solution to Project Euler #138 = {res}")
+        print(f"Solution to Project Euler #138 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 139 in to_evaluate:
+    if 139 in eval_nums:
+        since = time.time()
         res = pythagoreanTiles(max_triangle_perimeter=99_999_999)
-        print(f"Solution to Project Euler #139 = {res}")
+        print(f"Solution to Project Euler #139 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 140 in to_evaluate:
+    if 140 in eval_nums:
+        since = time.time()
         res = modifiedFibonacciGoldenNuggetSum(n_nugget_numbers=30, G1=1, G2=4)
-        print(f"Solution to Project Euler #140 = {res}")
+        print(f"Solution to Project Euler #140 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 141 in to_evaluate:
+    if 141 in eval_nums:
+        since = time.time()
         res = squareProgressiveNumbersSum(n_max=10 ** 12)
-        print(f"Solution to Project Euler #141 = {res}")
+        print(f"Solution to Project Euler #141 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 142 in to_evaluate:
+    if 142 in eval_nums:
+        since = time.time()
         res = perfectSquareCollection()
-        print(f"Solution to Project Euler #142 = {res}")
+        print(f"Solution to Project Euler #142 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 143 in to_evaluate:
+    if 143 in eval_nums:
+        since = time.time()
         res = torricelliTriangleUniqueLengthSum(sm_max=12 * 10 ** 4)
-        print(f"Solution to Project Euler #143 = {res}")
+        print(f"Solution to Project Euler #143 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 144 in to_evaluate:
+    if 144 in eval_nums:
+        since = time.time()
         res = laserBeamEllipseReflectionCount(
             ellipse=(4, 1, 100),
             pos0=((0, 1), (101, 10)),
@@ -5918,32 +5966,38 @@ if __name__ == "__main__":
             x_window=((-1, 100), (1, 100)),
             use_float=True
         )
-        print(f"Solution to Project Euler #144 = {res}")
+        print(f"Solution to Project Euler #144 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 145 in to_evaluate:
+    if 145 in eval_nums:
+        since = time.time()
         res = reversibleNumbersCount(n_dig_max=9, base=10)
-        print(f"Solution to Project Euler #145 = {res}")
+        print(f"Solution to Project Euler #145 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 146 in to_evaluate:
+    if 146 in eval_nums:
+        since = time.time()
         res = investigatingAPrimePatternSum(
             n_max=150 * 10 ** 6 - 1,
             add_nums=[1, 3, 7, 9, 13, 27],
         )
-        print(f"Solution to Project Euler #146 = {res}")
+        print(f"Solution to Project Euler #146 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 147 in to_evaluate:
+    if 147 in eval_nums:
+        since = time.time()
         res = rectanglesInCrossHatchedGrids(m=47, n=43)
-        print(f"Solution to Project Euler #147 = {res}")
+        print(f"Solution to Project Euler #147 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 148 in to_evaluate:
+    if 148 in eval_nums:
+        since = time.time()
         res = pascalTrianglePrimeNondivisorCount(p=7, n_rows=10 ** 9)
-        print(f"Solution to Project Euler #148 = {res}")
+        print(f"Solution to Project Euler #148 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 149 in to_evaluate:
+    if 149 in eval_nums:
+        since = time.time()
         res = maximumLaggedFibonacciGridSumSubsequence(shape=(2000, 2000))
-        print(f"Solution to Project Euler #149 = {res}")
+        print(f"Solution to Project Euler #149 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 150 in to_evaluate:
+    if 150 in eval_nums:
+        since = time.time()
         #res = subTriangleMinSum(triangle=[[15], [-14, -7], [20, -13, -5], [-3, 8, 23, -26], [1, -4, -5, -18, 5], [-16, 31, 2, 9, 28, 3]])
         res = subLinearCongruentialTriangleSubTriangleSum(
             n_rows=1000,
@@ -5952,4 +6006,9 @@ if __name__ == "__main__":
             min_triangle_value=-(1 << 19),
             max_triangle_value=(1 << 19) - 1,
         )
-        print(f"Solution to Project Euler #150 = {res}")
+        print(f"Solution to Project Euler #150 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+
+if __name__ == "__main__":
+    eval_nums = {101}
+    evaluateProjectEulerSolutions101to150(eval_nums)
