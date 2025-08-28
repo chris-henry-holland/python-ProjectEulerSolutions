@@ -14,7 +14,7 @@ Each function and class defined has its own documentation, which can be accessed
 
 This directory also contains the .txt files conatining data that is provided by certain Project Euler problems on which the calculation for that problem should be based.
 
-All solutions written using Python 3.6.
+All solutions written using Python 3.11.
 
 <h2>Project_Euler_1_50.py</h2>
 This contains the functions that calculate solutions to Project Euler problems 1-50 and 67. The functions corresponding to each solution (including any required arguments where the function solving a previous problem is used) are as follows:
