@@ -39,6 +39,10 @@ from algorithms.number_theory_algorithms import (
     integerNthRoot,
 )
 
+from project_euler_solutions.utils import (
+    loadTextFromFile,
+)
+
 def addFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[int, int]:
     """
     Finds the sum of two fractions in lowest terms (i.e. such that
@@ -131,10 +135,11 @@ def polynomialFit(seq: List[int], n0=0) -> Tuple[Tuple[int], int]:
     return (tuple(int(x * denom) for x in res), denom)
 
 def optimumPolynomial(
-    coeffs: Tuple[int]=(1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1)
+    coeffs: Tuple[int]=(1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1),
 ) -> Union[int, float]:
     """
     Solution to Project Euler #101
+
     Consider a polynomial P(n) (where n is the variable of the
     polynomial) whose coefficients are given by the tuple of ints
     coeffs, where the value at the ith index of coeffs is the
@@ -211,7 +216,10 @@ def optimumPolynomial(
     return res2
 
 # Problem 102
-def loadTriangles(doc: str, relative_to_program_file_directory: bool=False) -> List[Tuple[Tuple[int]]]:
+def loadTrianglesFromFile(
+    doc: str,
+    rel_package_src: bool=False,
+) -> List[Tuple[Tuple[int]]]:
     """
     Loads the coordinates in the plane of the vertices of a
     sequence of triangles from the .txt file at relative or
@@ -224,16 +232,14 @@ def loadTriangles(doc: str, relative_to_program_file_directory: bool=False) -> L
     
     Args:
         Required positional:
-        doc (str): The relative or absolute path to the .txt
+        doc (str): The relative or absolution location of the .txt
                 file containing the coordinates of the vertices
                 of the triangles.
-        
+
         Optional named:
-        relative_to_program_file_directory (bool): If True then
-                if doc is specified as a relative path, that
-                path is relative to the directory containing
-                the program file, otherwise relative to the
-                current working directory.
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
             Default: False
     
     Returns:
@@ -244,10 +250,7 @@ def loadTriangles(doc: str, relative_to_program_file_directory: bool=False) -> L
     the 2-dimensional Cartesian coordinates (as a 2-tuple of ints)
     of the vertices of the triangle.
     """
-    if relative_to_program_file_directory and not doc.startswith("/"):
-        doc = os.path.join(os.path.dirname(__file__), doc)
-    with open(doc) as f:
-        txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     res = []
     for s in txt.split("\n"):
         if not s: continue
@@ -370,9 +373,11 @@ def crossProduct2D(vec1: Tuple[int], vec2: Tuple[int]) -> int:
     """
     return vec1[0] * vec2[1] - vec1[1] * vec2[0]
 
-def triangleContainsPoint(p: Tuple[int],\
-        triangle_vertices: Tuple[Tuple[int]],\
-        include_surface: bool=False) -> bool:
+def triangleContainsPoint(
+    p: Tuple[int],
+    triangle_vertices: Tuple[Tuple[int]],
+    include_surface: bool=False
+) -> bool:
     """
     Using the 2-dimensional cross product, finds whether the point
     with 2-dimensional Cartesian coordinates p falls inside a triangle
@@ -567,16 +572,21 @@ def triangleContainsOrigin(v1: Tuple[int], v2: Tuple[int], v3: Tuple[int]) -> bo
     #print(intercept_sgns)
     return all(len(x) > 1 for x in intercept_sgns)
 
-def triangleContainment(p: Tuple[int]=(0, 0), doc: str="0102_triangles.txt",\
-        relative_to_program_file_directory: bool=True, include_surface: bool=True):
+def countTrianglesContainingPointFromFile(
+    p: Tuple[int]=(0, 0),
+    doc: str="project_euler_problem_data_files/0102_triangles.txt",
+    rel_package_src: bool=True,
+    include_surface: bool=True,
+) -> int:
     """
     Solution to Project Euler #102
+
     Given the list of triangles represented by the 2-dimensional
     Cartesian coordinates of their vertices in the .txt file at
     location doc (see loadTriangles()), counts how many of these
     triangles contain the point with 2-dimensional Cartesian
     coordinates p.
-    
+
     Args:
         Optional named:
         p (2-tuple of ints): The 2-dimensional Cartesian coordinates
@@ -585,12 +595,10 @@ def triangleContainment(p: Tuple[int]=(0, 0), doc: str="0102_triangles.txt",\
         doc (str): The relative or absolute location of the .txt file
                 containing the coordinates of the vertices of the
                 triangles.
-            Default: "0102_triangles.txt"
-        relative_to_program_file_directory (bool): If True then
-                if doc is specified as a relative path, that
-                path is relative to the directory containing
-                the program file, otherwise relative to the
-                current working directory.
+            Default: "project_euler_problem_data_files/0102_triangles.txt"
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
             Default: True
         include_surface (bool): If True, considers points that are
                 exactly on the edge or on a vertex of a given triangle
@@ -605,9 +613,17 @@ def triangleContainment(p: Tuple[int]=(0, 0), doc: str="0102_triangles.txt",\
     exactly on an edge or vertex of a triangle.
     """
     #since = time.time()
-    triangles = loadTriangles(doc, relative_to_program_file_directory=relative_to_program_file_directory)
-    res = sum(triangleContainsPoint(p, x,\
-            include_surface=include_surface) for x in triangles)
+    triangles = loadTrianglesFromFile(
+        doc,
+        rel_package_src=rel_package_src,
+    )
+    res = sum(
+        triangleContainsPoint(
+            p,
+            x,
+            include_surface=include_surface,
+        ) for x in triangles
+    )
     #res = sum(triangleContainsOrigin(*x) for x in triangles)
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
@@ -1060,7 +1076,7 @@ def pandigitalFibonacciStart(i: int, base: int=10) -> bool:
     """
     return isPandigital(FibonacciFirstKDigits(i, k=base - 1, base=10))
     
-    
+    """
     if target is None: target = base ** (base - 2)
     lg_num = i * math.log((1 + math.sqrt(5)) / 2, base)
     #if lg_num < base - 1: continue
@@ -1073,6 +1089,7 @@ def pandigitalFibonacciStart(i: int, base: int=10) -> bool:
     res = isPandigital(num, chk_rng=False)
     print(res)
     return res
+    """
 
 def pandigitalFibonacciEnds(base: int=10) -> int:
     """
@@ -1121,36 +1138,46 @@ def pandigitalFibonacciEnds(base: int=10) -> int:
     return i
 
 # Problem 105
-def loadSets(doc: str, relative_to_program_file_directory: bool=False) -> List[Tuple[int]]:
+def loadSets(doc: str, rel_package_src: bool=False) -> List[Tuple[int]]:
     """
+    TODO
+
+    Args:
+        Required positional
+        doc (str): The relative or absolute location of the .txt file
+                containing the sets of integers
+
         Optional named:
-        relative_to_program_file_directory (bool): If True then
-                if doc is specified as a relative path, that
-                path is relative to the directory containing
-                the program file, otherwise relative to the
-                current working directory.
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
             Default: False
     """
-    if relative_to_program_file_directory and not doc.startswith("/"):
-        doc = os.path.join(os.path.dirname(__file__), doc)
-    with open(doc) as f:
-        txt = f.read()
+    #if relative_to_program_file_directory and not doc.startswith("/"):
+    #    doc = os.path.join(os.path.dirname(__file__), doc)
+    #with open(doc) as f:
+    #    txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     return [tuple(int(y.strip()) for y in x.split(",")) for x in txt.split("\n")]
 
-def specialSubsetSumsTesting(doc: str="0105_sets.txt", relative_to_program_file_directory: bool=True) -> int:
+def specialSubsetSumsTestingFromFile(
+    doc: str="project_euler_problem_data_files/0105_sets.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #105
 
         Optional named:
-        relative_to_program_file_directory (bool): If True then
-                if doc is specified as a relative path, that
-                path is relative to the directory containing
-                the program file, otherwise relative to the
-                current working directory.
+        doc (str): The relative or absolute location of the .txt file
+                containing the sets of integers
+            Default: "project_euler_problem_data_files/0105_sets.txt"
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
             Default: True
     """
     #since = time.time()
-    sp_sets = loadSets(doc, relative_to_program_file_directory=relative_to_program_file_directory)
+    sp_sets = loadSets(doc, rel_package_src=rel_package_src)
     #print(sp_sets)
     res = sum(sum(x) for x in sp_sets if isSpecialSumSet(x, nums_sorted=False))
     #print(f"Time taken = {time.time() - since:.4f} seconds")
@@ -1194,20 +1221,26 @@ class UnionFind:
     def connected(self, v1: int, v2: int) -> bool:
         return self.find(v1) == self.find(v2)
 
-def loadNetwork(doc: str, relative_to_program_file_directory: bool=False) -> Tuple[Union[int, List[Tuple[int]]]]:
+def loadNetworkFromFile(
+    doc: str,
+    rel_package_src: bool=False
+) -> Tuple[Union[int, List[Tuple[int]]]]:
     """
+        Required positional:
+        doc (str): The relative or absolution location of the .txt
+                file containing the network in matrix form.
+
         Optional named:
-        relative_to_program_file_directory (bool): If True then
-                if doc is specified as a relative path, that
-                path is relative to the directory containing
-                the program file, otherwise relative to the
-                current working directory.
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
             Default: False
     """
-    if relative_to_program_file_directory and not doc.startswith("/"):
-        doc = os.path.join(os.path.dirname(__file__), doc)
-    with open(doc) as f:
-        txt = f.read()
+    #if relative_to_program_file_directory and not doc.startswith("/"):
+    #    doc = os.path.join(os.path.dirname(__file__), doc)
+    #with open(doc) as f:
+    #    txt = f.read()
+    txt = loadTextFromFile(doc, rel_package_src=rel_package_src)
     res = []
     arr = txt.split("\n")
     n = len(arr)
@@ -1232,19 +1265,28 @@ def KruskallAlgorithm(n: int, edges: List[Tuple[int]]):
         res.append(e)
     return res
 
-def minimalNetwork(doc: str="0107_network.txt", relative_to_program_file_directory: bool=True):
+def minimalNetworkFromFile(
+    doc: str="project_euler_problem_data_files/0107_network.txt",
+    rel_package_src: bool=True,
+) -> int:
     """
     Solution to Project Euler #107
 
+    TODO
+
+        Required positional:
+        
+
         Optional named:
-        relative_to_program_file_directory (bool): If True then
-                if doc is specified as a relative path, that
-                path is relative to the directory containing
-                the program file, otherwise relative to the
-                current working directory.
+        doc (str): The relative or absolution location of the .txt
+                file containing the network in matrix form.
+            Default: "project_euler_problem_data_files/0107_network.txt"
+        rel_package_src (bool): Whether a relative path given by doc
+                is relative to the current directory (False) or
+                the package src directory (True).
             Default: True
     """
-    n, edges = loadNetwork(doc, relative_to_program_file_directory=relative_to_program_file_directory)
+    n, edges = loadNetworkFromFile(doc, rel_package_src=rel_package_src)
     mst_edges = KruskallAlgorithm(n, edges)
     return sum(x[2] for x in edges) - sum(x[2] for x in mst_edges)
 
@@ -5749,7 +5791,12 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
     if 102 in eval_nums:
         since = time.time()
-        res = triangleContainment(p=(0, 0), doc="0102_triangles.txt", relative_to_program_file_directory=True, include_surface=True)
+        res = countTrianglesContainingPointFromFile(
+            p=(0, 0),
+            doc="project_euler_problem_data_files/0102_triangles.txt",
+            rel_package_src=True,
+            include_surface=True,
+        )
         print(f"Solution to Project Euler #102 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     if 103 in eval_nums:
@@ -5764,7 +5811,10 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
     if 105 in eval_nums:
         since = time.time()
-        res = specialSubsetSumsTesting(doc="0105_sets.txt", relative_to_program_file_directory=True)
+        res = specialSubsetSumsTestingFromFile(
+            doc="project_euler_problem_data_files/0105_sets.txt",
+            rel_package_src=True,
+        )
         print(f"Solution to Project Euler #105 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     if 106 in eval_nums:
@@ -5774,7 +5824,10 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
     
     if 107 in eval_nums:
         since = time.time()
-        res = minimalNetwork(doc="0107_network.txt", relative_to_program_file_directory=True)
+        res = minimalNetworkFromFile(
+            doc="project_euler_problem_data_files/0107_network.txt",
+            rel_package_src=True,
+        )
         print(f"Solution to Project Euler #107 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     if 108 in eval_nums:
@@ -6010,5 +6063,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {101}
+    eval_nums = {107}
     evaluateProjectEulerSolutions101to150(eval_nums)
