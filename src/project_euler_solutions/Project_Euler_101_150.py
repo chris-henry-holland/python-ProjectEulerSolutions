@@ -1138,9 +1138,16 @@ def pandigitalFibonacciEnds(base: int=10) -> int:
     return i
 
 # Problem 105
-def loadSets(doc: str, rel_package_src: bool=False) -> List[Tuple[int]]:
+def loadSetsFromFile(
+    doc: str,
+    rel_package_src: bool=False
+) -> List[Tuple[int]]:
     """
-    TODO
+    Loads sets of integers stored in a .txt file doc.
+
+    The sets are stored in the .txt file as strings separated by
+    line breaks ("\n"), with the integers in each set expressed
+    in base 10 and each separated by a comma (",").
 
     Args:
         Required positional
@@ -1152,6 +1159,11 @@ def loadSets(doc: str, rel_package_src: bool=False) -> List[Tuple[int]]:
                 is relative to the current directory (False) or
                 the package src directory (True).
             Default: False
+    
+    Returns:
+    List of tuples of ints with each entry in the list representing
+    one of the sets of integers stored in doc, and each tuple
+    containing each of the integers in the corresponding set.
     """
     #if relative_to_program_file_directory and not doc.startswith("/"):
     #    doc = os.path.join(os.path.dirname(__file__), doc)
@@ -1167,6 +1179,25 @@ def specialSubsetSumsTestingFromFile(
     """
     Solution to Project Euler #105
 
+    For the sets of integers contained in the .txt file doc,
+    identifies which of those sets are special sum sets, and for
+    those calculates the total sum of elements over all of those
+    sets.
+
+    A special sum set is a set of distinct positive integers for
+    which:
+     1) For any two disjoint non-empty subsets (i.e. subsets that
+        contain at least one element and have no common element)
+        the sums over all elements is different for the two subsets
+     2) For any subset, the sum over all elements in that subset
+        is strictly greater than that of any other subset that is
+        disjoint with the chosen set that contains fewer elements.
+    
+    The sets are stored in the .txt file as strings separated by
+    line breaks ("\n"), with the integers in each set expressed
+    in base 10 and each separated by a comma (",").
+    
+    Args:
         Optional named:
         doc (str): The relative or absolute location of the .txt file
                 containing the sets of integers
@@ -1175,9 +1206,13 @@ def specialSubsetSumsTestingFromFile(
                 is relative to the current directory (False) or
                 the package src directory (True).
             Default: True
+
+    Returns:
+    Integer (int) giving the total of the sum of elements in all of the
+    sets of integers contained in doc that are special sum sets.
     """
     #since = time.time()
-    sp_sets = loadSets(doc, rel_package_src=rel_package_src)
+    sp_sets = loadSetsFromFile(doc, rel_package_src=rel_package_src)
     #print(sp_sets)
     res = sum(sum(x) for x in sp_sets if isSpecialSumSet(x, nums_sorted=False))
     #print(f"Time taken = {time.time() - since:.4f} seconds")
