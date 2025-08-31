@@ -16,7 +16,6 @@ import bisect
 import heapq
 import itertools
 import math
-import os
 import time
 
 import sympy as sym
@@ -1222,6 +1221,38 @@ def specialSubsetSumsTestingFromFile(
 def specialSubsetSumsComparisons(n: int=12) -> int:
     """
     Solution to Project Euler #106
+    
+    A special sum set is a set of distinct positive integers for
+    which:
+     1) For any two disjoint non-empty subsets (i.e. subsets that
+        contain at least one element and have no common element)
+        the sums over all elements is different for the two subsets
+     2) For any subset, the sum over all elements in that subset
+        is strictly greater than that of any other subset that is
+        disjoint with the chosen set that contains fewer elements.
+    
+    This function calculates, for sets of distinct positive integers
+    with exactly n elements for which the second property holds, the
+    minimum number of comparisons of sum equality between subsets
+    that need to be made to confirm with certainty whether or not
+    any such set also satisfies the first property (and so is or is
+    not a special sum set).
+
+    Args:
+        Optional named:
+        n (int): Non-negative integer giving the number of elements
+                in the sets under consideration.
+            Default: 12
+    
+    Returns:
+    Integer (int) giving the minimum number of comparisons of sum
+    equality between subsets that need to be made to confirm with
+    certainty whether or not a set of distinct positive integers
+    with exactly n elements satisfying the second property given
+    above is or is not a special sum set.
+
+    Outline of rationale:
+    TODO
     """
     res = 0
     for i in range(2, (n >> 1) + 1):
@@ -6098,5 +6129,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {107}
+    eval_nums = {106}
     evaluateProjectEulerSolutions101to150(eval_nums)

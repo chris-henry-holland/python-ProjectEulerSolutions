@@ -7,11 +7,8 @@ from typing import (
     Set,
     Union,
     Generator,
-    Callable,
     Optional,
     Any,
-    Hashable,
-    Iterable,
 )
 
 import bisect
@@ -19,13 +16,10 @@ import heapq
 import itertools
 import math
 import numpy as np
-import os
-import random
-import sys
 import time
 
 from collections import deque, defaultdict
-from sortedcontainers import SortedDict, SortedList, SortedSet
+from sortedcontainers import SortedList, SortedSet
 
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
