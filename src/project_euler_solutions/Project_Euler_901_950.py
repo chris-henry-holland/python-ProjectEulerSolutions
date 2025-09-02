@@ -2484,10 +2484,65 @@ def continuedFractionAlphaRationalExpressionInitalTermsSum(n_init_terms: int=10 
     res = sum(num for _, num in zip(range(n_init_terms), continuedFractionRationalExpression(cf, a, b, c, d)))
     return res
 
+# Problem 948
+def leftVsRightPlayerOneWinsCountBruteForce(n: int=60) -> int:
+
+    memo_lft = {}
+    def leftTurn(bm: int, length: int) -> bool:
+        if length == 1:
+            return bool(bm)
+        elif bm & 1: return True
+        args = (bm, length)
+        if args in memo_lft.keys():
+            return memo_lft[args]
+        mask = 0
+        res = False
+        for length2 in range(1, length):
+            mask = (mask << 1) | 1
+            if not rightTurn(bm & mask, length2):
+                res = True
+                break
+        memo_lft[args] = res
+        return res
+
+    memo_rgt = {}
+    def rightTurn(bm: int, length: int) -> bool:
+        if length == 1:
+            return not bool(bm)
+        elif bm < (1 << (length - 1)): return True
+        args = (bm, length)
+        if args in memo_rgt.keys():
+            return memo_rgt[args]
+        res = False
+        bm2 = bm
+        for length2 in reversed(range(1, length)):
+            bm2 >>= 1
+            if not leftTurn(bm2, length2):
+                res = True
+                break
         
+        memo_rgt[args] = res
+        return res
+    
+    res = 0
+    for bm in range(1 << n):
+        #print(bm)
+        res += (leftTurn(bm, n) and rightTurn(bm, n))
+        #print(res)
+    return res
+
+def leftVsRightPlayerOneWinsCount(n: int=60) -> int:
+    """
+    Solution to Project Euler #948
+    """
+    if n <= 0: return 0
+    res = (1 << n) - 2 * math.comb(n - 1, (n - 1) >> 1)
+    if n & 1:
+        return res
+    return res - math.comb(n - 2, (n >> 1) - 1) + (0 if n < 4 else math.comb(n - 2, (n >> 1) - 2))
 
 if __name__ == "__main__":
-    to_evaluate = {933}
+    to_evaluate = {948}
     since0 = time.time()
 
     if not to_evaluate or 932 in to_evaluate:
@@ -2563,7 +2618,15 @@ if __name__ == "__main__":
         res = continuedFractionAlphaRationalExpressionInitalTermsSum(n_init_terms=10 ** 8, a=3, b=2, c=2, d=3)
         print(f"Solution to Project Euler #946 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if not to_evaluate or 948 in to_evaluate:
+        since = time.time()
+        res = leftVsRightPlayerOneWinsCount(n=60)
+        print(f"Solution to Project Euler #948 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
+
+        
 
 """
 for num in range(1, 17):
