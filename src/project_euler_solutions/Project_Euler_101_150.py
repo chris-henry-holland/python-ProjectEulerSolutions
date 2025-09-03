@@ -1292,15 +1292,53 @@ def loadNetworkFromFile(
     rel_package_src: bool=False
 ) -> Tuple[Union[int, List[Tuple[int]]]]:
     """
+    Loads a the weighted edges from a weighted adjacency matrix
+    for an undirected network with integer weights stored in the
+    .txt file located at doc.
+    
+    The file should contain the rows of the matrix in order,
+    separated by line breaks ('\\n'), with each entry of the row
+    being either a non-negative integer represented in base 10 by
+    arabic numerals representing that a single undirected edge
+    exists between the corresponding vertices in the network with
+    weight equal to that number or a hyphen ('-') denoting that
+    no edge exists between those two vertices, with each entry
+    separated by a single comma (',') only (i.e. no space before
+    or after the comma).
+
+    The matrix should be square (i.e. each row contains the same
+    number of entries as there are rows) and symmetric about the
+    leading diagonal (so the entry in the ith row and jth column
+    is equal to the entry in the jth row and ith column for all
+    valid choiced of i and j), and no self-edges (so no edges
+    along the leading diagonal).
+
+    Loads triangle of integers from .txt file located at doc.
+    The file should contain the rows of the triangle in order,
+    separated by line breaks ('\\n') and the integers in each
+    row separated by single spaces. For rows labelled in order
+    starting from 1, each row must contain exactly the same
+    number of elements as its row number.
+    
+    Args:
         Required positional:
         doc (str): The relative or absolution location of the .txt
-                file containing the network in matrix form.
+                file containing the triangle of integers.
 
         Optional named:
         rel_package_src (bool): Whether a relative path given by doc
                 is relative to the current directory (False) or
                 the package src directory (True).
             Default: False
+    
+    Returns:
+    2-tuple whose index 0 contains an integer (int) giving the number
+    of rows (and columns) of the matrix and whose index 1 contains
+    a list of 3-tuples of ints, each representing the edges of the
+    network, with indices 0 and 1 containing the indices of the
+    connected vertices (with the index corresponding to the row and
+    column number, starting at zero) in increasing order and index
+    2 containing the weight of that edge.
     """
     #if relative_to_program_file_directory and not doc.startswith("/"):
     #    doc = os.path.join(os.path.dirname(__file__), doc)
@@ -1317,10 +1355,38 @@ def loadNetworkFromFile(
             v = row2[i2].strip()
             #print(v)
             if v == "-": continue
-            res.append((i1, i2, int(v)))
-    return n, res
+            res.append((i2, i1, int(v)))
+    return (n, res)
 
-def KruskallAlgorithm(n: int, edges: List[Tuple[int]]):
+def KruskallAlgorithm(n: int, edges: List[Tuple[int, int, int]]):
+    """
+    Implementation of Kruskall's algorithm for finding a
+    minimum spanning forest of a weighted undirected graph
+    (which, for connected graphs is a minimum spanning
+    tree) with integer weights.
+
+    A minimum spanning forest of a weighted undirected graph
+    is a subgraph of that graph containing all of its
+    vertices, whose connected components are all trees (i.e.
+    acyclic graphs) for which vertices that are connected
+    in the original graph are connected in the subgraph and
+    the sum of the weights of the included edges is no larger
+    than that of any other such subgraph.
+
+    Args:
+        Required positional:
+        n (int): The number of vertices in the graph.
+        edges (list of 3-tuples of ints): The weighted
+                undirected edges of the graph, with indices
+                0 and 1 giving the indices of the vertices
+                connected ()
+
+    
+    Returns:
+
+    If there are several such minimum spanning forests, this
+    returns the first one constructed by the algorithm.
+    """
     edges = sorted(edges, key=lambda x: x[2])
     res = []
     uf = UnionFind(n)
