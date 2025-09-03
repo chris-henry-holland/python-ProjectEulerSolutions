@@ -1289,7 +1289,7 @@ class UnionFind:
 
 def loadNetworkFromFile(
     doc: str,
-    rel_package_src: bool=False
+    rel_package_src: bool=False,
 ) -> Tuple[Union[int, List[Tuple[int]]]]:
     """
     Loads a the weighted edges from a weighted adjacency matrix
@@ -1358,20 +1358,47 @@ def loadNetworkFromFile(
             res.append((i2, i1, int(v)))
     return (n, res)
 
-def KruskallAlgorithm(n: int, edges: List[Tuple[int, int, int]]):
+
+# Review- documentation for clarity
+def kruskallAlgorithm(n: int, edges: List[Tuple[int, int, int]]):
     """
     Implementation of Kruskall's algorithm for finding a
     minimum spanning forest of a weighted undirected graph
-    (which, for connected graphs is a minimum spanning
-    tree) with integer weights.
+    with integer weights.
 
+    A spanning forest of an undirected graph is a subgraph
+    of that graph containing all of its vertices, for which
+    all vertices that were in the same connected component
+    in the original graph are still in the same connected
+    component and each connected component is a tree.
+
+    A connected component of an undirected graph is a part
+    of the graph consisting of a subset of its vertices and
+    edges for which:
+     1) For every pair of vertices in the connected component,
+        a path through the graph exists between them.
+     2) There exists no path through the graph between any
+        vertex in the connected component and any vertex not
+        in the connected component.
+     3) An edge is in the connected component if and only if
+        the two vertices it connects are in the connected
+        component (note that by definition, either both
+        adjacent vertices to the edge are in the connected
+        component or both are not in the connected component).
+    An undirected graph whose every vertex are in the same
+    connected component (and so there exists a path through
+    the graph between every pair of vertices in the graph) is
+    referred to as a connected graph.
+
+    A tree is a graph that contains no cycles (a cycle being
+    a path through the graph that leads back to the starting
+    point without traversing the same edge more than once).
+    
     A minimum spanning forest of a weighted undirected graph
-    is a subgraph of that graph containing all of its
-    vertices, whose connected components are all trees (i.e.
-    acyclic graphs) for which vertices that are connected
-    in the original graph are connected in the subgraph and
-    the sum of the weights of the included edges is no larger
-    than that of any other such subgraph.
+    is a spanning forest of the graph whose sum of edge weights
+    is no larger than any other such spanning forest. A
+    minimum spanning forest of a connected weighted undirected
+    graph is referred to as a minimum spanning tree.
 
     Args:
         Required positional:
@@ -1379,13 +1406,21 @@ def KruskallAlgorithm(n: int, edges: List[Tuple[int, int, int]]):
         edges (list of 3-tuples of ints): The weighted
                 undirected edges of the graph, with indices
                 0 and 1 giving the indices of the vertices
-                connected ()
+                connected by that edge (0-indexed) and index
+                2 giving the weight of the edge (a non-negative
+                integer).
 
-    
     Returns:
-
+    List of 3-tuples of integers (int) giving the weighted
+    undirected edges of a minimum spanning forest of the given
+    weighted undirected graph, with indices 0 and 1 giving the
+    indices of the vertices onnected by that edge (as per the
+    vertex indexing of the original graph) and index 2 giving
+    the weight of the edge.
     If there are several such minimum spanning forests, this
     returns the first one constructed by the algorithm.
+    Note that if the given graph is connected, the edges will
+    be the edges of a minimum spanning tree.
     """
     edges = sorted(edges, key=lambda x: x[2])
     res = []
@@ -1419,7 +1454,7 @@ def minimalNetworkFromFile(
             Default: True
     """
     n, edges = loadNetworkFromFile(doc, rel_package_src=rel_package_src)
-    mst_edges = KruskallAlgorithm(n, edges)
+    mst_edges = kruskallAlgorithm(n, edges)
     return sum(x[2] for x in edges) - sum(x[2] for x in mst_edges)
 
 # Problem 108 & 110
