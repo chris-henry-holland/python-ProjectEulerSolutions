@@ -1312,13 +1312,6 @@ def loadNetworkFromFile(
     is equal to the entry in the jth row and ith column for all
     valid choiced of i and j), and no self-edges (so no edges
     along the leading diagonal).
-
-    Loads triangle of integers from .txt file located at doc.
-    The file should contain the rows of the triangle in order,
-    separated by line breaks ('\\n') and the integers in each
-    row separated by single spaces. For rows labelled in order
-    starting from 1, each row must contain exactly the same
-    number of elements as its row number.
     
     Args:
         Required positional:
@@ -1439,11 +1432,22 @@ def minimalNetworkFromFile(
     """
     Solution to Project Euler #107
 
-    TODO
+    For a weighted network in the .txt file doc for which every
+    vertex is connected, identifies the largest sum of weights
+    of a subset of the edges such that the removal of those
+    edges still leaves the network connected.
 
-        Required positional:
-        
+    The file should contain the rows of the matrix in order,
+    separated by line breaks ('\\n'), with each entry of the row
+    being either a non-negative integer represented in base 10 by
+    arabic numerals representing that a single undirected edge
+    exists between the corresponding vertices in the network with
+    weight equal to that number or a hyphen ('-') denoting that
+    no edge exists between those two vertices, with each entry
+    separated by a single comma (',') only (i.e. no space before
+    or after the comma).
 
+    Args:
         Optional named:
         doc (str): The relative or absolution location of the .txt
                 file containing the network in matrix form.
@@ -1452,6 +1456,19 @@ def minimalNetworkFromFile(
                 is relative to the current directory (False) or
                 the package src directory (True).
             Default: True
+    
+    Returns:
+    Integer (int) giving the largest sum of weights of any subset of
+    the edges in the network such that the removal of those edges still
+    leaves the network connected.
+
+    Outline of rationale:
+    This problem is equivalent to finding a minimum spanning tree of
+    the network (which is the smallest total weight of a subset of
+    edges of a network such that the network remains connected), with
+    the result being the difference between the total weight of all edges
+    in the network and the total weight of all edges in the minimum
+    spanning tree.
     """
     n, edges = loadNetworkFromFile(doc, rel_package_src=rel_package_src)
     mst_edges = kruskallAlgorithm(n, edges)
