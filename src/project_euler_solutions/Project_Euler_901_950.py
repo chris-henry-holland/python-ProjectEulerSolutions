@@ -2485,8 +2485,49 @@ def continuedFractionAlphaRationalExpressionInitalTermsSum(n_init_terms: int=10 
     return res
 
 # Problem 948
-def leftVsRightPlayerOneWinsCountBruteForce(n: int=60) -> int:
+memo_lft_glob = {}
+memo_rgt_glob = {}
+def leftVsRightOptimalPlayIsWinnerPlayerOne(s_bm: int, s_len: int, player_one_left: bool) -> bool:
+    def leftTurn(bm: int, length: int) -> bool:
+        if length == 1:
+            return bool(bm)
+        elif bm & 1: return True
+        args = (bm, length)
+        if args in memo_lft_glob.keys():
+            return memo_lft_glob[args]
+        mask = 0
+        res = False
+        for length2 in range(1, length):
+            mask = (mask << 1) | 1
+            if not rightTurn(bm & mask, length2):
+                res = True
+                break
+        memo_lft_glob[args] = res
+        return res
+    
+    def rightTurn(bm: int, length: int) -> bool:
+        if length == 1:
+            return not bool(bm)
+        elif bm < (1 << (length - 1)): return True
+        args = (bm, length)
+        if args in memo_rgt_glob.keys():
+            return memo_rgt_glob[args]
+        res = False
+        bm2 = bm
+        for length2 in reversed(range(1, length)):
+            bm2 >>= 1
+            if not leftTurn(bm2, length2):
+                res = True
+                break
+        
+        memo_rgt_glob[args] = res
+        return res
+    
+    return leftTurn(s_bm, s_len) if player_one_left else rightTurn(s_bm, s_len)
 
+
+def leftVsRightPlayerOneWinsCountBruteForce(n: int=60) -> int:
+    """
     memo_lft = {}
     def leftTurn(bm: int, length: int) -> bool:
         if length == 1:
@@ -2523,11 +2564,12 @@ def leftVsRightPlayerOneWinsCountBruteForce(n: int=60) -> int:
         
         memo_rgt[args] = res
         return res
-    
+    """
     res = 0
     for bm in range(1 << n):
         #print(bm)
-        res += (leftTurn(bm, n) and rightTurn(bm, n))
+        res += leftVsRightOptimalPlayIsWinnerPlayerOne(bm, n, player_one_left=True) and\
+                leftVsRightOptimalPlayIsWinnerPlayerOne(bm, n, player_one_left=False)#(leftTurn(bm, n) and rightTurn(bm, n))
         #print(res)
     return res
 
@@ -2541,8 +2583,171 @@ def leftVsRightPlayerOneWinsCount(n: int=60) -> int:
         return res
     return res - math.comb(n - 2, (n >> 1) - 1) + (0 if n < 4 else math.comb(n - 2, (n >> 1) - 2))
 
+# Problem 949
+def leftVsRightMultipleWordsPlayerTwoWinsBruteForce(s_lens: int=20, n_words: int=7) -> int:
+    
+    n_s = 1 << s_lens
+    n_s_winner_same_player = math.comb(s_lens - 1, (s_lens - 1) >> 1)
+    n_s_winner_second = 0 if s_lens & 1 else (math.comb(s_lens - 2, (s_lens >> 1) - 1) - (0 if s_lens < 4 else math.comb(s_lens - 2, (s_lens >> 1) - 2)))
+    n_s_winner_first = n_s - 2 * n_s_winner_same_player - n_s_winner_second
+    print(n_s, n_s_winner_same_player, n_s_winner_second, n_s_winner_first)
+
+    memo_lft = {}
+    def leftTurn(bm_lst: List[Tuple[int, int]], bal: int) -> bool:
+        bm_lst2 = []
+        for bm, l in bm_lst:
+            if l == 1:
+                bal += 2 * bool(bm) - 1
+            else: bm_lst2.append((bm, l))
+        if abs(bal) > len(bm_lst2):
+            return bal > 0
+        bm_lst2 = tuple(sorted(bm_lst2))
+        args = (bm_lst2, bal)
+        if args in memo_lft.keys():
+            return memo_lft[args]
+
+        n_bm = len(bm_lst2)
+        bm_lst3 = list(bm_lst2)
+        def recur(idx: int, nonzero_seen: bool=False) -> bool:
+            bm_lst3[idx] = bm_lst2[idx]
+            if idx == n_bm - 1:
+                if nonzero_seen:
+                    if not rightTurn(bm_lst3, -bal): return True
+                mask = 0
+                for l2 in range(1, bm_lst2[idx][1]):
+                    mask = (mask << 1) | 1
+                    bm2 = bm_lst2[idx][0] & mask
+                    bm_lst3[idx] = (bm2, l2)
+                    if not rightTurn(bm_lst3, -bal):
+                        return True
+                return False
+            if recur(idx + 1, nonzero_seen=nonzero_seen):
+                return True
+            mask = 0
+            for l2 in range(1, bm_lst2[idx][1]):
+                mask = (mask << 1) | 1
+                bm2 = bm_lst2[idx][0] & mask
+                bm_lst3[idx] = (bm2, l2)
+                if recur(idx + 1, nonzero_seen=True):
+                    return True
+            return False
+        res = recur(0, nonzero_seen=False)
+        memo_lft[args] = res
+        return res
+
+    memo_rgt = {}
+    def rightTurn(bm_lst: List[Tuple[int, int]], bal: int) -> bool:
+        bm_lst2 = []
+        for bm, l in bm_lst:
+            if l == 1:
+                bal += 1 - 2 * bool(bm)
+            else: bm_lst2.append((bm, l))
+        if abs(bal) > len(bm_lst2):
+            return bal > 0
+        bm_lst2 = tuple(sorted(bm_lst2))
+        args = (bm_lst2, bal)
+        if args in memo_rgt.keys():
+            return memo_rgt[args]
+
+        n_bm = len(bm_lst2)
+        bm_lst3 = list(bm_lst2)
+        def recur(idx: int, nonzero_seen: bool=False) -> bool:
+            bm_lst3[idx] = bm_lst2[idx]
+            if idx == n_bm - 1:
+                if nonzero_seen:
+                    if not leftTurn(bm_lst3, -bal): return True
+                bm2 = bm_lst2[idx][0]
+                for l2 in reversed(range(1, bm_lst2[idx][1])):
+                    bm2 >>= 1
+                    bm_lst3[idx] = (bm2, l2)
+                    if not leftTurn(bm_lst3, -bal):
+                        return True
+                return False
+            if recur(idx + 1, nonzero_seen=nonzero_seen):
+                return True
+            bm2 = bm_lst2[idx][0]
+            for l2 in reversed(range(1, bm_lst2[idx][1])):
+                bm2 >>= 1
+                bm_lst3[idx] = (bm2, l2)
+                if recur(idx + 1, nonzero_seen=True):
+                    return True
+            return False
+        res = recur(0, nonzero_seen=False)
+        memo_rgt[args] = res
+        return res
+    
+    bm_lst = [(0, s_lens) for _ in range(n_words)]
+    seen_category_cnts = {}
+    def recur(idx: int) -> int:
+        if idx == n_words:
+            res = 1 - leftTurn(bm_lst, 0)
+            if res:
+                cat_lst = []
+                for bm, l in bm_lst:
+                    cat_lst.append((leftVsRightOptimalPlayIsWinnerPlayerOne(bm, l, True), not leftVsRightOptimalPlayIsWinnerPlayerOne(bm, l, False)))
+                cat_lst = tuple(sorted(cat_lst))
+                seen_category_cnts[cat_lst] = seen_category_cnts.get(cat_lst, 0) + res
+            return res
+        res = 0
+        for bm in range(1 << s_lens):
+            if not idx:
+                print(f"first bm = {bm} of {(1 << s_lens) - 1}")
+            bm_lst[idx] = (bm, s_lens)
+            res += recur(idx + 1)
+        return res
+
+    res = recur(0)
+    #print(memo_lft)
+    #print(memo_rgt)
+    #print(seen_category_cnts)
+    full_cnts = {}
+    for lst, f in seen_category_cnts.items():
+        cnt = math.factorial(n_words)
+        f_dict = {}
+        for l1, l2 in lst:
+            f_dict[(l1, l2)] = f_dict.get((l1, l2), 0) + 1
+            cnt //= f_dict[(l1, l2)]
+            if l1 == l2: cnt *= n_s_winner_same_player
+            elif l1: cnt *= n_s_winner_first
+            else: cnt *= n_s_winner_second
+        full_cnts[lst] = (f, cnt)
+    print(full_cnts)
+    return res
+
+def leftVsRightMultipleWordsPlayerTwoWins(s_lens: int=20, n_words: int=7) -> int:
+
+    n_s = 1 << s_lens
+    n_s_winner_same_player = math.comb(s_lens - 1, (s_lens - 1) >> 1)
+    n_s_winner_second = 0 if s_lens & 1 else (math.comb(s_lens - 2, (s_lens >> 1) - 1) - (0 if s_lens < 4 else math.comb(s_lens - 2, (s_lens >> 1) - 2)))
+    n_s_winner_first = n_s - 2 * n_s_winner_same_player - n_s_winner_second
+    print(n_s, n_s_winner_same_player, n_s_winner_second, n_s_winner_first)
+
+    def player2Winner(n_player1_wins: int, n_player2_wins: int, n_first_wins: int, n_second_wins: int) -> bool:
+        #return True
+        if not n_player1_wins and not n_first_wins and not n_player2_wins:
+            return True
+        bal0 = n_player1_wins + n_first_wins - n_player2_wins 
+        bal = bal0 + ((n_second_wins) & 1)
+        return bal < 0
+        #if n_player2_wins >= n_player1_wins + (n_second_wins & 1):
+        #    return True
+    res = 0
+    for n_p1 in range(n_words + 1):
+        n_comb1 = math.comb(n_words, n_p1) * n_s_winner_same_player ** n_p1
+        for n_p2 in range(n_words - n_p1 + 1):
+            n_comb2 = n_comb1 * math.comb(n_words - n_p1, n_p2) * n_s_winner_same_player ** n_p2
+            for n_w2 in range(n_words - n_p1 - n_p2 + 1):
+                n_w1 = n_words - n_p1 - n_p2 - n_w2
+                if not player2Winner(n_p1, n_p2, n_w1, n_w2): continue
+                #player2_winner = not player2Winner(n_p2, n_p1, n_w2 + n_w1) if n_w1 & 1 else player2Winner(n_p1, n_p2, n_w2 + n_w1)
+                #if not player2_winner: continue
+                cnt = n_comb2 * math.comb(n_words - n_p1 - n_p2, n_w2) * n_s_winner_second ** n_w2 * n_s_winner_first ** n_w1
+                print(f"n_p1 = {n_p1}, n_p2 = {n_p2}, n_w2 = {n_w2}, n_w1 = {n_w1}, cnt = {cnt}")
+                res += cnt
+    return res
+
 if __name__ == "__main__":
-    to_evaluate = {948}
+    to_evaluate = {949}
     since0 = time.time()
 
     if not to_evaluate or 932 in to_evaluate:
@@ -2623,6 +2828,10 @@ if __name__ == "__main__":
         res = leftVsRightPlayerOneWinsCount(n=60)
         print(f"Solution to Project Euler #948 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if not to_evaluate or 949 in to_evaluate:
+        since = time.time()
+        res = leftVsRightMultipleWordsPlayerTwoWinsBruteForce(s_lens=4, n_words=3)
+        print(f"Solution to Project Euler #949 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 

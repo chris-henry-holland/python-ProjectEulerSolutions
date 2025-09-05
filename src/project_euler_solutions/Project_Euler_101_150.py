@@ -1434,8 +1434,8 @@ def minimalNetworkFromFile(
 
     For a weighted network in the .txt file doc for which every
     vertex is connected, identifies the largest sum of weights
-    of a subset of the edges such that the removal of those
-    edges still leaves the network connected.
+    of any subset of the edges for which the removal of those
+    edges would still leave the network connected.
 
     The file should contain the rows of the matrix in order,
     separated by line breaks ('\\n'), with each entry of the row
@@ -6247,5 +6247,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {106}
+    eval_nums = {108}
     evaluateProjectEulerSolutions101to150(eval_nums)
