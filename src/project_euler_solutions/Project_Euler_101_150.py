@@ -40,6 +40,7 @@ from algorithms.number_theory_algorithms import (
 
 from project_euler_solutions.utils import (
     loadTextFromFile,
+    UnionFind,
 )
 
 def addFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[int, int]:
@@ -1262,31 +1263,6 @@ def specialSubsetSumsComparisons(n: int=12) -> int:
     return res
 
 # Problem 107
-class UnionFind:
-    def __init__(self, n: int):
-        self.n = n
-        self.root = list(range(n))
-        self.rank = [1] * n
-    
-    def find(self, v: int) -> int:
-        r = self.root[v]
-        if r == v: return v
-        res = self.find(r)
-        self.root[v] = res
-        return res
-    
-    def union(self, v1: int, v2: int) -> None:
-        r1, r2 = list(map(self.find, (v1, v2)))
-        if r1 == r2: return
-        d = self.rank[r1] - self.rank[r2]
-        if d < 0: r1, r2 = r2, r1
-        elif not d: self.rank[r1] += 1
-        self.root[r2] = r1
-        return
-    
-    def connected(self, v1: int, v2: int) -> bool:
-        return self.find(v1) == self.find(v2)
-
 def loadNetworkFromFile(
     doc: str,
     rel_package_src: bool=False,
@@ -1477,8 +1453,26 @@ def minimalNetworkFromFile(
 # Problem 108 & 110
 def diophantineReciprocals(min_n_solutions: int=1001) -> int:
     """
-    Solution to Project Euler #108 and Project Euler #110 (with
-    min_n_solutions=4 * 10 ** 6 + 1)
+    Solution to Project Euler #108 and Project Euler #110 (the latter
+    with min_n_solutions=4 * 10 ** 6 + 1)
+
+    Calculates the smallest strictly positive integer n such that
+    the equation:
+        1 / x + 1 / y = 1 / n
+    has at least min_n_solutions distinct solutions for the ordered
+    pair of integer (x, y) where:
+        0 < x <= y
+    
+    Args:
+        Optional named:
+        min_n_solutions (int): The smallest number of solutions to
+                the above equation the returned value of n must
+                have.
+            Default: 1001
+    
+    Returns:
+    Integer (int) giving the smallest strictly positive integer
+    n such that the above equation has at least min_n_solutions.
     """
     #since = time.time()
     n_p = 0
@@ -6247,5 +6241,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {108}
+    eval_nums = {111}
     evaluateProjectEulerSolutions101to150(eval_nums)

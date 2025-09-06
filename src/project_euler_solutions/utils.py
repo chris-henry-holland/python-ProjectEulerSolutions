@@ -69,3 +69,28 @@ def loadStringsFromFile(doc: str, rel_package_src: bool=False) -> List[str]:
     
     txt = loadTextFromFile(doc=doc, rel_package_src=rel_package_src)
     return txt.strip("\"").split("\",\"")
+
+class UnionFind:
+    def __init__(self, n: int):
+        self.n = n
+        self.root = list(range(n))
+        self.rank = [1] * n
+    
+    def find(self, v: int) -> int:
+        r = self.root[v]
+        if r == v: return v
+        res = self.find(r)
+        self.root[v] = res
+        return res
+    
+    def union(self, v1: int, v2: int) -> None:
+        r1, r2 = list(map(self.find, (v1, v2)))
+        if r1 == r2: return
+        d = self.rank[r1] - self.rank[r2]
+        if d < 0: r1, r2 = r2, r1
+        elif not d: self.rank[r1] += 1
+        self.root[r2] = r1
+        return
+    
+    def connected(self, v1: int, v2: int) -> bool:
+        return self.find(v1) == self.find(v2)

@@ -2830,7 +2830,7 @@ if __name__ == "__main__":
 
     if not to_evaluate or 949 in to_evaluate:
         since = time.time()
-        res = leftVsRightMultipleWordsPlayerTwoWinsBruteForce(s_lens=4, n_words=3)
+        res = leftVsRightMultipleWordsPlayerTwoWinsBruteForce(s_lens=4, n_words=5)
         print(f"Solution to Project Euler #949 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
