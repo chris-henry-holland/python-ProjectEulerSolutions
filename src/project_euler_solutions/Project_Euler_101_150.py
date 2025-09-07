@@ -21,11 +21,14 @@ import time
 import sympy as sym
 
 from collections import deque
-from sortedcontainers import SortedDict, SortedList
+from sortedcontainers import SortedDict, SortedList, SortedSet
 
 from data_structures.addition_chains import AdditionChainCalculator
 from data_structures.fractions import CustomFraction
-from data_structures.prime_sieves import PrimeSPFsieve
+from data_structures.prime_sieves import (
+    PrimeSPFsieve,
+    SimplePrimeSieve,
+)
 
 from algorithms.continued_fractions_and_Pell_equations import (
     generalisedPellSolutionGenerator,
@@ -1574,11 +1577,37 @@ def dartCheckouts(mx_score: int=99) -> int:
 
 
 # Problem 111
-def permutationsWithRepeats(objs: List[Any], freqs: List[int])\
-        -> Generator[Tuple[Any], None, None]:
+def permutationsWithRepeats(
+    objs: List[Any],
+    freqs: List[int],
+) -> Generator[Tuple[Any], None, None]:
+    """
+    Generator yielding every permutation of the distinct
+    objects in the list objs, each with a number of
+    occurrences equal to the corresponding entry in the
+    list freqs.
+
+    Args:
+        Required postional:
+        objs (list of objects): List of distinct objects for
+                which the permutations are to be found.
+        freqs (list of ints): List of strictly positive integers
+                with the same length as that of objs, with each
+                entry giving the number of occurrences the
+                corresponding entry in objs should have in each
+                permutation yielded.
+
+    Yields:
+    Each permutation of the objects in objs, each with a
+    frequency in each permutation according to the corresponding
+    entry in freqs.
+    The permutations are yielded in lexicographically increasing
+    order, where objects earlier in the list objs are considered
+    to be smaller than every object later in the list.
+    """
     n = len(objs)
     m = sum(freqs)
-    remain = set(range(n))
+    remain = SortedSet(range(n))
     curr = [None] * m
     def recur(i: int=0) -> Generator[Tuple[Any], None, None]:
         if i == m:
@@ -1596,12 +1625,60 @@ def permutationsWithRepeats(objs: List[Any], freqs: List[int])\
     yield from recur(i=0)
     return
 
-def digitCountIntegerGenerator(n_dig: int, rpt_dig: int, n_rpt: int,\
-        base: int=10) -> Generator[int, None, None]:
+# Review- consider trying to yield the integers in strictly
+# increasing order
+def digitCountIntegerGenerator(
+    n_dig: int,
+    rpt_dig: int,
+    n_rpt: int,
+    base: int=10,
+) -> Generator[int, None, None]:
+    """
+    Generator yielding all strictly positive integers which when
+    represented in the chosen base (without leading zeros) contain
+    exactly n_dig digits, exactly n_rpt of which are the digit
+    rpt_dig.
+
+    Args:
+        Required positional:
+        n_dig (int): Strictly positive integer giving the number
+                of digits each yielded integer should have when
+                represented in the chosen base (without leading
+                zeros).
+        rpt_dig (int): Integer between 0 and (base - 1) inclusive
+                specifying the value of the digit in the chosen
+                base that should be present exactly n_rpt times
+                in the representation of each yielded integer
+                in that base (without leading zeros).
+        n_rpt (int): Non-negative integer giving the exact number
+                of times rpt_dig should appear in the representataion
+                of each number yielded in the chosen base (without
+                leading zeros).
+
+        Optional named:
+        base (int): The integer strictly greater than 1 giving
+                the base in which each number is to be expressed
+                when assessing whether it has the correct number
+                of digits and the correct number of the digit
+                rpt_dig when assessing whether it should be
+                yielded.
+            Default: 10
+
+    Yields:
+    Integers (int), collectively representing all strictly positive
+    integers which when represented in the chosen base without
+    leading zeros contain exactly n_dig digits, exactly n_rpt of
+    which have the value rpt_dig.
+    The integers are not yielded in a specific order.
+    """
     if n_dig < n_rpt: return
     digs = [x for x in range(base) if x != rpt_dig]
-    objs = [rpt_dig]
-    freqs = [n_rpt]
+    if n_rpt:
+        objs = [rpt_dig]
+        freqs = [n_rpt]
+    else:
+        objs = []
+        freqs = []
     
     def recur(i: int, n_remain: int) -> Generator[int, None, None]:
         if not n_remain or i == base - 2:
@@ -1633,33 +1710,130 @@ def digitCountIntegerGenerator(n_dig: int, rpt_dig: int, n_rpt: int,\
     yield from recur(0, n_dig - n_rpt)
     return
 
-def mostRepeatDigitPrimes(n_dig: int, rpt_dig: int, base: int=10,\
-        ps: Optional[PrimeSPFsieve]=None)\
-        -> Tuple[Union[List[int], int]]:
+def mostRepeatDigitPrimes(
+    n_dig: int,
+    rpt_dig: int,
+    base: int=10,
+    ps: Optional[SimplePrimeSieve]=None,
+) -> Tuple[Union[List[int], int]]:
+    """
+    Calculates all prime numbers which represented in the
+    chosen base without leading zeros contain exactly n_dig
+    repeat digits, and contain at least as many digits with
+    value rpt_dig as any other such prime.
+
+    Args:
+        Required positional:
+        n_dig (int): The number of digits (without leading zeros)
+                that each prime number considered should have in
+                its representation in the chosen base.
+        rpt_dig (int): Integer between 0 and (base - 1) inclusive
+                giving the value of the digit for which the
+                returned primes should have at least as many
+                occurrences in their representations in the chosen
+                base (without leading zeros) as any other such
+                prime.
+
+        Optional named:
+        base (int): The integer strictly greater than 1 giving
+                the base in which each number is to be expressed
+                when assessing whether it has the correct number
+                of digits and sufficient number of the digit with
+                value rpt_dig to be included in the output.
+            Default: 10
+        ps (SimplePrimeSieve or None): If specified, the prime
+                sieve object used to assess whether a given number
+                is prime. If not specified, a new SimplePrimeSieve
+                object will be constructed for this purpose.
+                This option is included to prevent the need for
+                repeated construction of prime sieve objects
+                across multiple function calls, potentially
+                improving efficiency.
+            Default: None
+
+    Returns:
+    2-tuple whose index 0 contains a list of integers (int)
+    representing all the prime numbers which, when represented in
+    the chosen base (without leading zeros) contain exactly n_dig
+    digits and at least as many occurrences of the digit with
+    value rpt_dig as any other such prime (and so necessarily
+    the same number of such occurrences as all other elements
+    of the list), and whose index 1 contains an integer (int)
+    representing the number of occurrences of the digit with value
+    rpt_dig of those primes given in index 0 when represented
+    in the chosen base (without leading zeros).
+    """
     
-    if ps is None: ps = PrimeSPFsieve()
-    ps.extendSieve(isqrt(base ** n_dig))
+    if ps is None: ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
+    
     for n_rpt in reversed(range(n_dig + 1)):
         p_lst = []
         for num in digitCountIntegerGenerator(n_dig, rpt_dig,\
-                n_rpt, base=10):
-            if ps.isPrime(num):
+                n_rpt, base=base):
+            if primeCheck(num):
                 p_lst.append(num)
         if p_lst: break
-    return (p_lst, n_rpt)
+    return (sorted(p_lst), n_rpt)
 
-def primesWithRuns(n_dig: int=10, base: int=10,\
-        ps: Optional[PrimeSPFsieve]=None) -> int:
+def primesWithRuns(
+    n_dig: int=10,
+    base: int=10,
+    ps: Optional[SimplePrimeSieve]=None,
+) -> int:
     """
     Solution for Project Euler #111
+
+    Calculates the sum of the function S(n_dig, d, base) over integers
+    d between 0 and (base - 1) inclusive.
+
+    For strictly positive integers m and b and integer d between
+    0 and (b - 1) inclusive, S(m, d, b) is the sum of all
+    prime numbers which, when represented in base b without leading
+    zeros contain exactly m digits and at least as many occurrences
+    of the digit with value d as any other such prime.
+
+    Args:
+        Optional named:
+        n_dig (int): Strictly positive integer giving the value
+                of m in all of the S(m, d, b) in the described
+                sum, representing the number of digits of all
+                primes considered when expressed in the chosen
+                base (without leading zeros).
+            Default: 10
+        base (int): The integer strictly greater than 1 giving
+                the value of b in oll of the S(m, d, b) in the
+                described sum, representing the base in which each
+                number is to be expressed when assessing whether
+                it has the correct number of digits and sufficient
+                number of the digit with value rpt_dig to be
+                included in the total when calculating each value
+                of S(m, d, b).
+            Default: 10
+        ps (SimplePrimeSieve or None): If specified, the prime
+                sieve object used to assess whether a given number
+                is prime. If not specified, a new SimplePrimeSieve
+                object will be constructed for this purpose.
+                This option is included to prevent the need for
+                repeated construction of prime sieve objects
+                across multiple function calls, potentially
+                improving efficiency.
+            Default: None
+    
+    Returns:
+    Integer (int) giving the value of the function S(n_dig, d, base)
+    (with the function S as defined above) over integers d between 0
+    and (base - 1) inclusive.
     """
     #since = time.time()
-    if ps is None: ps = PrimeSPFsieve()
-    res = sum(sum(mostRepeatDigitPrimes(n_dig, d, base=10, ps=ps)[0])\
-            for d in range(base))
+    if ps is None: ps = SimplePrimeSieve()
+    res = sum(
+        sum(mostRepeatDigitPrimes(n_dig, d, base=10, ps=ps)[0])
+        for d in range(base)
+    )
     #print(f"Time taken = {time.time() - since:.4f} seconds")
-    return res
-        
+    return res   
 
 # Problem 112
 def isBouncy(num: int, base: int=10) -> bool:
@@ -1688,6 +1862,8 @@ def isBouncy(num: int, base: int=10) -> bool:
 def bouncyProportions(prop_numer: int=99, prop_denom: int=100) -> int:
     """
     Solution to Project Euler #112
+
+    
     """
     #since = time.time()
     bouncy_cnt = 0
