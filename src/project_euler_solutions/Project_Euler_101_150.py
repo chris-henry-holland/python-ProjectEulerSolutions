@@ -379,7 +379,7 @@ def crossProduct2D(vec1: Tuple[int], vec2: Tuple[int]) -> int:
 def triangleContainsPoint(
     p: Tuple[int],
     triangle_vertices: Tuple[Tuple[int]],
-    include_surface: bool=False
+    include_surface: bool=False,
 ) -> bool:
     """
     Using the 2-dimensional cross product, finds whether the point
@@ -1143,7 +1143,7 @@ def pandigitalFibonacciEnds(base: int=10) -> int:
 # Problem 105
 def loadSetsFromFile(
     doc: str,
-    rel_package_src: bool=False
+    rel_package_src: bool=False,
 ) -> List[Tuple[int]]:
     """
     Loads sets of integers stored in a .txt file doc.
@@ -2327,7 +2327,12 @@ def diskGameBlueDiskProbability(n_turns: int, min_n_blue_disks: int) -> Tuple[in
         prev = row
         row = [(1, 1)]
         for i in range(1, min(len(prev), min_n_blue_disks) + 1):
-            row.append(addFractions(multiplyFractions(prev[i - 1], (n_tot - n_red, n_tot)), multiplyFractions(prev[i], (n_red, n_tot)) if i < len(prev) else (0, 1)))
+            row.append(
+                addFractions(
+                    multiplyFractions(prev[i - 1], (n_tot - n_red, n_tot)),
+                    multiplyFractions(prev[i], (n_red, n_tot)) if i < len(prev) else (0, 1)
+                )
+            )
         n_red += 1
         n_tot += 1
     #print(row[-1])
@@ -6417,5 +6422,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {111}
+    eval_nums = {112}
     evaluateProjectEulerSolutions101to150(eval_nums)
