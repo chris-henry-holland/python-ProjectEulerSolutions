@@ -205,6 +205,123 @@ def gameOfChanceNumberOfFairConfigurations(n: int=26) -> int:
         #print(f"current result = {res << 1}")
     return res << 1
 
+# Problem 952
+def factorialPrimeFactorisation(num: int, ps: Optional[SimplePrimeSieve]=None) -> Dict[int, int]:
+    if ps is None:
+        ps = SimplePrimeSieve(num)
+    else:
+        ps.extendSieve(num)
+    res = {}
+    for p in ps.p_lst:
+        if p > num: break
+        ans = 0
+        num2 = num
+        while num2:
+            num2 //= p
+            ans += num2
+        res[p] = ans
+    return res
+
+def moduloFactorialMultiplicativeOrder(p: int=10 ** 9 + 7, n: int=10 ** 7, res_md: Optional[int]=10 ** 9 + 7) -> int:
+    multMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+    fact_pf = factorialPrimeFactorisation(n, ps=None)
+    print(2, fact_pf[2])
+    print(len(fact_pf.keys()), max(fact_pf.keys()))
+    res = 1
+    carmichael_pf = {}
+    ps2 = PrimeSPFsieve(max(fact_pf.keys()) >> 1)
+    print(f"finished creating prime sieve")
+    for p2, f in fact_pf.items():
+        #phi = p2 ** (f - 1) * (p2 - 1)
+        
+        if p2 == 2:
+            f2 = f - 1 - (f >= 3)
+            
+            carmichael_pf[p2] = max(carmichael_pf.get(p2, 0), f2)
+            continue
+        if f > 1: carmichael_pf[p2] = max(carmichael_pf.get(p2, 0), f - 1)
+        pf2 = ps2.primeFactorisation(p2 >> 1)
+        for p3, f2 in pf2.items():
+            if p3 == 2:
+                #print(f"p3 = {p3}, f2 = {f2}")
+                carmichael_pf[2] = max(carmichael_pf.get(2, 0), f2 + 1)
+            else: carmichael_pf[p3] = max(carmichael_pf.get(p3, 0), f2)
+        #print(f"pow2 = {pow2}")
+        #carmichael_pf[2] = lcm(carmichael_pf.get(2, 1), pow2)
+        #print(p2, phi)
+        #res = lcm(res, phi)
+    #print(len(carmichael_pf), carmichael_pf)
+    over_nums = {2: 1, 3: 1, 5: 1, 43: 1, 109: 1}
+    res = 1
+    for p2, f in carmichael_pf.items():
+        if p2 == 2:
+            f2 = max(0, f - (over_nums.get(p2, 0) if n >= 8 else 0))
+        elif p2 == 5:
+            f2 = max(0, f - (over_nums.get(p2, 0) if (p2 * 2 == n or p2 * 3 <= n) else 0))
+        else: f2 = max(0, f - (over_nums.get(p2, 0) if p2 * 2 <= n else 0))
+        #print(p2, f2)
+        res = (res * pow(p2, f2, res_md)) % res_md
+    return res
+
+    res0 = 1
+    n_fact = math.factorial(n)
+    for p2, f in carmichael_pf.items():
+        res0 *= p2 ** f
+    
+    print(f"carmichael function value = {res0}, pf = {carmichael_pf}")
+    div = 1
+    div_pf = {}
+    res = res0
+    res_pf = dict(carmichael_pf)
+    #print(f"factorial pf = {pf}")
+    for p2, f in carmichael_pf.items():
+        print(f"p2 = {p2}")
+        if p2 not in fact_pf.keys(): continue # ? is this possible
+        p_pow_md = p2 ** fact_pf[p2]
+        #print(f"p_pow_md = {p_pow_md}")
+        #md_phi = (p2 - 1) * p2 ** (pf[p2] - 1)
+        #print(f"md_phi = {md_phi}")
+        #exp = 1
+        #for p3, f2 in res_pf.items():
+        #    exp = (exp * pow(p3, f2, md_phi)) % md_phi
+        #p2_inv = pow(p2, md_phi - 2, md_phi)
+        #p_pow = p2 ** f
+        #print(f"exp = {exp}, p2_inv = {p2_inv}")
+        exp = res
+        for _ in reversed(range(f)):
+            #exp = (exp * p2_inv) % md_phi
+            exp //= p2
+            print(f"p = {p}, exp = {exp}, p_pow_md = {p_pow_md}")
+            if pow(p, exp, n_fact) != 1:
+                break
+            res_pf[p2] -= 1
+            res //= p2
+            div *= p2
+            div_pf[p2] = div_pf.get(p2, 0) + 1
+            print(f"update to overestimate factor:")
+            print(div_pf)
+        """
+        for _ in range(f):
+            if pow(p, res // p2, n_fact) != 1:
+                break
+            res //= p2
+            div *= p2
+            div_pf[p2] = div_pf.get(p2, 0) + 1
+            print(f"update to overestimate factor:")
+            print(div_pf)
+        """
+    print(res_pf)
+    print(f"carmichael function overestimate by factor of {div} with prime factorisation {div_pf}")
+    #for p2, f in res_pf.items():
+    #    res = multMod(res, pow(p2, f, res_md))
+    #for f2 in reversed(range(f)):
+    #    if pow(p, p2 ** f2, n_fact) != 1:
+    #        break
+    #else: continue
+    #print(p2, f2 + 1, f)
+    #res = multMod(res, pow(p2, f2 + 1, res_md))
+    return res % res_md
 
 # Problem 955
 def isSquare(num: int) -> bool:
@@ -547,6 +664,11 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = gameOfChanceNumberOfFairConfigurations(n=26)
         print(f"Solution to Project Euler #951 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 952 in eval_nums:
+        since = time.time()
+        res = moduloFactorialMultiplicativeOrder(p=10 ** 9 + 7, n=10 ** 7, res_md=10 ** 9 + 7)
+        print(f"Solution to Project Euler #952 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 955 in eval_nums:
         since = time.time()
         res = findIndexOfTriangleNumberInRecurrence(n_triangle=70)
@@ -558,7 +680,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         print(f"Solution to Project Euler #959 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {951}
+    eval_nums = {952}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
