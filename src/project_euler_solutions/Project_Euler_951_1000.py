@@ -323,6 +323,107 @@ def moduloFactorialMultiplicativeOrder(p: int=10 ** 9 + 7, n: int=10 ** 7, res_m
     #res = multMod(res, pow(p2, f2 + 1, res_md))
     return res % res_md
 
+# Problem 953
+def factorisationNimPlayerOneLoses(n_max: int=10 ** 14, res_md: Optional[int]=10 ** 9 + 7) -> int:
+    """
+    Solution to Project Euler #953
+    """
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    n_max_rt = isqrt(n_max)
+    ps = SimplePrimeSieve(n_max_rt)
+
+    def squareSum(n: int) -> int:
+        return (n * (n + 1) * (2 * n + 1)) // 6
+    
+    def primeCheck(num: int) -> bool:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+    
+    def recur(n_p_remain: int, curr: int, curr_xor: int, prev_p_idx: int=0) -> Generator[int, None, None]:
+        if n_p_remain == 1:
+            for p, num in ((curr_xor, curr), (curr_xor ^ 2, curr << 1)):
+                num2 = num * p
+                if p > ps.p_lst[prev_p_idx] and num2 < n_max and primeCheck(p):
+                    yield num2
+            #if curr << 1 <= n_max and curr_xor > ps.p_lst[prev_p_idx] and primeCheck(curr_xor ^ 2):
+            #    yield curr * (curr_xor ^ 2) << 1
+            return
+        p_mx = integerNthRoot((n_max - 1) // curr, n_p_remain)
+        for p_idx in range(prev_p_idx + 1, len(ps.p_lst)):
+            p = ps.p_lst[p_idx]
+            
+            if p > p_mx: break
+            if not prev_p_idx:
+                print(f"p1 = {p}")
+            yield from recur(n_p_remain - 1, curr * p, curr_xor ^ p, prev_p_idx=p_idx)
+        return
+    curr = 1
+    for i in range(1, len(ps.p_lst)):
+        curr *= ps.p_lst[i]
+        if curr > n_max: break
+    res = squareSum(n_max_rt) % res_md
+    print(res)
+    for n_p in range(2, i, 2):
+        print(f"n_p = {n_p}, max n_p = {((i - 1) >> 1) << 1}")
+        for num in recur(n_p, 1, 0, prev_p_idx=0):
+            #print(num)
+            res = addMod(res, num * squareSum(isqrt(n_max // num)))
+    return res
+
+    """   
+    print(f"stage 1")
+    xor_seen = {0: SortedList([1])}
+    res = 0 #squareSum(n_max_rt)
+    #print(f"initial res = {res}")
+    for p in ps.p_lst[1:]:
+        #print(f"p = {p}")
+        add_dict = {}
+        for num, num3_lst in xor_seen.items():
+            num2 = num ^ p
+            #if num2 > p and primeCheck(num2):
+            #    print(f"prime num2 = {num2}")
+            #    for num3 in xor_seen[num]:
+            #        res = addMod(res, (num3 * num) * squareSum(isqrt(n_max // (num3 * p))))
+            add_dict.setdefault(num2, [])
+            for num3 in num3_lst:
+                num4 = p * num3
+                if num4 > n_max: break
+                add_dict[num2].append(num4)
+        for num, num3_lst in add_dict.items():
+            xor_seen.setdefault(num, SortedList())
+            for num3 in num3_lst:
+                xor_seen[num].add(num3)
+        #print(xor_seen)
+        #print(res)
+    #print(xor_seen)
+    print("stage 2")
+    print("zero bitwise xor")
+    print(xor_seen[0])
+    for num3 in xor_seen[0]:
+        res = addMod(res, num3 * squareSum(isqrt(n_max // num3)))
+    print(res)
+    print("2 bitwise xor")
+    for num3 in xor_seen.get(2, []):
+        if num3 * 2 > n_max: break
+        res = addMod(res, (num3 << 1) * squareSum(isqrt(n_max // (num3 << 1))))
+    print(res)
+    print(f"prime bitwise xor greater than {n_max_rt}")
+    for p in reversed(sorted(xor_seen.keys())):
+        if p <= n_max_rt: break
+        if not primeCheck(p): continue
+        #print(f"p = {p}")
+        #print(xor_seen[p])
+        for num3 in xor_seen[p]:
+            num4 = p * num3
+            if num4 > n_max: break
+            res = addMod(res, num4 * squareSum(isqrt(n_max // num4)))
+        for num3 in xor_seen[p ^ 2]:
+            num4 = p * num3 << 1
+            if num4 > n_max: break
+            res = addMod(res, num4 * squareSum(isqrt(n_max // num4)))
+    return res
+    """
+
+
 # Problem 955
 def isSquare(num: int) -> bool:
     return isqrt(num) ** 2 == num
@@ -669,6 +770,11 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = moduloFactorialMultiplicativeOrder(p=10 ** 9 + 7, n=10 ** 7, res_md=10 ** 9 + 7)
         print(f"Solution to Project Euler #952 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 953 in eval_nums:
+        since = time.time()
+        res = factorisationNimPlayerOneLoses(n_max=10 ** 14, res_md=10 ** 9 + 7)
+        print(f"Solution to Project Euler #953 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 955 in eval_nums:
         since = time.time()
         res = findIndexOfTriangleNumberInRecurrence(n_triangle=70)
@@ -680,7 +786,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         print(f"Solution to Project Euler #959 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {952}
+    eval_nums = {953}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
