@@ -33,6 +33,7 @@ from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.string_searching_algorithms import KnuthMorrisPratt
 
+
 # Problem 932
 def splitSumSquareNumbersSum(n_dig_max: int=16, base: int=10) -> int:
 
@@ -1313,6 +1314,20 @@ def calculateFactorialsInEquiproductPartitionWithUnit(n_max: int) -> List[int]:
         memo2[p] = res
         return res
     #print(isPSplit(2), isPSplit(3), isPSplit(5))
+    """
+    for num in range(1, 100):
+        pf = ps.primeFactorisation(num)
+        curr = {}
+        for p, f in pf.items():
+            curr[p] = curr.get(p, 0) + f
+        lst = []
+        for p, f in curr.items():
+            if p == 2: lst.append(2 * f)
+            elif isPSplit(p): lst.extend([f, f])
+            else: lst.append(f)
+        print(num, isInA(lst))
+    return [1]
+    """
     res = []
     curr = {}
     if isInA(list(curr.values())):
@@ -2416,12 +2431,13 @@ def xorEquationSolutionsCount(a_b_max: int=10 ** 7) -> int:
     res = a_b_max + 1
     ab_pairs = {}
     for triple in xorEquationNontrivialPrimitiveSolutionsGenerator(a_b_max):
-        print(triple)
+        #print(triple)
         a, b = triple[0], triple[1]
         mult = a_b_max // b
-        while mult:
-            res += 1
-            mult >>= 1
+        res += mult.bit_length()
+        #while mult:
+        #    res += 1
+        #    mult >>= 1
         ab_pairs.setdefault(a, [])
         ab_pairs[a].append(b)
         ab_pairs.setdefault(b, [])
@@ -2747,7 +2763,7 @@ def leftVsRightMultipleWordsPlayerTwoWins(s_lens: int=20, n_words: int=7) -> int
     return res
 
 if __name__ == "__main__":
-    to_evaluate = {949}
+    to_evaluate = {937}
     since0 = time.time()
 
     if not to_evaluate or 932 in to_evaluate:
@@ -2813,10 +2829,10 @@ if __name__ == "__main__":
         res = sumOfSubsetElevisors(n_max=10 ** 14, md=1234567891)
         print(f"Solution to Project Euler #944 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    #if not to_evaluate or 945 in to_evaluate:
-    #    since = time.time()
-    #    res = xorEquationSolutionsCount(a_b_max=127)
-    #    print(f"Solution to Project Euler #945 = {res}, calculated in {time.time() - since:.4f} seconds")
+    if not to_evaluate or 945 in to_evaluate:
+        since = time.time()
+        res = xorEquationSolutionsCount(a_b_max=10 ** 3)
+        print(f"Solution to Project Euler #945 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if not to_evaluate or 946 in to_evaluate:
         since = time.time()
@@ -2954,4 +2970,10 @@ for term in continuedFractionRationalExpression([1, 5, 2], 1, 2, 2, 0):
     print(term)
     if cnt > 10: break
     cnt += 1
+"""
+"""
+a = 5
+b = 9
+print(xorMultiply(a ^ b, a ^ b))
+print(xorMultiply(a, a) ^ xorMultiply(b, b))
 """

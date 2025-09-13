@@ -1838,12 +1838,33 @@ def primesWithRuns(
 # Problem 112
 def isBouncy(num: int, base: int=10) -> bool:
     """
-    Assesses whether positive integer num when expressed in the
-    given base is bouncy.
-    A positive integer is bouncy when expressed in the given
-    base if and only if the sequence of digits of the expression
-    of that integer in the given base is not weakly increasing
-    or weakly decreasing.
+    Assesses whether positive integer num is bouncy for the
+    chosen base.
+
+    A strictly positive integer is bouncy for a given base if
+    and only if the sequence of digits of the expression of
+    that integer in the given base (without leading zeros) is
+    not weakly increasing or weakly decreasing (i.e. there
+    exists at least one pair of consecutive digits for which
+    the first is strictly greater than the second and another
+    pair of consecutive digits for which the second is strictly
+    greater than the first).
+
+    Args:
+        Required postional:
+        num (int): The strictly positive integer for which its
+                status as bouncy for the chosen base is to be
+                assessed.
+
+        Optional named:
+        base (int): The integer strictly greater than 1 giving
+                the base for which num is to be assessed as bouncy
+                or not bouncy.
+            Default: 10
+    
+    Returns:
+    Boolean (bool) specifying whether num is bouncy (True) or
+    not bouncy (False) for the chosen base.
     """
     incr = True
     decr = True
@@ -1859,11 +1880,59 @@ def isBouncy(num: int, base: int=10) -> bool:
             decr = False
     return False
 
-def bouncyProportions(prop_numer: int=99, prop_denom: int=100) -> int:
+def bouncyProportions(
+    prop_numer: int=99,
+    prop_denom: int=100,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #112
 
-    
+    Calculates the smallest strictly positive integer for which the
+    proportion of strictly positive integers no greater than that
+    integer that are bouncy for the chosen base is exactly equal
+    to the fraction (prop_numer / prop_denom).
+
+    A positive integer is bouncy for a given base if and only
+    if the sequence of digits of the expression of that integer
+    in the given base (without leading zeros) is not weakly
+    increasing or weakly decreasing (i.e. there exists at least
+    one pair of consecutive digits for which the first is
+    strictly greater than the second and another pair of
+    consecutive digits for which the second is strictly greater
+    than the first).
+
+    Args:
+        Required postional:
+        
+
+        Optional named:
+        prop_numer (int): Strictly positive integer giving the
+                numerator of the fraction for the target proportion
+                of bouncy numbers for the chosen base.
+            Default: 99
+        prop_denom (int): Strictly positive integer giving the
+                denominator of the fraction for the target proportion
+                of bouncy numbers for the chosen base.
+            Default: 99
+        base (int): The integer strictly greater than 1 giving
+                the base for which the strictly positive integers are
+                to be assessed as bouncy or not bouncy.
+            Default: 10
+
+    Returns:
+    Integer (int) giving the smallest strictly positive integer for
+    which the proportion of strictly positive integers no greater than
+    this integer that are bouncy for the chosen base is exactly equal
+    to the fraction (prop_numer / prop_denom).
+
+    Outline of rationale:
+    We simply iterate over the strictly positive integers, assessing
+    whether each is bouncy or not for the chosen base. The number of
+    times the proportion is checked is reduced by noting that the
+    proportion can only be exact when the number is a multiple of the
+    denominator of the proportion when expressed as a fraction in lowest
+    terms. 
     """
     #since = time.time()
     bouncy_cnt = 0
@@ -1872,7 +1941,7 @@ def bouncyProportions(prop_numer: int=99, prop_denom: int=100) -> int:
     prop_denom //= g
     rng = (1, prop_denom + 1)
     while True:
-        bouncy_cnt += sum(isBouncy(x) for x in range(*rng))
+        bouncy_cnt += sum(isBouncy(x, base=base) for x in range(*rng))
         if bouncy_cnt * prop_denom == (rng[1] - 1) * prop_numer:
             break
         rng = (rng[1], rng[1] + prop_denom)
