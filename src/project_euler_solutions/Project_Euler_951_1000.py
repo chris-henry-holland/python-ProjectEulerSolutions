@@ -753,6 +753,417 @@ def randomWalksUniquePointSimulation(n_steps: int, l_step_len: int, r_step_len: 
     print(len(seen) / n_steps)
     return len(seen)
 
+# Problem 960
+def stoneGameSolitaireScoresSumBruteForce(n: int=100, res_md: Optional[int]=10 ** 9 + 7) -> int:
+
+    modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+
+    #curr = SortedDict({n - 1: n})
+    memo = {}
+    def recur(curr: List[int], nonzero_set: Set[int]) -> Tuple[int, int]:
+        #print(curr, nonzero_set)
+        #if not curr:
+        #    return (1, 0)
+        if len(nonzero_set) == 1:
+            i1 = next(iter(nonzero_set))
+            f1 = curr[i1]
+            if f1 == 2:
+                return (1, i1) if 2 * i1 == n else (0, 0)
+        elif len(nonzero_set) == 2:
+            i1, i2 = list(nonzero_set)
+            f1 = curr[i1]
+            if f1 == 1:
+                f2 = curr[i2]
+                if f2 == 1:
+                    return (1, min(i1, i2)) if i1 + i2 == n else (0, 0)
+
+        args = tuple(curr)
+        if args in memo.keys():
+            return memo[args]
+        nonzero_lst = sorted(nonzero_set)
+        #print(f"nonzero_lst = {nonzero_lst}")
+        
+        j2 = len(nonzero_lst) - 1
+        i2 = nonzero_lst[j2]
+        r2 = curr[i2]
+        for j1 in range(len(nonzero_lst)):
+            i1 = nonzero_lst[j1]
+            if i1 * 2 >= n: break
+            r1 = curr[i1]
+            if i1 + i2 < n:
+                #print("impossible 3")
+                #print(i1, i2)
+                res = (0, 0)
+                memo[args] = res
+                return res
+            sub = min(r1, r2)
+            r2 -= sub
+            r1 -= sub
+            if not r2:
+                for j2 in reversed(range(j2)):
+                    i2 = nonzero_lst[j2]
+                    r2 = curr[i2]
+                    if not r1: break
+                    elif i1 + i2 < n:
+                        #print("impossible 4")
+                        res = (0, 0)
+                        memo[args] = res
+                        return res
+                    sub = min(r1, r2)
+                    r2 -= sub
+                    r1 -= sub
+                    if r2: break
+        
+        #nonzero_set2 = set(nonzero_set)
+        res = [0, 0]
+        for j1 in range(len(nonzero_lst)):
+            i1 = nonzero_lst[j1]
+            f1 = curr[i1]
+            curr[i1] -= 1
+            if i1 and not curr[i1]: nonzero_set.remove(i1)
+            for j2 in reversed(range(j1 + 1, len(nonzero_lst))):
+                i2 = nonzero_lst[j2]
+                if i1 + i2 < n: break
+                f2 = curr[i2]
+                f0 = f1 * f2
+                curr[i2] -= 1
+                if i2 and not curr[i2]: nonzero_set.remove(i2)
+                rm1_rng = (max(1, n - i2), min(n, i1 + 1))
+                for rm1 in range(*rm1_rng):
+                    rm2 = n - rm1
+                    m1, m2 = i1 - rm1, i2 - rm2
+                    if m1 and not curr[m1]: nonzero_set.add(m1)
+                    curr[m1] += 1
+                    if m2 and not curr[m2]: nonzero_set.add(m2)
+                    curr[m2] += 1
+                    #print(f"calling recur() 1 with args {args}, i1 = {i1}, i2 = {i2}, rm1 = {rm1}, rm2 = {rm2}, curr = {curr}")
+                    f, s = recur(curr, nonzero_set)
+                    #print(f"post recur() 1 with args {args}, curr = {curr}")
+                    res[0] = modAdd(res[0], f0 * f)
+                    res[1] = modAdd(res[1], f0 * (s + min(rm1, rm2) * f))
+                    curr[m1] -= 1
+                    if m1 and not curr[m1]: nonzero_set.remove(m1)
+                    curr[m2] -= 1
+                    if m2 and not curr[m2]: nonzero_set.remove(m2)
+                if not curr[i2]: nonzero_set.add(i2)
+                curr[i2] += 1
+                
+            if not curr[i1] or 2 * i1 < n:
+                if i1 and not curr[i1]: nonzero_set.add(i1)
+                curr[i1] += 1
+                #print(f"end of iteration 1, j1 = {j1} with args = {args}. curr = {curr}")
+                continue
+            f0 = f1 * curr[i1]
+            curr[i1] -= 1
+            if i1 and not curr[i1]: nonzero_set.remove(i1)
+            rm1_rng = (max(1, n - i1), (n + 1) >> 1)
+            
+            for rm1 in range(*rm1_rng):
+                rm2 = n - rm1
+                m1, m2 = i1 - rm1, i1 - rm2
+                if m1 and not curr[m1]: nonzero_set.add(m1)
+                curr[m1] += 1
+                if m2 and not curr[m2]: nonzero_set.add(m2)
+                curr[m2] += 1
+                #print(f"calling recur() 2 with args {args}, i1 = {i1}, i2 = {i1}, rm1 = {rm1}, rm2 = {rm2}, curr = {curr}")
+                f, s = recur(curr, nonzero_set)
+                #print(f"post recur() 2 with args {args}, curr = {curr}")
+                res[0] = modAdd(res[0], f0 * f)
+                res[1] = modAdd(res[1], f0 * (s + min(rm1, rm2) * f))
+                curr[m1] -= 1
+                if m1 and not curr[m1]: nonzero_set.remove(m1)
+                curr[m2] -= 1
+                if m2 and not curr[m2]: nonzero_set.remove(m2)
+            
+            if not n & 1:
+                f0 >>= 1
+                rm = n >> 1
+                m = i1 - rm
+                if m and not curr[m]: nonzero_set.add(m)
+                curr[m] += 2
+                #print(f"calling recur() 3 with args {args}, i1 = {i1}, i2 = {i1}, rm1 = {rm}, rm2 = {rm}, curr = {curr}")
+                f, s = recur(curr, nonzero_set)
+                #print(f"post recur() 3 with args {args}, curr = {curr}")
+                res[0] = modAdd(res[0], f0 * f)
+                res[1] = modAdd(res[1], f0 * (s + rm * f))
+                curr[m] -= 2
+                if m and not curr[m]: nonzero_set.remove(m)
+            if i1 and not curr[i1]: nonzero_set.add(i1)
+            curr[i1] += 2
+            #print(f"end of iteration2, j1 = {j1} with args = {args}. curr = {curr}")
+
+        #print(f"returning from args = {args} with curr = {curr}")
+        res = tuple(res)
+        memo[args] = res
+        return res
+        """
+        #num1, f1 = curr.peekitem(-1)
+        if f1 > 1:
+            if (num1 << 1) < n:
+                return (0, 0)
+            if len(curr) == 1 and f1 == 2:
+                return (1, num1) if (num1 << 1) == n else (0, 0)
+        else:
+            if len(curr) == 1: return (0, 0)
+            num2, f2 = curr.peekitem(-2)
+            if num1 + num2 < n:
+                return (0, 0)
+            if len(curr) == 2 and f1 == 1 and f2 == 1:
+                return (1, num2) if num1 + num2 == n else (0, 0)
+        
+        args = tuple((k, v) for k, v in curr.items())
+        if args in memo.keys():
+            return memo[args]
+        i2 = 0
+        res = [0, 0]
+        for i1 in range(len(curr)):
+            num1, f1 = curr.peekitem(i1)
+            for i2 in range(max(i1 + (f1 == 1), i2), len(curr)):
+                num2, f2 = curr.peekitem(i2)
+                if num1 + num2 >= n: break
+            else: continue
+            f0 = ((f1 * (f1 - 1)) >> 1) if i1 == i2 else f1 * f2
+            #print(f"num1 = {num1}, num2 = {num2}, f0 = {f0}")
+            rm1_rng = (max(1, n - num2), min(n, num1 + 1))
+            #print(f"rm1_rng = {rm1_rng}")
+            for rm1 in range(*rm1_rng):
+                rm2 = n - rm1
+                m1, m2 = num1 - rm1, num2 - rm2
+                for num, m in ((num1, m1), (num2, m2)):
+                    curr[num] -= 1
+                    if not curr[num]: curr.pop(num)
+                    if m:
+                        curr[m] = curr.get(m, 0) + 1
+                f, s = recur()
+                #print(f"curr = {curr}, f = {f}, score = {s}")
+                #f0_2 = f0 if num1 != num2 or rm1 != rm2 else f0 >> 1
+                res[0] = modAdd(res[0], f0 * f)
+                res[1] = modAdd(res[1], f0 * (s + min(rm1, rm2) * f))
+                for num, m in ((num1, m1), (num2, m2)):
+                    if m:
+                        curr[m] -= 1
+                        if not curr[m]: curr.pop(m)
+                    curr[num] = curr.get(num, 0) + 1
+                #print(num1, num2, rm1, rm2, m1, m2, res)
+        res = tuple(res)
+        memo[args] = res
+        return res
+        """
+    res = recur([0] * (n - 1) + [n], {n - 1})
+    #print(res)
+    print(len(memo))
+    return res[1]
+
+def stoneGameSolitaireScoresSum(n: int=100, res_md: Optional[int]=10 ** 9 + 7) -> int:
+
+    modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+
+    #curr = SortedDict({n - 1: n})
+    memo = {}
+    def recur(curr: List[int], nonzero_set: Set[int], prev: Tuple[int, int, int, int]=(0, 0, 0, 0)) -> Tuple[int, int]:
+        #print(curr, nonzero_set)
+        #if not curr:
+        #    return (1, 0)
+        if not nonzero_set:
+            return (1, 0)
+        if len(nonzero_set) == 1:
+            i1 = next(iter(nonzero_set))
+            f1 = curr[i1]
+            if f1 == 2:
+                return (1, i1) if 2 * i1 == n else (0, 0)
+        elif len(nonzero_set) == 2:
+            i1, i2 = list(nonzero_set)
+            f1 = curr[i1]
+            if f1 == 1:
+                f2 = curr[i2]
+                if f2 == 1:
+                    return (1, min(i1, i2)) if i1 + i2 == n else (0, 0)
+
+        args = (tuple(curr), prev)
+        if args in memo.keys():
+            return memo[args]
+        nonzero_lst = sorted(nonzero_set)
+        #print(f"nonzero_lst = {nonzero_lst}")
+        
+        #j2 = len(nonzero_lst) - 1
+        #i2 = nonzero_lst[j2]
+        #r2 = curr[i2]
+        j1 = 0#len(nonzero_lst) - 1
+        i1 = nonzero_lst[j1]
+        f1 = curr[i1]
+        eq = (i1 == prev[0])
+        res = [0, 0]
+        #if i1 << 1 >= n and f1 >= 2:
+            
+
+        for j1 in range(len(nonzero_lst)):
+            i1 = nonzero_lst[j1]
+            if i1 * 2 >= n: break
+            r1 = curr[i1]
+            if i1 + i2 < n:
+                #print("impossible 3")
+                #print(i1, i2)
+                res = (0, 0)
+                memo[args] = res
+                return res
+            sub = min(r1, r2)
+            r2 -= sub
+            r1 -= sub
+            if not r2:
+                for j2 in reversed(range(j2)):
+                    i2 = nonzero_lst[j2]
+                    r2 = curr[i2]
+                    if not r1: break
+                    elif i1 + i2 < n:
+                        #print("impossible 4")
+                        res = (0, 0)
+                        memo[args] = res
+                        return res
+                    sub = min(r1, r2)
+                    r2 -= sub
+                    r1 -= sub
+                    if r2: break
+        
+        #nonzero_set2 = set(nonzero_set)
+        res = [0, 0]
+        for j1 in range(len(nonzero_lst)):
+            i1 = nonzero_lst[j1]
+            f1 = curr[i1]
+            curr[i1] -= 1
+            if i1 and not curr[i1]: nonzero_set.remove(i1)
+            for j2 in reversed(range(j1 + 1, len(nonzero_lst))):
+                i2 = nonzero_lst[j2]
+                if i1 + i2 < n: break
+                f2 = curr[i2]
+                f0 = f1 * f2
+                curr[i2] -= 1
+                if i2 and not curr[i2]: nonzero_set.remove(i2)
+                rm1_rng = (max(1, n - i2), min(n, i1 + 1))
+                for rm1 in range(*rm1_rng):
+                    rm2 = n - rm1
+                    m1, m2 = i1 - rm1, i2 - rm2
+                    if m1 and not curr[m1]: nonzero_set.add(m1)
+                    curr[m1] += 1
+                    if m2 and not curr[m2]: nonzero_set.add(m2)
+                    curr[m2] += 1
+                    #print(f"calling recur() 1 with args {args}, i1 = {i1}, i2 = {i2}, rm1 = {rm1}, rm2 = {rm2}, curr = {curr}")
+                    f, s = recur(curr, nonzero_set)
+                    #print(f"post recur() 1 with args {args}, curr = {curr}")
+                    res[0] = modAdd(res[0], f0 * f)
+                    res[1] = modAdd(res[1], f0 * (s + min(rm1, rm2) * f))
+                    curr[m1] -= 1
+                    if m1 and not curr[m1]: nonzero_set.remove(m1)
+                    curr[m2] -= 1
+                    if m2 and not curr[m2]: nonzero_set.remove(m2)
+                if not curr[i2]: nonzero_set.add(i2)
+                curr[i2] += 1
+                
+            if not curr[i1] or 2 * i1 < n:
+                if i1 and not curr[i1]: nonzero_set.add(i1)
+                curr[i1] += 1
+                #print(f"end of iteration 1, j1 = {j1} with args = {args}. curr = {curr}")
+                continue
+            f0 = f1 * curr[i1]
+            curr[i1] -= 1
+            if i1 and not curr[i1]: nonzero_set.remove(i1)
+            rm1_rng = (max(1, n - i1), (n + 1) >> 1)
+            
+            for rm1 in range(*rm1_rng):
+                rm2 = n - rm1
+                m1, m2 = i1 - rm1, i1 - rm2
+                if m1 and not curr[m1]: nonzero_set.add(m1)
+                curr[m1] += 1
+                if m2 and not curr[m2]: nonzero_set.add(m2)
+                curr[m2] += 1
+                #print(f"calling recur() 2 with args {args}, i1 = {i1}, i2 = {i1}, rm1 = {rm1}, rm2 = {rm2}, curr = {curr}")
+                f, s = recur(curr, nonzero_set)
+                #print(f"post recur() 2 with args {args}, curr = {curr}")
+                res[0] = modAdd(res[0], f0 * f)
+                res[1] = modAdd(res[1], f0 * (s + min(rm1, rm2) * f))
+                curr[m1] -= 1
+                if m1 and not curr[m1]: nonzero_set.remove(m1)
+                curr[m2] -= 1
+                if m2 and not curr[m2]: nonzero_set.remove(m2)
+            
+            if not n & 1:
+                f0 >>= 1
+                rm = n >> 1
+                m = i1 - rm
+                if m and not curr[m]: nonzero_set.add(m)
+                curr[m] += 2
+                #print(f"calling recur() 3 with args {args}, i1 = {i1}, i2 = {i1}, rm1 = {rm}, rm2 = {rm}, curr = {curr}")
+                f, s = recur(curr, nonzero_set)
+                #print(f"post recur() 3 with args {args}, curr = {curr}")
+                res[0] = modAdd(res[0], f0 * f)
+                res[1] = modAdd(res[1], f0 * (s + rm * f))
+                curr[m] -= 2
+                if m and not curr[m]: nonzero_set.remove(m)
+            if i1 and not curr[i1]: nonzero_set.add(i1)
+            curr[i1] += 2
+            #print(f"end of iteration2, j1 = {j1} with args = {args}. curr = {curr}")
+
+        #print(f"returning from args = {args} with curr = {curr}")
+        res = tuple(res)
+        memo[args] = res
+        return res
+        """
+        #num1, f1 = curr.peekitem(-1)
+        if f1 > 1:
+            if (num1 << 1) < n:
+                return (0, 0)
+            if len(curr) == 1 and f1 == 2:
+                return (1, num1) if (num1 << 1) == n else (0, 0)
+        else:
+            if len(curr) == 1: return (0, 0)
+            num2, f2 = curr.peekitem(-2)
+            if num1 + num2 < n:
+                return (0, 0)
+            if len(curr) == 2 and f1 == 1 and f2 == 1:
+                return (1, num2) if num1 + num2 == n else (0, 0)
+        
+        args = tuple((k, v) for k, v in curr.items())
+        if args in memo.keys():
+            return memo[args]
+        i2 = 0
+        res = [0, 0]
+        for i1 in range(len(curr)):
+            num1, f1 = curr.peekitem(i1)
+            for i2 in range(max(i1 + (f1 == 1), i2), len(curr)):
+                num2, f2 = curr.peekitem(i2)
+                if num1 + num2 >= n: break
+            else: continue
+            f0 = ((f1 * (f1 - 1)) >> 1) if i1 == i2 else f1 * f2
+            #print(f"num1 = {num1}, num2 = {num2}, f0 = {f0}")
+            rm1_rng = (max(1, n - num2), min(n, num1 + 1))
+            #print(f"rm1_rng = {rm1_rng}")
+            for rm1 in range(*rm1_rng):
+                rm2 = n - rm1
+                m1, m2 = num1 - rm1, num2 - rm2
+                for num, m in ((num1, m1), (num2, m2)):
+                    curr[num] -= 1
+                    if not curr[num]: curr.pop(num)
+                    if m:
+                        curr[m] = curr.get(m, 0) + 1
+                f, s = recur()
+                #print(f"curr = {curr}, f = {f}, score = {s}")
+                #f0_2 = f0 if num1 != num2 or rm1 != rm2 else f0 >> 1
+                res[0] = modAdd(res[0], f0 * f)
+                res[1] = modAdd(res[1], f0 * (s + min(rm1, rm2) * f))
+                for num, m in ((num1, m1), (num2, m2)):
+                    if m:
+                        curr[m] -= 1
+                        if not curr[m]: curr.pop(m)
+                    curr[num] = curr.get(num, 0) + 1
+                #print(num1, num2, rm1, rm2, m1, m2, res)
+        res = tuple(res)
+        memo[args] = res
+        return res
+        """
+    res = recur([0] * (n - 1) + [n], {n - 1})
+    #print(res)
+    print(len(memo))
+    return res[1]
+
 ##############
 project_euler_num_range = (951, 1000)
 
@@ -785,8 +1196,13 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = randomWalkNumberOfUniquePointsOverPathLengthInfLimit(l_step_len=89, r_step_len=97, eps=10 ** -12)
         print(f"Solution to Project Euler #959 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 960 in eval_nums:
+        since = time.time()
+        res = stoneGameSolitaireScoresSumBruteForce(n=12, res_md=None)
+        print(f"Solution to Project Euler #960 = {res}, calculated in {time.time() - since:.4f} seconds")
+
 if __name__ == "__main__":
-    eval_nums = {953}
+    eval_nums = {960}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
