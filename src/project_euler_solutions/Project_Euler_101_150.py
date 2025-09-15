@@ -1903,9 +1903,6 @@ def bouncyProportions(
     than the first).
 
     Args:
-        Required postional:
-        
-
         Optional named:
         prop_numer (int): Strictly positive integer giving the
                 numerator of the fraction for the target proportion
@@ -1949,36 +1946,124 @@ def bouncyProportions(
     return rng[1] - 1
 
 # Problem 113
-class NonBouncyCounter:
-    def __init__(self, n_dig: int=1, base: int=10):
-        self.base = base
-        self.memo = [[[0, 0] for _ in range(base)],\
-                [[1, 1] for _ in range(base)]]
-        self.extendMemo(n_dig)
+class NonBouncyCounter(object):
+    """
+    Class used to calculate the number of strictly positive integers
+    that are not bouncy for a given base that contain up to a given
+    number of digits when represented in that base.
+
+    A positive integer is bouncy for a given base if and only
+    if the sequence of digits of the expression of that integer
+    in the given base (without leading zeros) is not weakly
+    increasing or weakly decreasing (i.e. there exists at least
+    one pair of consecutive digits for which the first is
+    strictly greater than the second and another pair of
+    consecutive digits for which the second is strictly greater
+    than the first).
+
+    Initialisation args:
+        Optional named:
+        n_dig (int): Non-negative integer giving the number of digits
+                for which the counts should be precomputed on
+                initialisation.
+            Default: 1
+        base (int): The integer strictly greater than 1 giving
+                the base for which the strictly positive integers are
+                to be assessed as bouncy or not bouncy. This becomes
+                the attribute base.
+            Default: 10
     
-    def extendMemo(self, n_dig: int) -> None:
-        for i in range(len(self.memo), n_dig + 1):
-            self.memo.append([[0, 0] for _ in range(self.base)])
+    Attributes:
+        Attributes that should not be changed during the lifetime
+        of the instance:
+        base (int): The integer strictly greater than 1 giving
+                the base for which the strictly positive integers are
+                to be assessed as bouncy or not bouncy. This is
+                specified on initialisation by the argument base.
+    
+    Function call:
+        Provides the number of strictly positive integers that are
+        not bouncy for the base given by the attribute base that when
+        represented in that base have no more that n_dig digits.
+
+        Args:
+            Required postional:
+            n_dig (int): The maximum number of digits when represented
+                    in the chosen base of all strictly positive integers
+                    to be considered for inclusion in the returned
+                    count.
+
+        Returns:
+        Integer (int) giving the number of strictly positive integers
+        that contain no more than n_dig digits when represented in the
+        base given by the attribute base (without leading zeros) and
+        are not bouncy for that base.
+    """
+    def __init__(self, n_dig: int=1, base: int=10):
+        self._base = base
+        self._memo = [[[0, 0] for _ in range(base)],\
+                [[1, 1] for _ in range(base)]]
+        self._extendMemo(n_dig)
+    
+    @property
+    def base(self) -> int:
+        return self._base
+    
+    def _extendMemo(self, n_dig: int) -> None:
+        for i in range(len(self._memo), n_dig + 1):
+            self._memo.append([[0, 0] for _ in range(self.base)])
             curr = 0
-            for j, pair in enumerate(self.memo[i - 1]):
+            for j, pair in enumerate(self._memo[i - 1]):
                 curr += pair[0]
-                self.memo[i][j][0] = curr
+                self._memo[i][j][0] = curr
             curr = 0
-            for j in reversed(range(len(self.memo[i - 1]))):
-                curr += self.memo[i - 1][j][1]
-                self.memo[i][j][1] = curr
+            for j in reversed(range(len(self._memo[i - 1]))):
+                curr += self._memo[i - 1][j][1]
+                self._memo[i][j][1] = curr
         return
     
     def __call__(self, n_dig: int) -> int:
         if not n_dig: return 0
-        self.extendMemo(n_dig)
+        self._extendMemo(n_dig)
         # Subtract self.base - 1 since numbers with all one digit
         # are double counted
-        return sum(sum(x) for x in self.memo[n_dig][1:]) - (self.base - 1)
+        return sum(sum(x) for x in self._memo[n_dig][1:]) - (self.base - 1)
 
 def nonBouncyNumbers(mx_n_dig: int=100, base: int=10) -> int:
     """
     Solution to Project Euler #113
+
+    Calculates the number of strictly positive integers that are
+    not bouncy for the given base that contain up to a given
+    number of digits when represented in that base.
+
+    A positive integer is bouncy for a given base if and only
+    if the sequence of digits of the expression of that integer
+    in the given base (without leading zeros) is not weakly
+    increasing or weakly decreasing (i.e. there exists at least
+    one pair of consecutive digits for which the first is
+    strictly greater than the second and another pair of
+    consecutive digits for which the second is strictly greater
+    than the first).
+
+    Args:
+        Optional named:
+        mx_n_dig (int): Non-negative integer giving the largest
+                number of digits any strictly positive integer
+                included in the returned count should have
+                when represented in the chosen base (without leading
+                zeros).
+            Default: 10
+        base (int): The integer strictly greater than 1 giving
+                the base for which the strictly positive integers are
+                to be assessed as bouncy or not bouncy.
+            Default: 10
+
+    Returns:
+    Integer (int) giving the number of strictly positive integers
+    that contain no more than n_dig digits when represented in the
+    chosen base (without leading zeros) and are not bouncy for that
+    base.
     """
     #since = time.time()
     nbc = NonBouncyCounter(n_dig=mx_n_dig, base=base)
@@ -6491,5 +6576,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {112}
+    eval_nums = {113}
     evaluateProjectEulerSolutions101to150(eval_nums)
