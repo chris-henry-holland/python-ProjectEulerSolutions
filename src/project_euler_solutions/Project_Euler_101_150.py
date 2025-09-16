@@ -2075,6 +2075,29 @@ def nonBouncyNumbers(mx_n_dig: int=100, base: int=10) -> int:
 def countingBlockCombinations(tot_len: int=50, min_large_len: int=3) -> int:
     """
     Solution to Project Euler #114
+
+    Calculates the number of distinct ordered partitionings of
+    a line of length tot_len such that all the parts so produced
+    are of integer length, with that integer being either 1 or
+    strictly greater than min_large_len and for every pair of
+    adjacent parts, at least one is length 1 (i.e. no two parts
+    with length greater than 1 are adjacent).
+
+    Args:
+        Optional named:
+        tot_len (int): Strictly positive integer giving the length
+                of the line for which the number of ordered
+                partitionings described above are to be found.
+            Default: 50
+        min_large_len (int): Smallest possible value for the length
+                of parts produced by the partitioning that do not
+                have length 1.
+            Default: 3
+    
+    Returns:
+    Integer (int) giving the number of distinct ordered partitionings
+    exist for a line of length tot_len subject to the above described
+    constraints.
     """
     #since = time.time()
     qu = deque([1] * (min_large_len + 1))
@@ -2089,6 +2112,32 @@ def countingBlockCombinations(tot_len: int=50, min_large_len: int=3) -> int:
 def countingBlockCombinationsII(min_large_len: int=50, target_count: int=10 ** 6 + 1) -> int:
     """
     Solution to Project Euler #115
+
+    Calculates the smallest non-negative integer such that the
+    number of distinct ordered partitionings of line of that
+    length such that:
+     1) all the parts so produced are of integer length, with
+        that integer being either 1 or strictly greater than
+        min_large_len
+     2) for every pair of adjacent parts, at least one is length
+        1 (i.e. no two parts with length greater than 1 are
+        adjacent).
+    is no less than target_count
+
+    Args:
+        Optional named:
+        min_large_len (int): Smallest possible value for the length
+                of parts produced by the partitioning that do not
+                have length 1.
+            Default: 50
+        target_count (int): The minimum number of distinct ordered
+                partitionings of a line of the returned length that
+                should be possible, with all shorter lines having
+                fewer such possible ordered partitions.
+            
+    Returns:
+    Integer (int) giving smallest non-negative integer satisfying the
+    properties given above.
     """
     #since = time.time()
     if target_count <= 1: return 0
@@ -6576,5 +6625,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {113}
+    eval_nums = {115}
     evaluateProjectEulerSolutions101to150(eval_nums)
