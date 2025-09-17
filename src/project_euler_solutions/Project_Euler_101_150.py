@@ -2139,6 +2139,7 @@ def countingBlockCombinationsII(min_large_len: int=50, target_count: int=10 ** 6
     Integer (int) giving smallest non-negative integer satisfying the
     properties given above.
     """
+    # Review- documentation for clarity
     #since = time.time()
     if target_count <= 1: return 0
     qu = deque([1] * (min_large_len + 1))
@@ -2152,10 +2153,41 @@ def countingBlockCombinationsII(min_large_len: int=50, target_count: int=10 ** 6
     return n
 
 # Problem 116
-def redGreenOrBlueTiles(tot_len: int=50, min_large_len: int=2,\
-        max_large_len: int=4) -> int:
+def redGreenOrBlueTiles(
+    tot_len: int=50,
+    min_large_len: int=2,
+    max_large_len: int=4,
+) -> int:
     """
     Solution to Project Euler #116
+
+    Calculates the number of distinct ordered partitionings of
+    a line of length tot_len such that all the parts so produced
+    are of integer length, each of which are either length 1 or
+    a single chosen integer length between min_large_len and
+    max_large_len (so all of the parts that are not length 1 in
+    a given partitioning are the same length), and not all of
+    which are length 1.
+
+    Args:
+        Optional named:
+        tot_len (int): Strictly positive integer giving the length
+                of the line for which the number of ordered
+                partitionings described above are to be found.
+            Default: 50
+        min_large_len (int): Smallest possible value for the length
+                of parts produced by the partitioning that do not
+                have length 1.
+            Default: 2
+        max_large_len (int): Largest possible value for the length
+                of parts produced by the partitioning that do not
+                have length 1.
+            Default: 4
+    
+    Returns:
+    Integer (int) giving the number of distinct ordered partitionings
+    exist for a line of length tot_len subject to the above described
+    constraints.
     """
     #since = time.time()
     res = 0
@@ -2168,10 +2200,38 @@ def redGreenOrBlueTiles(tot_len: int=50, min_large_len: int=2,\
     return res - (max_large_len - min_large_len + 1)
 
 # Problem 117
-def redGreenAndBlueTiles(tot_len: int=50, min_large_len: int=2,\
-        max_large_len: int=4) -> int:
+def redGreenAndBlueTiles(
+    tot_len: int=50,
+    min_large_len: int=2,
+    max_large_len: int=4
+) -> int:
     """
     Solution to Project Euler #117
+
+    Calculates the number of distinct ordered partitionings of
+    a line of length tot_len such that all the parts so produced
+    are of integer length, each of which are either length 1 or
+    any integer length between min_large_len and max_large_len.
+
+    Args:
+        Optional named:
+        tot_len (int): Strictly positive integer giving the length
+                of the line for which the number of ordered
+                partitionings described above are to be found.
+            Default: 50
+        min_large_len (int): Smallest possible value for the length
+                of parts produced by the partitioning that do not
+                have length 1.
+            Default: 2
+        max_large_len (int): Largest possible value for the length
+                of parts produced by the partitioning that do not
+                have length 1.
+            Default: 4
+    
+    Returns:
+    Integer (int) giving the number of distinct ordered partitionings
+    exist for a line of length tot_len subject to the above described
+    constraints.
     """
     #since = time.time()
     qu1 = deque([1] * (min_large_len))
@@ -6625,5 +6685,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {115}
+    eval_nums = {117}
     evaluateProjectEulerSolutions101to150(eval_nums)
