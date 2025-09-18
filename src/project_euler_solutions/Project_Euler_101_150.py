@@ -2253,9 +2253,30 @@ def redGreenAndBlueTiles(
 def pandigitalPrimeSets(base: int=10) -> int:
     """
     Solution to Project Euler #118
+
+    Calculates the number of sets of prime numbers for which the
+    digits from 1 to (base - 1) appear as a digit exactly once in
+    exactly one of the elements' representation in the chosen base
+    (without leading zeros).
+
+    Args:
+        Optional named:
+        base (int): The integer strictly greater than 1 giving
+                the base for which the prime numbers in a given
+                set are to be represented when assessing whether
+                every digit from 1 to (base - 1) appears exactly
+                once in exactly one of the primes' representation
+                in that base.
+            Default: 10
+    
+    Returns:
+    Integer (int) giving the number of distinct set of primes that
+    satisfy the above described property.
     """
     #since = time.time()
-    ps = PrimeSPFsieve(isqrt(base ** base))
+    ps = SimplePrimeSieve()#isqrt(base ** base))
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
     res = [0]
     def recur(nums: Tuple[int], i: int=0, prev: int=0, prev_n_dig: int=0) -> None:
         n = len(nums)
@@ -2271,7 +2292,7 @@ def pandigitalPrimeSets(base: int=10) -> int:
         if n - i2 >= i2 - i:
             #if i2 > i + 1 and nums[i2 - 1] not in disallowed_last and\
             #        ps.isPrime(num):
-            if i2 > i and ps.isPrime(num):
+            if i2 > i and primeCheck(num):
                 #print(num)
                 recur(nums, i=i2, prev=num, prev_n_dig=i2 - i)
             i3 = i + ((n - i) >> 1)
@@ -2286,7 +2307,7 @@ def pandigitalPrimeSets(base: int=10) -> int:
         for i3 in range(i3, n):
             num = num * base + nums[i3]
         #if num > prev and ps.isPrime(num): print(num)
-        res[0] += (num > prev) and ps.isPrime(num)
+        res[0] += (num > prev) and primeCheck(num)
         return
     
     disallowed_last = {x for x in range(1, base) if gcd(base, x) != 1}
@@ -2311,9 +2332,9 @@ def isPower(num: int, base: int) -> int:
         Required positional:
         num (int): Strictly positive integer whose status
                 as an integer power of the integer base.
-        base (int): The number for which the status of num
-                as an integer power of this number is being
-                assessed.
+        base (int): Strictly positive integer for which the
+                status of num as an integer power of this
+                number is being assessed.
     
     Returns:
     Integer (int) which is the integer power to which base is
@@ -2327,7 +2348,10 @@ def isPower(num: int, base: int) -> int:
         res += 1
     return res if num2 == num else -1
 
-def digitCountAndDigitSum(num: int, base: int=10) -> Tuple[int, int]:
+def digitCountAndDigitSum(
+    num: int,
+    base: int=10,
+) -> Tuple[int, int]:
     """
     Calculates the number and sum of digits of a strictly
     positive integer when expressed terms of a given base.
@@ -2371,7 +2395,10 @@ def digitCountAndDigitSum(num: int, base: int=10) -> Tuple[int, int]:
         res[1] += r
     return tuple(res)
 
-def powerDigitSumEqualNumDigitCountUpperBound(exp: int, base: int=10) -> int:
+def powerDigitSumEqualNumDigitCountUpperBound(
+    exp: int,
+    base: int=10,
+) -> int:
     """
     For a given exponent and base, finds an upper bound for the
     number of digits a strictly positive integer can have in
@@ -2430,7 +2457,10 @@ def powerDigitSumEqualNumDigitCountUpperBound(exp: int, base: int=10) -> int:
     return n_dig
     """
 
-def digitPowerSumSequence(n_terms: int, base: int=10) -> List[Tuple[int]]:
+def digitPowerSumSequence(
+    n_terms: int,
+    base: int=10,
+) -> List[Tuple[int]]:
     """
     TODO
     """
@@ -6685,5 +6715,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {117}
+    eval_nums = {118}
     evaluateProjectEulerSolutions101to150(eval_nums)
