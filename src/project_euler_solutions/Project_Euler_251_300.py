@@ -964,6 +964,102 @@ def calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max:
     """
     return res
 
+# Problem 259
+def calculateReachableIntegers(base: int=10) -> List[int]:
+
+    def concatenationsGenerator(
+        digs: List[int],
+        base: int,
+    ) -> Generator[int, None, None]:
+        print(digs)
+        curr = [digs[0]]
+        def recur(idx: int) -> Generator[int, None, None]:
+            print(idx)
+            if idx == len(digs):
+                yield curr
+                return
+            orig = curr[-1]
+            curr.append(digs[idx])
+            yield from recur(idx + 1)
+            curr.pop()
+            curr[-1] = curr[-1] * base + digs[idx]
+            yield from recur(idx + 1)
+            curr[-1] = orig
+            return
+
+        yield from recur(1)
+        return
+    
+    def operationsGenerator(
+        num1: CustomFraction,
+        num2: CustomFraction,
+    ) -> Generator[CustomFraction, None, None]:
+        yield num1 + num2
+        yield num1 - num2
+        yield num1 * num2
+        yield num1 / num2
+        return
+    #cnt = 0
+    #for lst in concatenationsGenerator(list(range(1, base)), base):
+    #    print(lst)
+    #    cnt += 1
+    #print (f"count = {cnt}")
+    #return []
+    
+    #curr_incl = SortedList()
+    curr = SortedDict({i: CustomFraction(i, 1) for i in range(1, base)})
+
+    res = set()
+
+    seen = set()
+    def recur(start: int, prev_changed: List[int], curr_changed: List[int]) -> None:
+        if len(curr) == 1:
+            frac = curr.peekitem(0)[1]
+            if frac.denominator == 1 and frac.numerator > 0:
+                print(frac.numerator)
+                res.add(frac.numerator)
+            return
+        args = tuple(curr[i] for i in curr)
+        if args in seen: return
+        seen.add(args)
+        if curr_changed:
+            recur(0, curr_changed, [])
+        if not prev_changed or start > prev_changed[-1]:
+            return
+        for i in range(len(prev_changed)):
+            if prev_changed[i] >= start: break
+        for i in range(i, len(prev_changed)):
+            idx = prev_changed[i]
+            j = curr.bisect_left(idx)
+            inds = []
+            if idx > start and j > 0:
+                idx0 = curr.peekitem(j - 1)[0]
+                if idx0 < idx - 1:
+                    inds.append((idx0, idx))
+            if j < len(curr) - 2:
+                idx2 = curr.peekitem(j + 1)[0]
+                inds.append((idx, idx2))
+            print(inds, curr)
+            for pair in inds:
+                curr_changed.append(pair[0])
+                num1, num2 = [curr[idx] for idx in pair]
+                curr.pop(pair[1])
+                for num in operationsGenerator(num1, num2):
+                    curr[pair[0]] = num
+                    recur(start + 2, prev_changed, curr_changed)
+                curr[pair[0]] = num1
+                curr[pair[1]] = num2
+        return
+
+    for nums in concatenationsGenerator(list(range(1, base)), base):
+        curr = SortedDict({i: CustomFraction(num, 1) for i, num in enumerate(nums)})
+        recur(0, list(range(len(curr))), [])
+    return sorted(res)
+
+def calculateReachableNumbersSum(base: int=10) -> int:
+    res = sum(calculateReachableIntegers(base=base))
+    return res
+
 # Problem 260
 def stoneGamePlayerTwoWinningConfigurationsGenerator(n_piles: int, pile_size_max: int) -> Generator[Tuple[int], None, None]:
     # Using Sprague-Grundy
@@ -1267,16 +1363,21 @@ def allBinaryCirclesSum(n: int=5) -> List[int]:
     """
     return sum(findAllBinaryCircles(n))
 
-if __name__ == "__main__":
-    to_evaluate = {254}
+##############
+project_euler_num_range = (51, 100)
+
+def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> None:
+    if not eval_nums:
+        eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
+
     since0 = time.time()
 
-    if not to_evaluate or 251 in to_evaluate:
+    if 251 in eval_nums:
         since = time.time()
         res = cardanoTripletCount(sum_max=11 * 10 ** 7)
         print(f"Solution to Project Euler #251 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 252 in to_evaluate:
+    if 252 in eval_nums:
         since = time.time()
         res = blumBlumShubPseudoRandomTwoDimensionalPointsLargestEmptyConvexHoleArea(
             n_points=500,
@@ -1287,28 +1388,36 @@ if __name__ == "__main__":
         )
         print(f"Solution to Project Euler #252 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 253 in to_evaluate:
+    if 253 in eval_nums:
         since = time.time()
         res = constructingLinearPuzzleMaxSegmentCountMeanFloat(n_pieces=40)
         print(f"Solution to Project Euler #253 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 254 in to_evaluate:
+    if 254 in eval_nums:
         since = time.time()
         res = calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max=150, base=10)
         print(f"Solution to Project Euler #254 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 260 in to_evaluate:
+    if 259 in eval_nums:
+        since = time.time()
+        res = calculateReachableNumbersSum(base=10)
+        print(f"Solution to Project Euler #259 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 260 in eval_nums:
         since = time.time()
         res = stoneGamePlayerTwoWinningConfigurationsSum(n_piles=3, pile_size_max=1000)
         print(f"Solution to Project Euler #260 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 265 in to_evaluate:
+    if 265 in eval_nums:
         since = time.time()
         res = allBinaryCirclesSum(n=5)
         print(f"Solution to Project Euler #265 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
+if __name__ == "__main__":
+    eval_nums = {260}
+    evaluateProjectEulerSolutions51to100(eval_nums)
 
 """
 n_max = 1000
