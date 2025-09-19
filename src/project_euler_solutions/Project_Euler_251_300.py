@@ -965,16 +965,16 @@ def calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max:
     return res
 
 # Problem 259
-def calculateReachableIntegers(base: int=10) -> List[int]:
+def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> List[int]:
 
     def concatenationsGenerator(
         digs: List[int],
         base: int,
     ) -> Generator[int, None, None]:
-        print(digs)
+        #print(digs)
         curr = [digs[0]]
         def recur(idx: int) -> Generator[int, None, None]:
-            print(idx)
+            #print(idx)
             if idx == len(digs):
                 yield curr
                 return
@@ -994,10 +994,12 @@ def calculateReachableIntegers(base: int=10) -> List[int]:
         num1: CustomFraction,
         num2: CustomFraction,
     ) -> Generator[CustomFraction, None, None]:
+        #print(num1, num2)
         yield num1 + num2
         yield num1 - num2
         yield num1 * num2
-        yield num1 / num2
+        if num2 != 0:
+            yield num1 / num2
         return
     #cnt = 0
     #for lst in concatenationsGenerator(list(range(1, base)), base):
@@ -1013,33 +1015,37 @@ def calculateReachableIntegers(base: int=10) -> List[int]:
 
     seen = set()
     def recur(start: int, prev_changed: List[int], curr_changed: List[int]) -> None:
+        #print(curr, prev_changed, start)
         if len(curr) == 1:
+            #print(curr)
             frac = curr.peekitem(0)[1]
-            if frac.denominator == 1 and frac.numerator > 0:
-                print(frac.numerator)
+            if frac.denominator == 1 and frac.numerator > 0 and frac.numerator not in res:
+                #print(frac.numerator)
                 res.add(frac.numerator)
             return
-        args = tuple(curr[i] for i in curr)
-        if args in seen: return
-        seen.add(args)
+        if not start:
+            args = tuple(curr[i] for i in curr)
+            if args in seen: return
+            seen.add(args)
         if curr_changed:
             recur(0, curr_changed, [])
-        if not prev_changed or start > prev_changed[-1]:
+        if start > prev_changed[-1]:
             return
         for i in range(len(prev_changed)):
             if prev_changed[i] >= start: break
         for i in range(i, len(prev_changed)):
             idx = prev_changed[i]
+            if idx not in curr.keys(): continue
             j = curr.bisect_left(idx)
             inds = []
             if idx > start and j > 0:
                 idx0 = curr.peekitem(j - 1)[0]
-                if idx0 < idx - 1:
+                if not i or idx0 != prev_changed[i - 1]:
                     inds.append((idx0, idx))
-            if j < len(curr) - 2:
+            if j < len(curr) - 1:
                 idx2 = curr.peekitem(j + 1)[0]
                 inds.append((idx, idx2))
-            print(inds, curr)
+            #print(inds, curr)
             for pair in inds:
                 curr_changed.append(pair[0])
                 num1, num2 = [curr[idx] for idx in pair]
@@ -1049,15 +1055,20 @@ def calculateReachableIntegers(base: int=10) -> List[int]:
                     recur(start + 2, prev_changed, curr_changed)
                 curr[pair[0]] = num1
                 curr[pair[1]] = num2
+                curr_changed.pop()
         return
 
-    for nums in concatenationsGenerator(list(range(1, base)), base):
+    for nums in concatenationsGenerator(list(range(dig_min, min(dig_max + 1, base))), base):
+        print(f"concatenation {nums}")
         curr = SortedDict({i: CustomFraction(num, 1) for i, num in enumerate(nums)})
         recur(0, list(range(len(curr))), [])
     return sorted(res)
 
-def calculateReachableNumbersSum(base: int=10) -> int:
-    res = sum(calculateReachableIntegers(base=base))
+def calculateReachableNumbersSum(dig_min: int=1, dig_max: int=9, base: int=10) -> int:
+    """
+    Solution to Project Euler #259
+    """
+    res = sum(calculateReachableIntegers(dig_min=dig_min, dig_max=dig_max, base=base))
     return res
 
 # Problem 260
@@ -1400,7 +1411,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     
     if 259 in eval_nums:
         since = time.time()
-        res = calculateReachableNumbersSum(base=10)
+        res = calculateReachableNumbersSum(dig_min=1, dig_max=9, base=10)
         print(f"Solution to Project Euler #259 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 260 in eval_nums:
@@ -1416,7 +1427,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {260}
+    eval_nums = {259}
     evaluateProjectEulerSolutions51to100(eval_nums)
 
 """
