@@ -964,6 +964,123 @@ def calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max:
     """
     return res
 
+# Problem 255
+def calculateNumberOfIterationsOfHeronsMethodForIntegers(n: int, base: int=10) -> int:
+
+    n_dig = 0
+    num2 = n
+    while num2:
+        num2 //= base
+        n_dig += 1
+    x0 = None
+    x = 2 * base ** (n_dig >> 1) if n_dig & 1 else 7 * base ** ((n_dig - 2) >> 1)
+    res = 0
+    while x != x0:
+        res += 1
+        x0 = x
+        x = (x0 + ((n - 1) // x0) + 1) >> 1
+    return res
+
+def meanNumberOfIterationsOfHeronsMethodForIntegersFraction(
+    n_min: int,
+    n_max: int,
+    base: int=10,
+) -> CustomFraction:
+
+
+    def calculateTransition(rng: Tuple[int], lower: int) -> int:
+
+        lft, rgt = rng
+        while lft < rgt:
+            mid = rgt - ((rgt - lft) >> 1)
+            #print(lft, rgt, mid, calculateNumberOfIterationsOfHeronsMethodForIntegers(mid, base=base), lower)
+            if calculateNumberOfIterationsOfHeronsMethodForIntegers(mid, base=base) > lower:
+                rgt = mid - 1
+            else: lft = mid
+        return lft
+
+    rt_mn = isqrt(n_min)
+    rt_mx = isqrt(n_max)
+    #print(rt_mn, rt_mx)
+    frac1 = CustomFraction(2 * rt_mn + 1, 2) 
+    #print(frac1, frac1 * frac1)
+    if frac1 * frac1 < n_min:
+        rt_mn += 1
+    frac2 = CustomFraction(2 * rt_mx + 1, 2)
+    if frac2 * frac2 < n_max:
+        rt_mx += 1
+    #print(rt_mn, rt_mx)
+    #print(f"rt_mn = {rt_mn}, rt_mn ** 2 = {rt_mn ** 2}, rt_mx = {rt_mx}, rt_mx ** 2 = {rt_mx ** 2}")
+    res = 0
+    for rt in range(rt_mn, rt_mx + 1):
+        #print(f"root = {rt} (iterating between {rt_mn} and {rt_mx})")
+        frac1 = CustomFraction(2 * rt - 1, 2)
+        frac1_sq = frac1 * frac1
+        sq_mn = max(n_min, ((frac1_sq.numerator - 1) // frac1_sq.denominator) + 1)
+        frac2 = CustomFraction(2 * rt + 1, 2)
+        frac2_sq = frac2 * frac2
+        sq_mx = min(n_max, ((frac2_sq.numerator - 1) // frac2_sq.denominator))
+        #print(sq_mn, sq_mx, n_max)
+        if sq_mn > sq_mx: break
+        n_dig_sq_mn = 0
+        num = sq_mn
+        while num:
+            num //= base
+            n_dig_sq_mn += 1
+        n_dig_sq_mx = n_dig_sq_mn
+        num = sq_mx // (base ** n_dig_sq_mn)
+        while num:
+            num //= base
+            n_dig_sq_mx += 1
+        if n_dig_sq_mx == n_dig_sq_mn:
+            rngs = [((sq_mn, sq_mx), n_dig_sq_mn)]
+        else:
+            rngs = [((sq_mn, base ** (n_dig_sq_mn) - 1), n_dig_sq_mn)]
+            for n_dig in range(n_dig_sq_mn + 1, n_dig_sq_mx):
+                rngs.append(((base ** (n_dig - 1), base ** n_dig - 1), n_dig))
+            rngs.append(((base ** (n_dig_sq_mx - 1), sq_mx), n_dig_sq_mx))
+        #print(rt, rngs)
+        for sub_rng in rngs:
+            cnt_rng = (
+                calculateNumberOfIterationsOfHeronsMethodForIntegers(sub_rng[0][0], base=base),
+                calculateNumberOfIterationsOfHeronsMethodForIntegers(sub_rng[0][1], base=base),
+            )
+            #print(f"sub_rng = {sub_rng}, cnt_rng = {cnt_rng}")
+            sub_rng2 = list(sub_rng[0])
+            for iter_cnt in range(*cnt_rng):
+                #print(f"iter_cnt = {iter_cnt}")
+                mid = calculateTransition(sub_rng2, iter_cnt)
+                res += iter_cnt * (mid - sub_rng2[0] + 1)
+                #print(f"answer for sub range [{sub_rng2[0]}, {mid}] = {iter_cnt}")
+                #for num in range(sub_rng2[0], mid + 1):
+                #    ans = calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=base)
+                #    if ans != iter_cnt:
+                #        print(f"{num}: {calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=base)} (expected {iter_cnt})")
+                sub_rng2[0] = mid + 1
+            iter_cnt = cnt_rng[1]
+            res += iter_cnt * (sub_rng2[1] - sub_rng2[0] + 1)
+            #print(f"answer for sub range [{sub_rng2[0]}, {sub_rng2[1]}] = {iter_cnt}")
+            #for num in range(sub_rng2[0], sub_rng2[1] + 1):
+            #    ans = calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=base)
+            #    if ans != iter_cnt:
+            #        print(f"{num}: {calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=base)} (expected {iter_cnt})")
+    print(res, n_max - n_min + 1)
+    res = CustomFraction(res, n_max - n_min + 1)
+    #print(res)
+    return res
+    
+def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
+    n_min: int,
+    n_max: int,
+    base: int=10,
+) -> float:
+    """
+    Solution to Project Euler #255
+    """
+    res = meanNumberOfIterationsOfHeronsMethodForIntegersFraction(n_min, n_max, base=base)
+    print(res)
+    return res.numerator / res.denominator
+
 # Problem 259
 def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> List[int]:
 
@@ -1408,6 +1525,15 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
         since = time.time()
         res = calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max=150, base=10)
         print(f"Solution to Project Euler #254 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 255 in eval_nums:
+        since = time.time()
+        res = meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
+            n_min=10 ** 13,
+            n_max=10 ** 14 - 1,
+            base=10,
+        )
+        print(f"Solution to Project Euler #255 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     if 259 in eval_nums:
         since = time.time()
@@ -1427,7 +1553,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {259}
+    eval_nums = {255}
     evaluateProjectEulerSolutions51to100(eval_nums)
 
 """
@@ -1464,3 +1590,32 @@ for i in range(1, 10 ** 9):
         print(i, n_dig)
         prev = n_dig
 """
+"""
+print(calculateNumberOfIterationsOfHeronsMethodForIntegers(4321))
+for n_dig in range(1, 9):
+    f_dict = {}
+    for num in range(2 ** (n_dig - 1), 2 ** n_dig):
+        n_iter = calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=10)
+        #print(num, n_iter)
+        #if n_iter == 1: print(num)
+        f_dict[n_iter] = f_dict.get(n_iter, 0) + 1
+    print(n_dig, f_dict)
+    tot, cnt = 0, 0
+    for num, f in f_dict.items():
+        tot += f * num
+        cnt += f
+    print(tot, cnt, tot / cnt)
+"""
+"""
+mx_n_dig = 5
+n_iter_prev = calculateNumberOfIterationsOfHeronsMethodForIntegers(1, base=10)
+curr_rng_start = 1
+for num in range(2, 10 ** mx_n_dig):
+    n_iter = calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=10)
+    if n_iter == n_iter_prev: continue
+    print((curr_rng_start, num - 1), num - curr_rng_start, n_iter_prev)
+    curr_rng_start = num
+    n_iter_prev = n_iter
+    #if n_iter == 1: print(num)
+"""
+#print(meanNumberOfIterationsOfHeronsMethodForIntegersFraction(7, 2606, base=10))
