@@ -2460,11 +2460,37 @@ def powerDigitSumEqualNumDigitCountUpperBound(
 def digitPowerSumSequence(
     n_terms: int,
     base: int=10,
-) -> List[Tuple[int]]:
+) -> List[Tuple[int, int, int]]:
     """
-    TODO
+    Calculates the first n_terms terms in the integer sequence whose
+    terms are the integers in strictly increasing order for which
+    when represented in the chosen base there exists a non-negative
+    integer power such that the sum of its digits in that representation
+    taken to that power equals the integer itself.
+
+    Args:
+        Required positional:
+        n_terms (int): Non-negative integer giving the number of terms
+                of the described sequence to return.
+
+        Optional named:
+        base (int): Integer strictly greater than 1 giving the base
+                in which the integers are expressed when assessing whether
+                the sum of their digits taken to some non-negative power
+                equals the integer itself.
+            Default: 10
+    
+    Returns:
+    List of 2-tuples of integers, representing the first n_terms terms of
+    the described sequence in order, with index 0 containing the integer,
+    index 1 containing the sum of its digits when represented in the
+    chosen base and index 2 containing the smallest non-negative integer
+    power for which the sum of digits, when taken to that power, equals
+    the integer.
+    The list has length n_terms.
     """
     res = []
+    if n_terms <= 0: return []
     heap = [(2 ** 2, 2, 2)]
     n_dig_limit_heap = [(powerDigitSumEqualNumDigitCountUpperBound(2, base=base), 2)]
     mx_b = -float("inf")
@@ -2487,8 +2513,10 @@ def digitPowerSumSequence(
         heapq.heappush(heap, (num * a, a, b + 1))
         if b + 1 > mx_b:
             mx_b = b + 1
-            heapq.heappush(n_dig_limit_heap,\
-                    (powerDigitSumEqualNumDigitCountUpperBound(mx_b, base=base), mx_b))
+            heapq.heappush(
+                n_dig_limit_heap,
+                (powerDigitSumEqualNumDigitCountUpperBound(mx_b, base=base), mx_b),
+            )
             #print(n_dig_limit_heap)
         if a == mx_a:
             mx_a += 1
@@ -2527,6 +2555,7 @@ def digitPowerSum(n: int=30, base: int=10) -> int:
     """
     #since = time.time()
     seq = digitPowerSumSequence(n, base=base)
+    print(seq)
     res = seq[-1][0]
     #print(seq)
     #print(f"Time taken = {time.time() - since:.4f} seconds")
@@ -6715,5 +6744,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {118}
+    eval_nums = {119}
     evaluateProjectEulerSolutions101to150(eval_nums)
