@@ -1057,7 +1057,47 @@ def stoneGameSolitaireScoresSum(n: int=100, res_md: Optional[int]=10 ** 9 + 7) -
         res = tuple(res)
         memo[args] = res
         return res
+
+# Problem 961
+def removingDigitsGamePlayerOneWinsCount(n_dig_max: int=18, base: int=10) -> int:
+    """
+    Solution to Project Euler #961
+    """
+    def numbersRepresentedByBinary(num_bin: int) -> int:
+        return (base - 1) ** num_bin.bit_count()
+
+    memo = {}
+    def canWin(num_bin: int) -> bool:
+        if not num_bin: return False
+        args = num_bin
+        if args in memo.keys(): return memo[args]
+        l = num_bin.bit_length()
+        #print(format(num_bin, "b"), format(num_bin >> 1, "b"), format(num_bin ^ (1 << (l - 1)), "b"))
+        res = False
+        bm = 0
+        prev_tail = 0
+        for _ in range(l):
+            bm = (bm << 1) + 1
+            tail = num_bin & bm
+            head = num_bin ^ tail
+            num_bin2 = (head >> 1) ^ prev_tail
+            if not canWin(num_bin2):
+                res = True
+                break
+            prev_tail = tail
+        #res = not canWin(num_bin >> 1) or not canWin(num_bin ^ (1 << (l - 1)))
+        memo[args] = res
+        return res
+
+    res = 0
+    for num_bin in range(1, 1 << n_dig_max):
+        if canWin(num_bin):
+            term = numbersRepresentedByBinary(num_bin)
+            res += term
+            #print(format(num_bin, "b"), term, res)
+    return res
         
+
 
 ##############
 project_euler_num_range = (951, 1000)
@@ -1096,8 +1136,13 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = stoneGameSolitaireScoresSumBruteForce(n=12, res_md=None)
         print(f"Solution to Project Euler #960 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 961 in eval_nums:
+        since = time.time()
+        res = removingDigitsGamePlayerOneWinsCount(n_dig_max=18, base=10)
+        print(f"Solution to Project Euler #961 = {res}, calculated in {time.time() - since:.4f} seconds")
+
 if __name__ == "__main__":
-    eval_nums = {960}
+    eval_nums = {961}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
