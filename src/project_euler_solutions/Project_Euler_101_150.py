@@ -2463,10 +2463,11 @@ def digitPowerSumSequence(
 ) -> List[Tuple[int, int, int]]:
     """
     Calculates the first n_terms terms in the integer sequence whose
-    terms are the integers in strictly increasing order for which
-    when represented in the chosen base there exists a non-negative
-    integer power such that the sum of its digits in that representation
-    taken to that power equals the integer itself.
+    terms are the integers in strictly increasing order which
+    when represented in the chosen base contain at least two digits and
+    there exists a non-negative integer power such that the sum of its
+    digits in that representation taken to that power equals the integer
+    itself.
 
     Args:
         Required positional:
@@ -2555,7 +2556,7 @@ def digitPowerSum(n: int=30, base: int=10) -> int:
     """
     #since = time.time()
     seq = digitPowerSumSequence(n, base=base)
-    print(seq)
+    #print(seq)
     res = seq[-1][0]
     #print(seq)
     #print(f"Time taken = {time.time() - since:.4f} seconds")
@@ -3051,7 +3052,10 @@ def palindromicConsecutiveSquareSumStart(start: int, mx: int, base: int=10) -> L
         if isPalindromic(tot): res.append(tot)
     return res
 
-def palindromicConsecutiveSquareSums(mx: int=100000000 - 1, base: int=10) -> int:
+def palindromicConsecutiveSquareSums(
+    mx: int=100000000 - 1,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #125
 
@@ -3097,7 +3101,39 @@ def palindromicConsecutiveSquareSums(mx: int=100000000 - 1, base: int=10) -> int
     return res
 
 # Problem 126
-def cuboidLayerSizes(dims: Tuple[int, int, int], max_layer_size: int, min_layer_size: int=1) -> List[int]:
+def cuboidLayerSizes(
+    dims: Tuple[int, int, int],
+    min_layer_size: int,
+    max_layer_size: int,
+) -> List[int]:
+    """
+    For a cuboid with integer side lengths, consider an iterative process
+    where on the first iteration, the faces of the cuboid are completely
+    covered by unit cubes (1 x 1 x 1), and on every subsequent iteration
+    the visible faces of the unit cubes placed on the previous iteration
+    are completely covered by unit cubes. The number of such cubes placed
+    in a given iteration is referred to as the layer size of that iteration.
+
+    This function calculates all layer sizes of the given cuboid directions
+    for iterations whose layer size is between min_layer_size and
+    max_layer_size inclusive.
+
+    Args:
+        Required positional:
+        dims (3-tuple of ints): 3-tuple of strictly positive integers
+                specifying the side lengths of the cuboid around which the
+                described cuboid is based.
+        min_layer_size (int): Integer giving the smallest layer size that
+                it is permitted to include in the result.
+        max_layer_size (int): Integer giving the largest layer size that
+                it is permitted to include in the result.
+    
+    Returns:
+    List of integers (int) giving the layer sizes for a cuboid with side
+    lengths dims that are between min_layer_size and max_layer_size in
+    the iterative process described. These are given in strictly increasing
+    order.
+    """
     n_faces = (dims[0] * dims[1] + dims[0] * dims[2] + dims[1] * dims[2]) << 1
     n_edges = sum(dims) << 2
     if n_faces > max_layer_size: return []
@@ -3130,7 +3166,36 @@ def cuboidLayerSizes(dims: Tuple[int, int, int], max_layer_size: int, min_layer_
         i += 1
     return res
 
-def cuboidHasLayerSize(dims: Tuple[int, int, int], target_layer_size: int) -> bool:
+def cuboidHasLayerSize(
+    dims: Tuple[int, int, int],
+    target_layer_size: int,
+) -> bool:
+    """
+    For a cuboid with integer side lengths, consider an iterative process
+    where on the first iteration, the faces of the cuboid are completely
+    covered by unit cubes (1 x 1 x 1), and on every subsequent iteration
+    the visible faces of the unit cubes placed on the previous iteration
+    are completely covered by unit cubes. The number of such cubes placed
+    in a given iteration is referred to as the layer size for that
+    iteration.
+
+    This function calculates whether a cuboid with integer side lengths
+    given by dims contains an iteration whose layer size is exactly
+    target_layer_size.
+
+    Args:
+        Required positional:
+        dims (3-tuple of ints): 3-tuple of strictly positive integers
+                specifying the side lengths of the cuboid around which the
+                described cuboid is based.
+        target_layer_size (int): Integer giving the layer size which
+                one of the iterations must have if True is to be returned.
+    
+    Returns:
+    Boolean (bool) specifying whether for the cuboid with side lengths
+    given by dims, any of the iterations in the above described process
+    has the layer size of exactly target_layer_size.
+    """
     n_faces = (dims[0] * dims[1] + dims[0] * dims[2] + dims[1] * dims[2]) << 1
     n_edges = sum(dims) << 2
     a = 4
@@ -3142,11 +3207,57 @@ def cuboidHasLayerSize(dims: Tuple[int, int, int], target_layer_size: int) -> bo
     if rad_sqrt ** 2 != rad: return False
     return rad_sqrt >= b
 
-def cuboidLayers(target_layer_size_count: int=1000, step_size: int=10000) -> int:
+def cuboidLayers(
+    target_layer_size_count: int=1000,
+    batch_size: int=10000,
+) -> int:
+    """
+    Solution to Project Euler #126
+
+    For a cuboids with integer side lengths, consider an iterative process
+    where on the first iteration, the faces of the cuboid are completely
+    covered by unit cubes (1 x 1 x 1), and on every subsequent iteration
+    the visible faces of the unit cubes placed on the previous iteration
+    are completely covered by unit cubes. The number of such cubes placed
+    in a given iteration is referred to as the layer size for that
+    iteration.
+
+    This function calculates the smallest positive integer for which
+    exactly target_layer_size_count distinct cuboids with integer side length
+    have an iteration of the described process with a layer size equal
+    to that integer.
+
+    Two cuboids are considered distinct if and only if they cannot be
+    rotated to lie on top of each other, or equivalently, their lists
+    of side lengths are not permutations of each other.
+
+    Args:
+        Optional named:
+        target_layer_size_count (int): Strictly positive integer giving
+                the exact number of distinct cuboids with integer side
+                length that should have an iteration of the above described
+                process equal to the returned value.
+            Default: 1000
+        batch_size (int): The number of layer sizes simultaneously checked
+                in the implementation. Larger sizes mean more efficient
+                computation, but would be expected to cause a greater
+                number of layer sizes in excess of the eventual solution
+                (that are therefore not required for the solution) to be
+                processed.
+    
+    Returns:
+    Integer (int) giving the smallest positive integer for which exactly
+    target_layer_size_count distinct cuboids with integer side length
+    have an iteration of the described process with a layer size equal
+    to that integer.
+                
+    Outline of rationale:
+    TODO
+    """
     #since = time.time()
 
     #step_size = 20000
-    sz_rng = [1, step_size]
+    sz_rng = [1, batch_size]
     print(sz_rng)
     #tot = 0
     #tot2 = 0
@@ -3163,7 +3274,7 @@ def cuboidLayers(target_layer_size_count: int=1000, step_size: int=10000) -> int
                 for c in range(1, min(b, c_mx) + 1):
                     #print(f"c = {c}")
                     #print(a, b, c)
-                    lst = cuboidLayerSizes((a, b, c), sz_rng[1], min_layer_size=sz_rng[0])
+                    lst = cuboidLayerSizes((a, b, c), min_layer_size=sz_rng[0], max_layer_size=sz_rng[1])
                     #print(a, b, c)
                     #print(lst)
                     for sz in set(lst):
@@ -3179,7 +3290,7 @@ def cuboidLayers(target_layer_size_count: int=1000, step_size: int=10000) -> int
         #    print(f"C(154) = {counts[154]}")
         #tot2 += sum(counts.values())
         if candidates: break
-        sz_rng = [sz_rng[1] + 1, sz_rng[1] + step_size]
+        sz_rng = [sz_rng[1] + 1, sz_rng[1] + batch_size]
         print(sz_rng)
     #print(f"tot = {tot}")
     #print(f"tot2 = {tot2}")
@@ -6744,5 +6855,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {119}
+    eval_nums = {126}
     evaluateProjectEulerSolutions101to150(eval_nums)
