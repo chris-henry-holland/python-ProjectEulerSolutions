@@ -3818,7 +3818,26 @@ def sumCompositesWithPrimeRepunitProperty(n_to_sum=25, base: int=10) -> List[int
 # Problem 131
 def findPrimeCubePartnerships(p_max: int) -> List[Tuple[int, int]]:
     """
+    Calculates all integer pairs (p, n) such that p is a prime no
+    greter than p_max, n is a strictly positive integer and:
+        n ** 3 + n ** 2 * p = m ** 3
+    for some integer m.
+
+    Args:
+        Required positional:
+        p_max (int): Integer giving the inclusive upper bound on the
+                values of p considered for returned integer pairs.
     
+    Returns:
+    List of 2-tuples of ints, representing all the ordered (p, n)
+    integer pairs for which p is a prime, n is a strictly positive
+    integer and:
+        n ** 3 + n ** 2 * p = m ** 3
+    for some integer m.
+    The 2-tuples are given in order of increasing p, and if there
+    were any distinct pairs with the same value of p (which there
+    cannot be), such pairs would be given in order of increasing
+    n.
 
     Outline of rationale:
 
@@ -3926,7 +3945,7 @@ def findPrimeCubePartnerships(p_max: int) -> List[Tuple[int, int]]:
         if not r and primeCheck(p):
             res.append((p, ((d - 1) // 2) ** 3))
     #print(res)
-    return res
+    return sorted(res)
     """
     ps = PrimeSPFsieve()
     res = []
@@ -3948,6 +3967,27 @@ def findPrimeCubePartnerships(p_max: int) -> List[Tuple[int, int]]:
 def primeCubePartnership(p_max: int=999999) -> int:
     """
     Solution to Project Euler #131
+
+    Calculates the number of prime numbers p no greater than
+    p_max for which there exist strictly positive integers n
+    and m such that:
+        n ** 3 + n ** 2 * p = m ** 3
+
+    Args:
+        Optional named:
+        p_max (int): Integer giving the inclusive upper bound on the
+                values of p considered for inclusion in the count.
+            Default: 999999
+    
+    Returns:
+    Integer (int) giving the number of prime numbers p no greater than
+    p_max for which there exist strictly positive integers n and m
+    such that:
+        n ** 3 + n ** 2 * p = m ** 3
+
+    Outline of rationale:
+    See the outline of rationale in the documentation of the function
+    findPrimeCubePartnerships().
     """
     #since = time.time()
     res = len(findPrimeCubePartnerships(p_max))
@@ -6872,5 +6912,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {146}
+    eval_nums = {131}
     evaluateProjectEulerSolutions101to150(eval_nums)
