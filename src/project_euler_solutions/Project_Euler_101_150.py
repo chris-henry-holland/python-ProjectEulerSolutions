@@ -1484,7 +1484,7 @@ def diophantineReciprocals(min_n_solutions: int=1001) -> int:
         num *= 3
         n_p += 1
     p_lst = []
-    ps = PrimeSPFsieve()
+    ps = SimplePrimeSieve()
     p_gen = ps.endlessPrimeGenerator()
     for i in range(n_p):
         p_lst.append(next(p_gen))
@@ -2299,10 +2299,9 @@ def pandigitalPrimeSets(base: int=10) -> int:
             for i2 in range(i2, i3):
                 num = num * base + nums[i2]
                 #if nums[i2] not in disallowed_last and ps.isPrime(num):
-                if ps.isPrime(num):
+                if primeCheck(num):
                     #print(num)
-                    recur(nums, i=i2 + 1, prev=num,\
-                            prev_n_dig=i2 - i + 1)
+                    recur(nums, i=i2 + 1, prev=num, prev_n_dig=i2 - i + 1)
         else: i3 = i2
         for i3 in range(i3, n):
             num = num * base + nums[i3]
@@ -2315,7 +2314,7 @@ def pandigitalPrimeSets(base: int=10) -> int:
         if perm[-1] in disallowed_last: continue
         recur(perm)
         #print(perm, res)
-    res[0] += all(ps.isPrime(x) for x in range(1, base))
+    res[0] += all(primeCheck(x) for x in range(1, base))
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[0]
 
@@ -2787,7 +2786,7 @@ def calculateSquareRemainder(num: int, exp: int) -> int:
     md = num ** 2
     return (pow(num - 1, exp, md) + pow(num + 1, exp, md)) % md
 
-def primeSquareRemainders(target_remainder: int=10 ** 10 + 1):
+def primeSquareRemainders(target_remainder: int=10 ** 10 + 1) -> int:
     """
     Solution to Project Euler #123
 
@@ -2813,7 +2812,7 @@ def primeSquareRemainders(target_remainder: int=10 ** 10 + 1):
     # or enables direct calculation of the answer- see solution to
     # Project Euler #120
     #since = time.time()
-    ps = PrimeSPFsieve()
+    ps = SimplePrimeSieve()
     # p_n^2 must be strictly greater than the square root of target_remainder,
     # as the remainder on dividing by p_n^2 is strictly smaller than p_n^2.
     start = isqrt(target_remainder) + 1
@@ -3371,7 +3370,10 @@ def abcHits(c_max: int=199999) -> int:
     return res
     
 # Problem 128
-def hexagonalLayerPrimeDifferenceCountIs3(layer: int, ps: PrimeSPFsieve) -> List[int]:
+def hexagonalLayerPrimeDifferenceCountIs3(
+    layer: int,
+    ps: Optional[SimplePrimeSieve]=None,
+) -> List[int]:
     """
     Consider a tessellating tiling of numbered regular hexagons
     of equal size constructed in the following manner. First,
@@ -3405,10 +3407,12 @@ def hexagonalLayerPrimeDifferenceCountIs3(layer: int, ps: PrimeSPFsieve) -> List
                 to be considered, where layer 0 consists of hexagon
                 1 only, layer 1 consists of the hexagons 2 to 7,
                 layer 2 consists of the hexagons 8 to 19 etc.
-        ps (PrimeSPFsieve object): Object representing a prime
-                sieve, enabling the rapid assessment of whether
-                a number is prime in the case of repeated testing
-                of relatively small number (<= 10 ** 6).
+        ps (SimplePrimeSieve object or None): If given, an object
+                representing a prime sieve able to perform the
+                Miller-Rabin prime test, enabling the rapid
+                assessment of whether a number is prime. If not
+                given (or given as None), such a prime sieve is
+                created at the start of the function.
     
     Returns:
     List of integers (int) giving the numbers of hexagons in the
@@ -3427,18 +3431,23 @@ def hexagonalLayerPrimeDifferenceCountIs3(layer: int, ps: PrimeSPFsieve) -> List
     # layer >= 2
     #if idx not in {0, 1, 3, 5}: return False
     #num = findHexagonalCorner(layer, idx)
-    if not ps.isPrime(layer * 6 - 1, extend_sieve=False, extend_sieve_sqrt=True):
+
+    if ps is None: ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
+
+    if not primeCheck(layer * 6 - 1):
         return []
     diffs = [
         (6 * layer + 1, 12 * layer + 5),
         (12 * layer - 7, 6 * layer + 5)
     ]
     res = []
-    if ps.isPrime(6 * layer + 1, extend_sieve=False, extend_sieve_sqrt=True) and ps.isPrime(12 * layer + 5, extend_sieve=False, extend_sieve_sqrt=True):
+    if primeCheck(6 * layer + 1) and primeCheck(12 * layer + 5):
         #print(layer, 0)
         res.append(3 * layer * (layer - 1) + 2)
     
-    if ps.isPrime(6 * layer + 5, extend_sieve=False, extend_sieve_sqrt=True) and ps.isPrime(12 * layer - 7, extend_sieve=False, extend_sieve_sqrt=True):
+    if primeCheck(6 * layer + 5) and primeCheck(12 * layer - 7):
         #print(layer, 1)
         res.append(3 * layer * (layer + 1) + 1)
     
@@ -3446,6 +3455,8 @@ def hexagonalLayerPrimeDifferenceCountIs3(layer: int, ps: PrimeSPFsieve) -> List
 
 def hexagonalTileDifferences(sequence_number: int=2000) -> int:
     """
+    Solution to Project Euler #128
+
     Consider a tessellating tiling of numbered regular hexagons
     of equal size constructed in the following manner. First,
     place hexagon 1. This is layer 0. For each subsequent layer
@@ -3576,7 +3587,7 @@ def hexagonalTileDifferences(sequence_number: int=2000) -> int:
     TODO
     """
     #since = time.time()
-    ps = PrimeSPFsieve(12 * sequence_number)
+    ps = SimplePrimeSieve()#PrimeSPFsieve(12 * sequence_number)
 
     if sequence_number <= 2: return sequence_number
     count = 2
@@ -3745,7 +3756,7 @@ def compositesWithPrimeRepunitProperty(n_smallest: int, base: int=10) -> List[in
     order.
     """
 
-    ps = PrimeSPFsieve()
+    ps = SimplePrimeSieve()
     p_gen = ps.endlessPrimeGenerator()
     p0 = 2
     res = []
@@ -3906,11 +3917,13 @@ def findPrimeCubePartnerships(p_max: int) -> List[Tuple[int, int]]:
         ((3 * d^2 + 1) / 4, ((d - 1) / 2)^3)
     as a (p, n) solution pair for each such value of d.
     """
-    ps = PrimeSPFsieve(n_max=isqrt(p_max))#n_max=12 * n_max)
+    ps = SimplePrimeSieve()#n_max=isqrt(p_max))#n_max=12 * n_max)
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
     res = []
     for d in range(1, isqrt((4 * p_max - 1) // 3) + 1, 2):
         p, r = divmod(3 * d ** 2 + 1, 4)
-        if not r and ps.isPrime(p, extend_sieve=False, extend_sieve_sqrt=True):
+        if not r and primeCheck(p):
             res.append((p, ((d - 1) // 2) ** 3))
     #print(res)
     return res
@@ -4342,7 +4355,7 @@ def primePairConnectionsSum(p1_min: int=5, p1_max: int=1_000_000, base: int=10) 
     if p1_min > p1_max:
         #print(f"Time taken = {time.time() - since:.4f} seconds")
         return 0
-    ps = PrimeSPFsieve()
+    ps = SimplePrimeSieve()
     p_gen = ps.endlessPrimeGenerator()
     
     for p in p_gen:
@@ -4440,7 +4453,7 @@ def singletonDifferences(n_max: int=49_999_999) -> int:
     TODO- prove this
     """
     #since = time.time()
-    ps = PrimeSPFsieve(n_max=n_max)
+    ps = SimplePrimeSieve(n_max=n_max)
     print("finished creating prime sieve")
     res = 0
     if n_max >= 4:
@@ -5659,7 +5672,11 @@ def investigatingAPrimePatternList(n_max: int=150 * 10 ** 6 - 1, add_nums: List[
     """
 
     # Try to make more efficient
-    ps = PrimeSPFsieve(min(10 ** 6, n_max))
+    #ps = PrimeSPFsieve(min(10 ** 6, n_max))
+    ps = SimplePrimeSieve(min(10 ** 6, n_max))
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num)[0]
+    
     add_nums_set = set(add_nums)
     mx_add = max(add_nums)
     mn_add = min(add_nums)
@@ -5708,7 +5725,7 @@ def investigatingAPrimePatternList(n_max: int=150 * 10 ** 6 - 1, add_nums: List[
         #print(f"num = {num}, num_sq = {num_sq}")
         for num2 in range(min(add_nums), max(add_nums) + 1):
             #print(num2, ps.isPrime(num_sq + num2), (num2 in add_nums_set))
-            if ps.isPrime(num_sq + num2) != (num2 in add_nums_set): break
+            if primeCheck(num_sq + num2) != (num2 in add_nums_set): break
         else:
             res.append(num)
             #print(num)
@@ -5721,15 +5738,15 @@ def investigatingAPrimePatternList(n_max: int=150 * 10 ** 6 - 1, add_nums: List[
             elif num > n_max: break
             num_sq = num ** 2
             for num2 in add_nums:
-                if not ps.millerRabinPrimalityTest(num_sq + num2, n_trials=1):
+                if not primeCheck(num_sq + num2):#ps.millerRabinPrimalityTest(num_sq + num2, n_trials=1):
                     break
             else:
                 for num2 in add_nums:
-                    if not ps.isPrime(num_sq + num2, use_miller_rabin_screening=False):
+                    if not primeCheck(num_sq + num2):#ps.isPrime(num_sq + num2, use_miller_rabin_screening=False):
                         break
                 else:
                     for num2 in neg_chk_set:
-                        if ps.isPrime(num_sq + num2, use_miller_rabin_screening=True, n_miller_rabin_trials=3):
+                        if primeCheck(num_sq + num2):#ps.isPrime(num_sq + num2, use_miller_rabin_screening=True, n_miller_rabin_trials=3):
                             break
                     else:
                         res.append(num)
@@ -6855,5 +6872,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {126}
+    eval_nums = {146}
     evaluateProjectEulerSolutions101to150(eval_nums)
