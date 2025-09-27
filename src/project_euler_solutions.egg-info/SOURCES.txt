@@ -8,6 +8,7 @@ src/project_euler_solutions/Project_Euler_201_250.py
 src/project_euler_solutions/Project_Euler_251_300.py
 src/project_euler_solutions/Project_Euler_51_100.py
 src/project_euler_solutions/Project_Euler_901_950.py
+src/project_euler_solutions/Project_Euler_951_1000.py
 src/project_euler_solutions/Project_Euler_Bonus.py
 src/project_euler_solutions/utils.py
 src/project_euler_solutions.egg-info/PKG-INFO
