@@ -4513,25 +4513,25 @@ def singletonDifferences(n_max: int=49_999_999) -> int:
 # Problem 137
 def modifiedFibonacciGoldenNuggetsList(
     n_nuggets: int,
-    G0: int=0,
     G1: int=1,
+    G2: int=1,
 ) -> List[int]:
     """
     Identifies the smallest n_nuggets golden nuggets of the
-    Fibonacci-like sequence with initial terms G0 and G1.
+    Fibonacci-like sequence with initial terms G1 and G2.
 
-    A Fibonacci-like sequence with initial terms G0 and G1 is a
-    sequence for which the terms t_n are defined for non-negative
-    integers n by:
-        t_0 = G0,
+    A Fibonacci-like sequence with initial terms G1 and G2 is a
+    sequence for which the terms t_n are defined for strictly
+    positive integers n by:
         t_1 = G1,
-        t_n = t_(n - 2) + t_(n - 1) for integer n >= 2
+        t_2 = G2,
+        t_n = t_(n - 2) + t_(n - 1) for integer n > 2
     
-    A nugget of an integer sequence with terms a_n for non-negative
-    integers n are the strictly positive integers such that there
-    exists a real number x for which the chosen integer equals the
-    series:
-        A(x) = (sum n from 0 to inf) x ** n * a_n
+    A nugget of an integer sequence with terms a_n for strictly
+    positive integers n are the strictly positive integers such
+    that there exists a real number x for which the chosen integer
+    equals the series:
+        A(x) = (sum n from 1 to inf) x ** n * a_n
     A golden nugget of an integer sequence is a nugget of the
     sequence for which at least one of the real numbers x for which
     the chosen integer equals the above series is rational (i.e.
@@ -4543,25 +4543,26 @@ def modifiedFibonacciGoldenNuggetsList(
                 modified Fibonacci golden nuggets to be returned.
         
         Optional named:
-        G0 (int): Integer giving the term with index 0 of the
+        G1 (int): Integer giving the term with index 1 of the
                 Fibonacci-like sequence for which the smallest
                 golden nuggets are to be identified.
-            Default: 0
-        G1 (int): Integer giving the term with index 1 of the
+            Default: 1
+        G2 (int): Integer giving the term with index 2 of the
                 Fibonacci-like sequence for which the smallest
                 golden nuggets are to be identified.
             Default: 1
     
     Returns:
     List of integers (int) containing the smallest n_nuggets golden
-    nuggets of the Fibonacci-like sequence with initial terms G0
-    and G1 in strictly increasing order.
+    nuggets of the Fibonacci-like sequence with initial terms G1
+    and G2 in strictly increasing order.
 
     Outline of rationale:
     TODO
     """
     # x ** 2 - D * y ** 2 = n
     res = []
+    G0 = G2 - G1
     r = G1 + 2 * G0
     r_md = r % 5
     d = 4 * (G0 ** 2 + G0 * G1 - G1 ** 2)
@@ -4576,55 +4577,58 @@ def modifiedFibonacciGoldenNuggetsList(
 
 def modifiedFibonacciGoldenNugget(
     nugget_number: int=15,
-    G0: int=0,
     G1: int=1,
+    G2: int=1,
 ) -> int:
     """
     Solution to Project Euler #137
 
     Identifies the nugget_number:th smallest golden nugget of the
-    Fibonacci-like sequence with initial terms G0 and G1.
+    Fibonacci-like sequence with initial terms G1 and G2.
 
-    A Fibonacci-like sequence with initial terms G0 and G1 is a
-    sequence for which the terms t_n are defined for non-negative
-    integers n by:
-        t_0 = G0,
+    A Fibonacci-like sequence with initial terms G1 and G2 is a
+    sequence for which the terms t_n are defined for strictly
+    positive integers n by:
         t_1 = G1,
-        t_n = t_(n - 2) + t_(n - 1) for integer n >= 2
+        t_2 = G2,
+        t_n = t_(n - 2) + t_(n - 1) for integer n > 2
     
-    A nugget of an integer sequence with terms a_n for non-negative
-    integers n are the strictly positive integers such that there
-    exists a real number x for which the chosen integer equals the
-    series:
-        A(x) = (sum n from 0 to inf) x ** n * a_n
+    A nugget of an integer sequence with terms a_n for strictly
+    positive integers n are the strictly positive integers such
+    that there exists a real number x for which the chosen integer
+    equals the series:
+        A(x) = (sum n from 1 to inf) x ** n * a_n
     A golden nugget of an integer sequence is a nugget of the
     sequence for which at least one of the real numbers x for which
     the chosen integer equals the above series is rational (i.e.
     can be expressed as a fraction).
     
     Args:
-        Required positional:
+        Optional named:
         nugget_number (int): Strictly positive integer specifying the
                 which golden nugget to return, with the returned value
                 being the nugget_number:th smallest golden nugget.
-        
-        Optional named:
-        G0 (int): Integer giving the term with index 0 of the
-                Fibonacci-like sequence for which the nugget_number:th
-                smallest golden nugget is to be identified.
-            Default: 0
+            Default: 15
         G1 (int): Integer giving the term with index 1 of the
                 Fibonacci-like sequence for which the nugget_number:th
                 smallest golden nugget is to be identified.
             Default: 1
+        G2 (int): Integer giving the term with index 2 of the
+                Fibonacci-like sequence for which the nugget_number:th
+                smallest golden nugget is to be identified.
+            Default: 2
     
     Returns:
     Integer (int) giving the nugget_number:th smallest golden nugget
-    of the Fibonacci-like sequence with initial terms G0 and G1.
+    of the Fibonacci-like sequence with initial terms G1 and G2.
+
+    Outline of rationale:
+    See outline of rationale in the documentation for the function
+    modifiedFibonacciGoldenNuggetsList().
     """
     #since = time.time()
     #G0 = G2 - G1
-    res = modifiedFibonacciGoldenNuggetsList(nugget_number, G0=G0, G1=G1)
+    res = modifiedFibonacciGoldenNuggetsList(nugget_number, G1=G1, G2=G2)
     print(res)
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res[-1]
@@ -4749,7 +4753,10 @@ def specialIsocelesTriangleSum(n_smallest_to_sum: int=12) -> int:
     return res
 
 # Problem 139
-def pythagoreanTripleGeneratorByHypotenuse(primitive_only: bool=False, max_hypotenuse: Optional[int]=None) -> Generator[Tuple[Tuple[int, int, int], bool], None, None]:
+def pythagoreanTripleGeneratorByHypotenuse(
+    primitive_only: bool=False,
+    max_hypotenuse: Optional[int]=None
+) -> Generator[Tuple[Tuple[int, int, int], bool], None, None]:
     """
     Generator iterating over Pythagorean triples, yielding them
     in order of increasing size of the hypotenuse (i.e. the largest
@@ -4809,7 +4816,10 @@ def pythagoreanTripleGeneratorByHypotenuse(primitive_only: bool=False, max_hypot
             heapq.heappush(heap, ((c, b, a), (c, b, a), True))
     return
 
-def pythagoreanTripleGeneratorByPerimeter(primitive_only: bool=False, max_perimeter: Optional[int]=None) -> Generator[Tuple[Tuple[int, int, int], int, bool], None, None]:
+def pythagoreanTripleGeneratorByPerimeter(
+    primitive_only: bool=False,
+    max_perimeter: Optional[int]=None
+) -> Generator[Tuple[Tuple[int, int, int], int, bool], None, None]:
     """
     Generator iterating over Pythagorean triples, yielding them
     in order of increasing size of the perimeter (i.e. the sum
@@ -5013,13 +5023,61 @@ def pythagoreanTiles(max_triangle_perimeter: int=99_999_999) -> int:
     
     
 # Problem 140
-def modifiedFibonacciGoldenNuggetSum(n_nugget_numbers: int=30, G1: int=1, G2: int=4) -> int:
+def modifiedFibonacciGoldenNuggetSum(
+    n_nugget_numbers: int=30,
+    G1: int=1,
+    G2: int=4,
+) -> int:
     """
     Solution to Project Euler #140
+
+    Calculates the sum of the smallest n_nugget_numbers golden
+    nuggets of the Fibonacci-like sequence with initial terms
+    G1 and G2.
+
+    A Fibonacci-like sequence with initial terms G1 and G2 is a
+    sequence for which the terms t_n are defined for strictly
+    positive integers n by:
+        t_1 = G1,
+        t_2 = G2,
+        t_n = t_(n - 2) + t_(n - 1) for integer n > 2
+    
+    A nugget of an integer sequence with terms a_n for strictly
+    positive integers n are the strictly positive integers such
+    that there exists a real number x for which the chosen integer
+    equals the series:
+        A(x) = (sum n from 1 to inf) x ** n * a_n
+    A golden nugget of an integer sequence is a nugget of the
+    sequence for which at least one of the real numbers x for which
+    the chosen integer equals the above series is rational (i.e.
+    can be expressed as a fraction).
+    
+    Args:
+        Optional named:
+        n_nugget_numbers (int): Strictly positive integer specifying the
+                how many of the smallest golden nuggets of the
+                Fibonacci-like sequence are to be included in the sum.
+            Default: 30
+        G1 (int): Integer giving the term with index 1 of the
+                Fibonacci-like sequence for which the nugget_number:th
+                smallest golden nugget is to be identified.
+            Default: 1
+        G2 (int): Integer giving the term with index 2 of the
+                Fibonacci-like sequence for which the nugget_number:th
+                smallest golden nugget is to be identified.
+            Default: 4
+    
+    Returns:
+    Integer (int) giving the sum of the smallest n_nugget_numbers golden
+    nuggets of the Fibonacci-like sequence with initial terms G1 and G2.
+
+    Outline of rationale:
+    See outline of rationale in the documentation for the function
+    modifiedFibonacciGoldenNuggetsList().
     """
     #since = time.time()
-    G0 = G2 - G1
-    lst = modifiedFibonacciGoldenNuggetsList(n_nugget_numbers, G0=G0, G1=G1)
+    #G0 = G2 - G1
+    lst = modifiedFibonacciGoldenNuggetsList(n_nugget_numbers, G1=G1, G2=G2)
     res = sum(lst)
     #print(lst)
     #print(res)
@@ -6902,7 +6960,7 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
     if 137 in eval_nums:
         since = time.time()
-        res = modifiedFibonacciGoldenNugget(nugget_number=15, G0=0, G1=1)
+        res = modifiedFibonacciGoldenNugget(nugget_number=15, G1=1, G2=1)
         print(f"Solution to Project Euler #137 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     if 138 in eval_nums:
