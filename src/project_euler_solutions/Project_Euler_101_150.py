@@ -4634,7 +4634,9 @@ def modifiedFibonacciGoldenNugget(
     return res[-1]
 
 # Problem 138
-def specialIsocelesTriangles(n_smallest: int) -> List[Tuple[int, int, int]]:
+def specialIsocelesTriangles(
+    n_smallest: int,
+) -> List[Tuple[int, int, int]]:
     """
     Consider isoceles triangles with a base b and the two matching
     sides L. Let the height from the base be h. This finds the
@@ -4755,7 +4757,7 @@ def specialIsocelesTriangleSum(n_smallest_to_sum: int=12) -> int:
 # Problem 139
 def pythagoreanTripleGeneratorByHypotenuse(
     primitive_only: bool=False,
-    max_hypotenuse: Optional[int]=None
+    max_hypotenuse: Optional[int]=None,
 ) -> Generator[Tuple[Tuple[int, int, int], bool], None, None]:
     """
     Generator iterating over Pythagorean triples, yielding them
@@ -4818,7 +4820,7 @@ def pythagoreanTripleGeneratorByHypotenuse(
 
 def pythagoreanTripleGeneratorByPerimeter(
     primitive_only: bool=False,
-    max_perimeter: Optional[int]=None
+    max_perimeter: Optional[int]=None,
 ) -> Generator[Tuple[Tuple[int, int, int], int, bool], None, None]:
     """
     Generator iterating over Pythagorean triples, yielding them
@@ -4881,7 +4883,9 @@ def pythagoreanTripleGeneratorByPerimeter(
             heapq.heappush(heap, ((a + b + c), (c, b, a), (c, b, a), True))
     return
 
-def pythagoreanTiles(max_triangle_perimeter: int=99_999_999) -> int:
+def pythagoreanTiles(
+    max_triangle_perimeter: int=99_999_999,
+) -> int:
     """
     Solution to Project Euler #139
 
@@ -7046,5 +7050,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {137}
+    eval_nums = {141}
     evaluateProjectEulerSolutions101to150(eval_nums)

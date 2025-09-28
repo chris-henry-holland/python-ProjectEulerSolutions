@@ -1081,6 +1081,34 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
     print(res)
     return res.numerator / res.denominator
 
+# Problem 257
+def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max: int) -> int:
+
+    res = 0
+    m_primitive_cnts = {}
+    for perim in range(3, perimeter_max + 1):
+        mult = perimeter_max // perim
+        for a in range(1, (perim) // 3 + 1):
+            prod = perim * a
+            b_plus_c = perim - a
+            c_max = min((perim - 1) >> 1, perim - 2 * a)
+            c_min = max((b_plus_c + 1) >> 1, a)
+            #print(perim, a, b_plus_c, c_min, c_max)
+            for c in range(c_min, c_max + 1):
+                b = b_plus_c - c
+                #print(a, b, c)
+                g = gcd(b, c)
+                if g > 1: continue
+                if not prod % (b * c):
+                    m, r = divmod((a + b) * (a + c), (b * c))
+                    print((a, b, c), m, r)
+                    #m_set.add(m)
+                    m_primitive_cnts[m] = m_primitive_cnts.get(m, 0) + 1
+                    res += mult
+    #print(m_set)
+    print(m_primitive_cnts)
+    return res
+
 # Problem 259
 def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> List[int]:
 
@@ -1535,6 +1563,11 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
         )
         print(f"Solution to Project Euler #255 = {res}, calculated in {time.time() - since:.4f} seconds")
     
+    if 257 in eval_nums:
+        since = time.time()
+        res = angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max=10 ** 4)
+        print(f"Solution to Project Euler #257 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 259 in eval_nums:
         since = time.time()
         res = calculateReachableNumbersSum(dig_min=1, dig_max=9, base=10)
@@ -1553,7 +1586,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {255}
+    eval_nums = {257}
     evaluateProjectEulerSolutions51to100(eval_nums)
 
 """
