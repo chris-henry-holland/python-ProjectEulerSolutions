@@ -1099,15 +1099,99 @@ def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max: i
                 #print(a, b, c)
                 g = gcd(b, c)
                 if g > 1: continue
-                if not prod % (b * c):
-                    m, r = divmod((a + b) * (a + c), (b * c))
-                    print((a, b, c), m, r)
-                    #m_set.add(m)
-                    m_primitive_cnts[m] = m_primitive_cnts.get(m, 0) + 1
-                    res += mult
+                if prod % (b * c): continue
+                m, r = divmod((a + b) * (a + c), (b * c))
+                print((a, b, c), m, r)
+                #m_set.add(m)
+                m_primitive_cnts[m] = m_primitive_cnts.get(m, 0) + 1
+                res += mult
     #print(m_set)
     print(m_primitive_cnts)
     return res
+
+def angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max: int=10 ** 8) -> int:
+    """
+    Solution to Project Euler #257
+    """
+    
+    res = perimeter_max // 3 # equilateral triangles (ratio = 4)
+    if perimeter_max < 4: return res
+
+    # Ratio = 2
+    print("counting solutions for ratio 2")
+    M = 2
+    discr = (M - 1) ** 2 + 4 * perimeter_max
+    m_max = (isqrt(discr) - (M + 1)) // 2
+    cnts = {}
+    for m in range(1, m_max + 1):
+        #discr = 9 * m ** 2 - 4 * M * perimeter_max
+        n_min = (m - 1) // M + 1
+        n_max = min((isqrt((M - 1) ** 2 * m ** 2 + 4 * M * perimeter_max) - (M + 1) * m) // 4, m)
+        #print(f"m = {m}, n_max = {n_max}")
+        for n in range(n_min, n_max + 1):
+            a, b, c = sorted([(M - 1) * m * n, m * n + M * n ** 2, m * n + m ** 2])
+            if c >= a + b: continue
+            if gcd(b, c) > 1: continue
+            #print(f"solution for ratio 2: {(a, b, c)}, m = {m}, n = {n}")
+            cnts[2] = cnts.get(2, 0) + 1
+            res += perimeter_max // (a + b + c)
+    
+    # Ratio = 3
+    M = 3
+
+    # n has different parity from m
+    print("counting solutions for ratio 3, different parity")
+    discr = (M - 1) ** 2 + 4 * perimeter_max
+    m_max = (isqrt(discr) - (M + 1)) // 2
+    for m in range(1, m_max + 1):
+        #discr = 9 * m ** 2 - 4 * M * perimeter_max
+        n_min = (m - 1) // M + 1
+        n_min += not (n_min + m) & 1
+        n_max = min((isqrt((M - 1) ** 2 * m ** 2 + 4 * M * perimeter_max) - (M + 1) * m) // 4, m)
+        #print(f"m = {m}, n_max = {n_max}")
+        for n in range(n_min, n_max + 1, 2):
+            a, b, c = sorted([(M - 1) * m * n, m * n + M * n ** 2, m * n + m ** 2])
+            if c >= a + b: continue
+            if gcd(b, c) > 1: continue
+            #print(f"solution for ratio 3, different parity: {(a, b, c)}, m = {m}, n = {n}")
+            cnts[3] = cnts.get(3, 0) + 1
+            res += perimeter_max // (a + b + c)
+
+
+    # n has the same parity as m
+    print("counting solutions for ratio 3, same parity")
+    discr = (2 * perimeter_max + 1)
+    m_max = isqrt(discr) - 2
+    for m in range(1, m_max + 1):
+        n_min = (m - 1) // M + 1
+        n_min += (m + n_min) & 1
+        n_max = min((isqrt(m ** 2 + 6 * perimeter_max) - 2 * m) // 3, m)
+        for n in range(2 - (m & 1), n_max + 1, 2):
+            a, b, c = sorted([m * n, (m * n + M * n ** 2) // 2, (m * n + m ** 2) // 2])
+            #print(f"second type: {a, b, c}, m = {m}, n = {n}")
+            if c >= a + b: continue
+            if gcd(b, c) > 1: continue
+            #print(f"solution for ratio 3, same parity: {(a, b, c)}, m = {m}, n = {n}")
+            cnts[3] = cnts.get(3, 0) + 1
+            res += perimeter_max // (a + b + c)
+    print(cnts)
+    """
+    for M in (2, 3):
+        discr = perimeter_max - 2 * M + 2
+        if discr < 0: break
+        m_max = isqrt(discr) - 1
+        for m in range(1, m_max + 1):
+            #discr = 9 * m ** 2 - 4 * M * perimeter_max
+            n_max = (isqrt((M - 1) ** 2 * m ** 2 + 4 * M * perimeter_max) - (M + 1) * m) // (2 * M)
+            for n in range(1, n_max + 1):
+                a, b, c = sorted([(M - 1) * m * n, m * n + M * n ** 2, m * n + m ** 2])
+                if c >= a + b: continue
+                if gcd(b, c) > 1: continue
+                print(a, b, c)
+                res += perimeter_max // (a + b + c)
+    """
+    return res
+
 
 # Problem 259
 def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> List[int]:
@@ -1565,7 +1649,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     
     if 257 in eval_nums:
         since = time.time()
-        res = angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max=10 ** 4)
+        res = angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max=10 ** 9)
         print(f"Solution to Project Euler #257 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 259 in eval_nums:
