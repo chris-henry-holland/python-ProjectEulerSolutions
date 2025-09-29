@@ -1192,6 +1192,100 @@ def angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max: int=10 ** 8
     """
     return res
 
+# Problem 258
+def calculateLaggedFibonacciTerm(
+    term_idx: int=10 ** 18,
+    initial_terms: List[int]=[1] * 2000,
+    prev_terms_to_sum: List[int]=[1999, 2000],
+    res_md: Optional[int]=20092010,
+) -> int:
+    n = len(initial_terms)
+    if term_idx < n: return initial_terms[n]
+
+    modAdd0 = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    modMultiply0 = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+    n_iter = term_idx - n + 1
+    transition_matrix = [[0] * n for _ in range(n)]
+    for i in range(n - 1):
+        transition_matrix[i][i + 1] = 1
+    for j in prev_terms_to_sum:
+        transition_matrix[-1][n - j] = 1
+    
+    #trans = np.matrix(transition_matrix, dtype=int)
+
+    def matrixMultiply(
+        M1: np.matrix,
+        M2: np.matrix,
+        md: np.matrix,
+    ) -> List[List[int]]:
+        #print(M1.shape, M2.shape)
+        res = np.linalg.matmul(M1, M2)
+        res %= md
+        return res
+    
+    n_iter2 = n_iter
+    p = np.matrix(transition_matrix, dtype=int)
+    if n_iter2 & 1:
+        curr = np.matrix(transition_matrix, dtype=int)
+    else:
+        curr = np.identity(n, dtype=int)
+    n_iter2 >>= 1
+    while n_iter2:
+        print(n_iter2)
+        p = matrixMultiply(p, p, md=res_md)
+        print("finished multiply")
+        #print(p.shape)
+        if n_iter2 & 1:
+            curr = matrixMultiply(p, curr, md=res_md)
+        n_iter2 >>= 1
+    res = 0
+    for i in range(n):
+        res = modAdd0(res, modMultiply0(curr[n - 1, i], initial_terms[i]))
+    return res
+    
+    """
+    def matrixMultiply(
+        M1: List[List[int]],
+        M2: List[List[int]],
+        md: Optional[int]=None,
+    ) -> List[List[int]]:
+        modAdd = (lambda x, y: x + y) if md is None else (lambda x, y: (x + y) % md)
+        modMultiply = (lambda x, y: x * y) if md is None else (lambda x, y: (x * y) % md)
+        n1 = len(M1)
+        n2 = len(M2[0])
+        m = len(M2)
+        if len(M1[0]) != m: 
+            raise ValueError("The number of columns in M1 must equal "
+                             "the number of rows in M2")
+        res = [[0] * n2 for _ in range(n1)]
+        for i1 in range(n1):
+            print(f"i1 = {i1}")
+            for i2 in range(n2):
+                for j in range(m):
+                    res[i1][i2] = modAdd(res[i1][i2], modMultiply(M1[i1][j], M2[j][i2]))
+        return res
+    
+    n_iter2 = n_iter
+    p = transition_matrix
+    if n_iter2 & 1:
+        curr = p
+    else:
+        curr = [[0] * n for _ in range(n)]
+        for i in range(n): curr[i][i] = 1
+    n_iter2 >>= 1
+    while n_iter2:
+        print(n_iter2)
+        p = matrixMultiply(p, p, md=res_md)
+        print("finished multiply")
+        if n_iter2 & 1:
+            curr = matrixMultiply(p, curr, md=res_md)
+        n_iter2 >>= 1
+    res = 0
+    for i in range(n):
+        res = modAdd0(res, modMultiply0(curr[-1][i], initial_terms[i]))
+    return res
+    """
 
 # Problem 259
 def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> List[int]:
@@ -1649,8 +1743,18 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     
     if 257 in eval_nums:
         since = time.time()
-        res = angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max=10 ** 9)
+        res = angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max=10 ** 8)
         print(f"Solution to Project Euler #257 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 258 in eval_nums:
+        since = time.time()
+        res = calculateLaggedFibonacciTerm(
+            term_idx=10 ** 18,
+            initial_terms=[1] * 800,
+            prev_terms_to_sum=[799, 800],
+            res_md=20092010,
+        )
+        print(f"Solution to Project Euler #258 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 259 in eval_nums:
         since = time.time()
@@ -1670,7 +1774,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {257}
+    eval_nums = {258}
     evaluateProjectEulerSolutions51to100(eval_nums)
 
 """
