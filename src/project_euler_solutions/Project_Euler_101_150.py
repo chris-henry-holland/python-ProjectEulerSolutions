@@ -5089,12 +5089,46 @@ def modifiedFibonacciGoldenNuggetSum(
     return res
 
 # Problem 141
-def squareProgressiveNumbers(n_max: int) -> List[Tuple[int, int, Tuple[int, int, int]]]:
+def squareProgressiveNumbers(
+    n_max: int,
+) -> List[Tuple[int, int, Tuple[int, int, int]]]:
     """
+    Finds all strictly positive integers no greater than n_max
+    that are both perfect squares and progressive, giving details
+    for each solution.
+
+    A strictly positive integer n is progressive if and only if
+    there exists an integer d such that, for the unique integers
+    q and r where 0 <= r < q and:
+        n = q * d + r
+    when d, q and r are arranged in non-decreasing order they
+    form a geometric sequence (i.e. the ratio of the second
+    largest to the smallest equals the ratio of the largest to
+    the second largest).
+
+    Args:
+        Required positional:
+        n_max (int): Integer giving the inclusive upper bound on
+                the integers considered for inclusion in the
+                result.
+
+    Returns:
+    List of 3-tuples, with each element representing an integer
+    that is a perfect square and progressive where index 0
+    of the 3- tuple contains the square root of the integer,
+    index 1 contains the integer itself and index 2 contains
+    a 3-tuple of integers giving the values of d, q and r
+    for one of the values of d for which it and the corresponding
+    values of q and r (where 0 <= r < q and n = q * d + r)
+    in non-descending order form a geometric sequence.
+    The elements of the list are given in strictly increasing
+    order of the size of the integer they represent.
     
-    Review- prove and optimise
+    Outline of rationale:
+    TODO
     """
-    m_max = isqrt(n_max)
+    # Review- prove and optimise
+    #m_max = isqrt(n_max)
     a_max = integerNthRoot(n_max, 3)
     res = []
     for a in range(1, a_max + 1):
@@ -5112,9 +5146,39 @@ def squareProgressiveNumbers(n_max: int) -> List[Tuple[int, int, Tuple[int, int,
                 #print(r_, sqrt_r_, sqrt_r_ ** 2 == r_)
     return sorted(res)
 
-def squareProgressiveNumbersSum(n_max: int=10 ** 12 - 1) -> int:
+def squareProgressiveNumbersSum(
+    n_max: int=10 ** 12 - 1,
+) -> int:
     """
     Solution to Project Euler #141
+
+    Finds the sum of the strictly positive integers no greater
+    than n_max that are both perfect squares and progressive.
+
+    A strictly positive integer n is progressive if and only if
+    there exists an integer d such that, for the unique integers
+    q and r where 0 <= r < q and:
+        n = q * d + r
+    when d, q and r are arranged in non-decreasing order they
+    form a geometric sequence (i.e. the ratio of the second
+    largest to the smallest equals the ratio of the largest to
+    the second largest).
+
+    Args:
+        Required positional:
+        n_max (int): Integer giving the inclusive upper bound on
+                the integers considered for inclusion in the
+                sum.
+            Defualt: 10 ** 12 - 1
+
+    Returns:
+    Integer (int) giving the sum of all strictly positive integers
+    no greater than n_max that are both perfect squares and
+    progressive.
+
+    Outline of rationale:
+    See outline of rationale in the documentation for the function
+    squareProgressiveNumbers().
     """
     #since = time.time()
     nums = {x[1] for x in squareProgressiveNumbers(n_max)}

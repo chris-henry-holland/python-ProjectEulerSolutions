@@ -1199,6 +1199,12 @@ def calculateLaggedFibonacciTerm(
     prev_terms_to_sum: List[int]=[1999, 2000],
     res_md: Optional[int]=20092010,
 ) -> int:
+    """
+    Solution to Project Euler #258
+    """
+    # Review- look into method using Cayley-Hamilton theory, from which
+    # we can get (for the default values) that the transition matrix M satisfies:
+    #  M ** 2000 = M + I
     n = len(initial_terms)
     if term_idx < n: return initial_terms[n]
 
@@ -1750,8 +1756,8 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
         since = time.time()
         res = calculateLaggedFibonacciTerm(
             term_idx=10 ** 18,
-            initial_terms=[1] * 800,
-            prev_terms_to_sum=[799, 800],
+            initial_terms=[1] * 2000,
+            prev_terms_to_sum=[1999, 2000],
             res_md=20092010,
         )
         print(f"Solution to Project Euler #258 = {res}, calculated in {time.time() - since:.4f} seconds")
