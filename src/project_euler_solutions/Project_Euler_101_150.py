@@ -5187,7 +5187,33 @@ def squareProgressiveNumbersSum(
     return res
 
 #Problem 142
-def perfectSquareCollectionGenerator() -> Generator[Tuple[int, Tuple[int, int, int]], None, None]:
+def perfectSquareCollectionGenerator(
+) -> Generator[Tuple[int, int, int], None, None]:
+    """
+    Generator iterating over the strictly positive integer
+    triples (x, y, z) for which x > y > z and the quantities:
+        x + y
+        x - y
+        x + z
+        y + z
+        y - z
+    are all perfect squares, in order of increasing value of
+    x + y + z (with triples with the same value of this sum
+    being given in order of increasing x).
+
+    Args:
+        None
+    
+    Yields:
+    3-tuple of integers (int) containing an ordered triple of
+    integers (x, y, z) satisfying the condition given above.
+    These triples are yielded in order of increasing (x + y + z)
+    with triples with the same value of this sum being yielded
+    in order of increasing x.
+
+    Outline of rationale:
+    TODO
+    """
     #ps = PrimeSPFsieve()
     # TODO- find a less brute force solution. Look up Rolle's puzzle
     seen = {}
@@ -5196,7 +5222,7 @@ def perfectSquareCollectionGenerator() -> Generator[Tuple[int, Tuple[int, int, i
         a, b, c = triple[0]
         #print(c)
         while candidates_heap and c + 3 >= candidates_heap[0][0]:
-            yield heapq.heappop(candidates_heap)
+            yield heapq.heappop(candidates_heap)[1]
         for (x, y, m) in ((c, a, b), (c, b, a)):
             num1 = x + y
             rt1 = isqrt(num1)
@@ -5213,11 +5239,33 @@ def perfectSquareCollectionGenerator() -> Generator[Tuple[int, Tuple[int, int, i
 def perfectSquareCollection() -> int:
     """
     Solution to Project Euler #142
+
+    Calculates the smallest strictly positive integer that is
+    the sum of an ordered triple of strictly positive integers,
+    (x, y, z) for which x > y > z and the quantities:
+        x + y
+        x - y
+        x + z
+        y + z
+        y - z
+    are all perfect squares.
+
+    Args:
+        None
+    
+    Yields:
+    Integer (int) giving the smallest strictly positive integer
+    that is the sum of an ordered triple of strictly positive
+    integers satisfying the properties given above.
+
+    Outline of rationale:
+    See outline of rationale in documentation of the function
+    perfectSquareCollectionGenerator().
     """
     #since = time.time()
     #for coll in perfectSquareCollectionGenerator():
     #    break
-    res = next(perfectSquareCollectionGenerator())[0]#coll[0]
+    res = sum(next(perfectSquareCollectionGenerator()))#coll[0]
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
@@ -7114,5 +7162,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {141}
+    eval_nums = {142}
     evaluateProjectEulerSolutions101to150(eval_nums)
