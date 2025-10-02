@@ -46,50 +46,6 @@ from project_euler_solutions.utils import (
     UnionFind,
 )
 
-def addFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[int, int]:
-    """
-    Finds the sum of two fractions in lowest terms (i.e. such that
-    the numerator and denominator are coprime)
-
-    Args:
-        frac1 (2-tuple of ints): The first of the fractions to sum,
-                in the form (numerator, denominator)
-        frac2 (2-tuple of ints): The second of the fractions to sum,
-                in the form (numerator, denominator)
-    
-    Returns:
-    2-tuple of ints giving the sum of frac1 and frac2 in the form (numerator,
-    denominator). If the result is negative then the numerator is negative
-    and the denominator positive.
-    """
-    denom = lcm(abs(frac1[1]), abs(frac2[1]))
-    numer = (frac1[0] * denom // frac1[1]) + (frac2[0] * denom // frac2[1])
-    g = gcd(numer, denom)
-    #print(frac1, frac2, (numer // g, denom // g))
-    return (numer // g, denom // g)
-
-def multiplyFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[int, int]:
-    """
-    Finds the product of two fractions in lowest terms (i.e. such that
-    the numerator and denominator are coprime)
-
-    Args:
-        frac1 (2-tuple of ints): The first of the fractions to multiply,
-                in the form (numerator, denominator)
-        frac2 (2-tuple of ints): The second of the fractions to multiply,
-                in the form (numerator, denominator)
-    
-    Returns:
-    2-tuple of ints giving the product of frac1 and frac2 in the form (numerator,
-    denominator). If the result is negative then the numerator is negative
-    and the denominator positive.
-    """
-    neg = (frac1[0] < 0) ^ (frac1[1] < 0) ^ (frac2[0] < 0) ^ (frac2[1] < 0)
-    frac_prov = (abs(frac1[0] * frac2[0]), abs(frac1[1] * frac2[1]))
-    #print(frac_prov)
-    g = gcd(frac_prov[0], frac_prov[1])
-    return (-(frac_prov[0] // g) if neg else (frac_prov[0] // g), frac_prov[1] // g)
-
 # Problem 101
 # Review- Look into Lagrange polynomial interpolation
 def polynomialFit(seq: List[int], n0=0) -> Tuple[Tuple[int], int]:
@@ -2615,7 +2571,7 @@ def squareRemainders(a_min: int=3, a_max: int=1000) -> int:
     return res
 
 # Problem 121
-def diskGameBlueDiskProbability(n_turns: int, min_n_blue_disks: int) -> Tuple[int, int]:
+def diskGameBlueDiskProbabilityFraction(n_turns: int, min_n_blue_disks: int) -> CustomFraction:
     """
     Consider a game consisting of a bag and red and blue disks.
     Initially, the bag contains one red and one blue disk. A
@@ -2636,24 +2592,26 @@ def diskGameBlueDiskProbability(n_turns: int, min_n_blue_disks: int) -> Tuple[in
                 the number of turns is to be calculated.
     
     Returns:
-    2-tuple giving the probability that in a run of the described
-    game with n_turns turns a total of at least min_n_blue_disks are
-    drawn over the course of the game, expressed as a fraction
-    (numerator, denominator).
+    CustomFraction object representing the probability that in a
+    run of the described game with n_turns turns a total of at
+    least min_n_blue_disks are drawn over the course of the game
+    as a fraction.
     """
     if min_n_blue_disks > n_turns: return (0, 1)
-    row = [(1, 1)]
+    row = [CustomFraction(1, 1)]
     n_red = 1
     n_tot = 2
     for i in range(n_turns):
         prev = row
-        row = [(1, 1)]
+        row = [CustomFraction(1, 1)]
         for i in range(1, min(len(prev), min_n_blue_disks) + 1):
             row.append(
-                addFractions(
-                    multiplyFractions(prev[i - 1], (n_tot - n_red, n_tot)),
-                    multiplyFractions(prev[i], (n_red, n_tot)) if i < len(prev) else (0, 1)
-                )
+                (prev[i - 1] * CustomFraction(n_tot - n_red, n_tot)) +\
+                    ((prev[i] * CustomFraction(n_red, n_tot)) if i < len(prev) else CustomFraction(0, 1))
+                #addFractions(
+                #    multiplyFractions(prev[i - 1], (n_tot - n_red, n_tot)),
+                #    multiplyFractions(prev[i], (n_red, n_tot)) if i < len(prev) else (0, 1)
+                #)
             )
         n_red += 1
         n_tot += 1
@@ -2693,8 +2651,8 @@ def diskGameMaximumNonLossPayout(n_turns: int=15) -> int:
     turns.
     """
     player_win_n_blue_disks = (n_turns >> 1) + 1
-    p_player_win = diskGameBlueDiskProbability(n_turns, player_win_n_blue_disks)
-    return math.floor(p_player_win[1] / p_player_win[0])
+    p_player_win = diskGameBlueDiskProbabilityFraction(n_turns, player_win_n_blue_disks)
+    return p_player_win.denominator // p_player_win.numerator
 
 # Problem 122
 def efficientExponentiation(sum_min: int=1, sum_max: int=200, method: Optional[str]="exact") -> float:
@@ -5404,9 +5362,9 @@ def ellipseInternalNorm(
 
 def otherRationalEllipseIntersection(
     ellipse: Tuple[int, int, int],
-    pos: Tuple[Tuple[int, int], Tuple[int, int]],
-    vec: Tuple[Tuple[int, int], Tuple[int, int]]
-) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+    pos: Tuple[CustomFraction, CustomFraction],
+    vec: Tuple[CustomFraction, CustomFraction],
+) -> Tuple[CustomFraction, CustomFraction]:
     """
     Given a rational point on a rational ellipse and a vector with a
     rational Cartesian representation, for a line parallel to that
@@ -5417,6 +5375,19 @@ def otherRationalEllipseIntersection(
     A, B, C = ellipse
     x0, y0 = pos
     beta, alpha = vec
+    alpha_sq = alpha * alpha
+    beta_sq = beta * beta
+    denom = (B * alpha_sq) + (A * beta_sq)
+    #print(f"denom: {denom[0] / denom[1]} vs {(A * vec_f[1] ** 2 + B * vec_f [0] ** 2)}")
+    x0_term_x = (B * alpha_sq - A * beta_sq) * x0
+    y0_term_x = -2 * B * alpha * beta * y0
+    numer_x = x0_term_x + y0_term_x
+    x = numer_x / denom
+    x0_term_y = (-2 * A * alpha * beta) * x0
+    y0_term_y = (A * beta_sq - B * alpha_sq) * y0
+    numer_y = x0_term_y + y0_term_y
+    y = numer_y / denom
+    return (x, y)
     #pos_f = (x0[0] / x0[1], y0[0] / y0[1])
     #vec_f = (alpha[0] / alpha[1], beta[0] / beta[1])
     #print(f"pos_f = {pos_f}, vec_f = {vec_f}")
@@ -5424,6 +5395,7 @@ def otherRationalEllipseIntersection(
     #print(f"x float = {x_f}")
     #y_f = ((A * vec_f[1] ** 2 - B * vec_f[0] ** 2) * pos_f[1] - 2 * A * vec_f[1] * vec_f[0] * pos_f[0]) / (A * vec_f[1] ** 2 + B * vec_f[0] ** 2)
     #print(f"y float = {y_f}")
+    """
     denom = addFractions((B * alpha[0] ** 2, alpha[1] ** 2), (A * beta[0] ** 2, beta[1] ** 2))
     #print(f"denom: {denom[0] / denom[1]} vs {(A * vec_f[1] ** 2 + B * vec_f [0] ** 2)}")
     x0_term_x = multiplyFractions(addFractions((B * alpha[0] ** 2, alpha[1] ** 2), (-A * beta[0] ** 2, beta[1] ** 2)), x0)
@@ -5439,13 +5411,24 @@ def otherRationalEllipseIntersection(
     numer_y = addFractions(x0_term_y, y0_term_y)
     y = multiplyFractions(numer_y, (denom[1], denom[0]))
     return (x, y)
+    """
 
-def nextEllipseReflectedRay(
+def nextEllipseReflectedRayFraction(
     ellipse: Tuple[int, int, int],
-    pos: Tuple[Tuple[int, int], Tuple[int, int]],
-    vec: Tuple[Tuple[int, int], Tuple[int, int]]
-) -> Tuple[Tuple[Tuple[int, int], Tuple[int, int]], Tuple[Tuple[int, int], Tuple[int, int]]]: 
-
+    pos: Tuple[CustomFraction, CustomFraction],
+    vec: Tuple[CustomFraction, CustomFraction],
+) -> Tuple[Tuple[CustomFraction, CustomFraction], Tuple[CustomFraction, CustomFraction]]:
+    norm = ellipseInternalNormFloat(ellipse, pos)
+    #print(f"norm = {norm}")
+    norm_mag_sq = sum(x * x for x in norm)
+    dot_prod = sum((y * x) for x, y in zip(vec, norm))
+    mult = dot_prod * 2 / norm_mag_sq
+    add_vec = tuple((-x * mult) for x in norm)
+    #print(f"add_vec = {add_vec}")
+    vec2 = tuple(x + y for x, y in zip(vec, add_vec))
+    pos2 = otherRationalEllipseIntersection(ellipse, pos, vec2)
+    return (pos2, vec2)
+    """
     norm = ellipseInternalNorm(ellipse, pos)
     #print(f"norm = {norm}")
     norm_mag_sq = sum(x * x for x in norm)
@@ -5456,12 +5439,28 @@ def nextEllipseReflectedRay(
     vec2 = tuple(addFractions(x, y) for x, y in zip(vec, add_vec))
     pos2 = otherRationalEllipseIntersection(ellipse, pos, vec2)
     return (pos2, vec2)
+    """
 
-def laserBeamEllipseReflectionPointGenerator(
+def laserBeamEllipseReflectionPointFractionGenerator(
     ellipse: Tuple[int, int, int],
-    pos0: Tuple[Tuple[int, int], Tuple[int, int]],
-    reflect1: Tuple[Tuple[int, int], Tuple[int, int]]
-) -> Generator[Tuple[Tuple[int, int], Tuple[int, int]], None, None]:
+    pos0: Tuple[CustomFraction, CustomFraction],
+    reflect1: Tuple[CustomFraction, CustomFraction],
+) -> Generator[Tuple[CustomFraction, CustomFraction], None, None]:
+    pos0_neg = (-pos0[0], -pos0[1])
+    #print(reflect1, pos0_neg)
+    vec = tuple(x + y for x, y in zip(reflect1, pos0_neg))
+    #print(f"vec0 = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
+    #print(f"reflect1 = {reflect1} = {(reflect1[0][0] / reflect1[0][1], reflect1[1][0] / reflect1[1][1])}")
+    
+    pos = reflect1
+    while True:
+        pos, vec = nextEllipseReflectedRayFraction(ellipse, pos, vec)
+        #print(f"vec = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
+        #print(f"pos = {pos} = {(pos[0][0] / pos[0][1], pos[1][0] / pos[1][1])}")
+        
+        yield pos
+    return
+    """
     pos0_neg = ((-pos0[0][0], pos0[0][1]), (-pos0[1][0], pos0[1][1]))
     #print(reflect1, pos0_neg)
     vec = tuple(addFractions(x, y) for x, y in zip(reflect1, pos0_neg))
@@ -5470,16 +5469,17 @@ def laserBeamEllipseReflectionPointGenerator(
     
     pos = reflect1
     while True:
-        pos, vec = nextEllipseReflectedRay(ellipse, pos, vec)
+        pos, vec = nextEllipseReflectedRayFraction(ellipse, pos, vec)
         #print(f"vec = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
         #print(f"pos = {pos} = {(pos[0][0] / pos[0][1], pos[1][0] / pos[1][1])}")
         
         yield pos
     return
+    """
 
 def ellipseInternalNormFloat(
     ellipse: Tuple[int, int, int],
-    pos: Tuple[float, float]
+    pos: Tuple[float, float],
 ) -> Tuple[float]:
     """
     Given a rational ellipse in the x-y plane with its semi-major
@@ -5512,7 +5512,7 @@ def otherEllipseIntersectionFloat(
     ellipse: Tuple[int, int, int],
     pos: Tuple[float, float],
     vec: Tuple[float, float]
-) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+) -> Tuple[float, float]:
     """
     Given a rational point on a rational ellipse and a vector with a
     rational Cartesian representation, for a line parallel to that
@@ -5581,10 +5581,10 @@ def laserBeamEllipseReflectionPointFloatGenerator(
 
 def laserBeamEllipseReflectionCount(
     ellipse: Tuple[int, int, int]=(4, 1, 100),
-    pos0: Tuple[Tuple[int, int], Tuple[int, int]]=((0, 1), (101, 10)),
-    reflect1: Tuple[Tuple[int, int], Tuple[int, int]]=((7, 5), (-48, 5)),
-    x_window: Tuple[Tuple[int, int], Tuple[int, int]]=((-1, 100), (1, 100)),
-    use_float: bool=True
+    pos0: Tuple[CustomFraction, CustomFraction]=(CustomFraction(0, 1), CustomFraction(101, 10)),
+    reflect1: Tuple[CustomFraction, CustomFraction]=(CustomFraction(7, 5), CustomFraction(-48, 5)),
+    x_window: Tuple[CustomFraction, CustomFraction]=(CustomFraction(-1, 100), CustomFraction(1, 100)),
+    use_float: bool=True,
 ) -> int:
     """
     Solution to Project Euler #144
@@ -5608,11 +5608,14 @@ def laserBeamEllipseReflectionCount(
     res = 1
     closest = float("inf")
     if use_float:
-        x_window_float = tuple(x[0] / x[1] for x in x_window)
+        x_window_float = tuple(x.numerator / x.denominator for x in x_window)
         #print(x_window_float)
-        pos0_float = tuple(x[0] / x[1] for x in pos0)
-        reflect1_float = tuple(x[0] / x[1] for x in reflect1)
+        pos0_float = tuple(x.numerator / x.denominator for x in pos0)
+        reflect1_float = tuple(x.numerator / x.denominator for x in reflect1)
+        #print(pos0_float)
+        #print(reflect1_float)
         for pos in laserBeamEllipseReflectionPointFloatGenerator(ellipse, pos0_float, reflect1_float):
+            #print(pos)
             #if res == 354:
             #    print(f"354 result: {pos}")
             #if res < 10:
@@ -5629,8 +5632,12 @@ def laserBeamEllipseReflectionCount(
             
             #print(f"n_reflections = {res}")
     else:
-        for pos in laserBeamEllipseReflectionPointGenerator(ellipse, pos0, reflect1):
-            if pos[1][0] > 0 and pos[0][0] * x_window[0][1] >= pos[0][1] * x_window[0][0] and pos[0][0] * x_window[1][1] <= pos[0][1] * x_window[1][0]:
+        #print(pos0)
+        #print(reflect1)
+        for pos in laserBeamEllipseReflectionPointFractionGenerator(ellipse, pos0, reflect1):
+            #print(pos)
+            if pos[1].numerator > 0 and pos[0].numerator * x_window[0].denominator >= pos[0].denominator * x_window[0].numerator and\
+                    pos[0].numerator * x_window[1].denominator <= pos[0].denominator * x_window[1].numerator:
                 break
             res += 1
             #print(f"n_reflections = {res}")
@@ -7113,10 +7120,10 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = laserBeamEllipseReflectionCount(
             ellipse=(4, 1, 100),
-            pos0=((0, 1), (101, 10)),
-            reflect1=((7, 5), (-48, 5)),
-            x_window=((-1, 100), (1, 100)),
-            use_float=True
+            pos0=(CustomFraction(0, 1), CustomFraction(101, 10)),
+            reflect1=(CustomFraction(7, 5), CustomFraction(-48, 5)),
+            x_window=(CustomFraction(-1, 100), CustomFraction(1, 100)),
+            use_float=True,
         )
         print(f"Solution to Project Euler #144 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -7162,5 +7169,5 @@ def evaluateProjectEulerSolutions101to150(eval_nums: Optional[Set[int]]=None) ->
 
 
 if __name__ == "__main__":
-    eval_nums = {142}
+    eval_nums = {144}
     evaluateProjectEulerSolutions101to150(eval_nums)
