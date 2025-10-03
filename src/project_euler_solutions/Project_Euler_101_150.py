@@ -5326,17 +5326,16 @@ def torricelliTriangleUniqueLengthSum(sm_max: int=12 * 10 ** 4) -> int:
 
 
 # Problem 144
-def ellipseInternalNorm(
+def ellipseInternalNormFraction(
     ellipse: Tuple[int, int, int],
-    pos: Tuple[Tuple[int, int], Tuple[int, int]]
+    pos: Tuple[CustomFraction, CustomFraction]
 ) -> Tuple[int, int]:
     """
     Given a rational ellipse in the x-y plane with its semi-major
     axes parallel to the x and y axes giving by the equation:
         ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
-    and a point at position in Cartesian coordinates:
-        (pos[0][0] / pos[0][1], pos[1][0] / pos[1][1])
-    on the ellipse, finds a vector in Cartesian coordinates
+    and a point at position in with rational Cartesian coordinates
+    pos on the ellipse, finds a vector in Cartesian coordinates
     with integer coefficients normal to the ellipse at that
     point, pointing towards the interior of the ellipse.
     Note that the returned vector is not in general normalized.
@@ -5345,10 +5344,12 @@ def ellipseInternalNorm(
         Required positional:
         ellipse (3-tuple of ints): 3 integers specifying the
                 equation of the ellipse as shown above.
-        pos (2-tuple of 2-tuples of ints): Two fractions, given
-                as 2-tuples of ints (numerator then denominator)
-                specifying the point on the ellipse in Cartesian
-                coordinates.
+        pos (2-tuple of CustomFraction objects): Two fractions,
+                specifying the Cartesian coordinates of the point
+                on the ellipse for which the internal normal is
+                to be found. It is assumed without checking that
+                pos is a point on the ellipse (i.e. pos satisfies
+                the equation for the ellipse given above).
     
     Returns:
     2-tuple of integers (ints) giving a normal vector for the
@@ -5358,18 +5359,52 @@ def ellipseInternalNorm(
     """
     
     # Pointing into the ellipse
-    return (-ellipse[0] * pos[0][0] * pos[1][1], -ellipse[1] * pos[0][1] * pos[1][0])
+    return (
+        -ellipse[0] * pos[0].numerator * pos[1].denomintator,
+        -ellipse[1] * pos[0].denominator * pos[1].numerator,
+    )
 
 def otherRationalEllipseIntersection(
     ellipse: Tuple[int, int, int],
     pos: Tuple[CustomFraction, CustomFraction],
-    vec: Tuple[CustomFraction, CustomFraction],
+    vec: Tuple[int, int],
 ) -> Tuple[CustomFraction, CustomFraction]:
     """
-    Given a rational point on a rational ellipse and a vector with a
-    rational Cartesian representation, for a line parallel to that
+    Given a rational point on a rational ellipse and a vector with
+    integer Cartesian coefficients, for a line parallel to that
     vector intersecting that ellipse at that rational point, identifies
     the other point at which the line and ellipse intersect.
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    
+    Note that for a rational ellipse (i.e. an ellipse whose equation
+    can be expressed with only integer coefficients), a rational point
+    on that ellipse and a vector with integer Cartesian coordinates,
+    the point to be found is guaranteed to be rational. 
+
+    Args:
+        Required positional:
+        ellipse (3-tuple of ints): 3 integers specifying the
+                equation of the ellipse as shown above.
+        pos (2-tuple of CustomFraction objects): An ordered pair of
+                fractions, specifying the Cartesian coordinates of
+                the point on the ellipse for which the other point
+                on the line through that point parallel to vec is
+                to be found.
+                It is assumed without checking that pos is a point
+                on the ellipse (i.e. pos satisfies the equation for
+                the ellipse given above).
+        vec (2-tuple of ints): An ordered pair of integers, specifying
+                the Cartesian coordinate coefficients of the vector
+                which the line through the point pos and the other
+                point on the ellipse to be found is to be parallel.
+    
+    Returns:
+    2-tuple of CustomFraction objects giving the Cartesian coordinates
+    of the other point at which the ellipse and the line parallel to
+    vec passing through the point pos intersect.
     """
     #print(pos, vec)
     A, B, C = ellipse
@@ -5416,18 +5451,80 @@ def otherRationalEllipseIntersection(
 def nextEllipseReflectedRayFraction(
     ellipse: Tuple[int, int, int],
     pos: Tuple[CustomFraction, CustomFraction],
-    vec: Tuple[CustomFraction, CustomFraction],
-) -> Tuple[Tuple[CustomFraction, CustomFraction], Tuple[CustomFraction, CustomFraction]]:
-    norm = ellipseInternalNormFloat(ellipse, pos)
+    vec: Tuple[int, int],
+) -> Tuple[Tuple[int, int], Tuple[CustomFraction, CustomFraction]]:
+    """
+    Given a rational point on a rational ellipse and a vector with a
+    integer Cartesian coefficients, for a beam travelling in the
+    direction of that vector intersecting the the ellipse at that
+    point from inside the ellipse, calculates the direction the beam
+    would be reflected by the ellipse as a vector with integer
+    Cartesian coefficients and the point at which the reflected beam
+    would next intersect with the ellipse.
+
+    It is further required that pos and vec are defined such that the
+    beam approaches the intersection from the inside of the ellipse,
+    otherwise the reflected beam would never again intersect the
+    ellipse.
+
+    It is assumed that when the beam is reflected by the ellipse,
+    that relative to the tangent of the ellipse at the point of
+    intersection the angle of incidence equals the angle of reflection
+    (i.e. the angle the tangent on one side of the intersection makes
+    with the incoming beam is equal to the angle the tangent on the
+    other side of the intersection makes with the reflected beam).
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    
+    Note that for a rational ellipse (i.e. an ellipse whose equation
+    can be expressed with only integer coefficients), a rational point
+    on that ellipse and a vector for which one of the Cartesian
+    coordinate coefficients is a rational multiple of the other,
+    the point of intersection is guaranteed to be rational and the
+    direction of the reflected beam is guaranteed to be able to be
+    represented by a vector with integer Cartesian coefficients.
+
+    Args:
+        Required positional:
+        ellipse (3-tuple of ints): 3 integers specifying the
+                equation of the ellipse as shown above.
+        pos (2-tuple of CustomFraction objects): Two fractions,
+                specifying the Cartesian coordinates of the point
+                on the ellipse for which the beam intersects with
+                the ellipse and is to be reflected.
+                It is assumed without checking that pos is a point
+                on the ellipse (i.e. pos satisfies the equation for
+                the ellipse given above).
+        vec (2-tuple of ints): An ordered pair of integers, specifying
+                the Cartesian coordinate coefficients of the vector
+                representing the direction of the beam to be reflected.
+    
+    Returns:
+    2-tuple containing:
+      - In index 0 a 2-tuple of ints representing a vector with integer
+        coefficients giving the direction of the reflected beam. This
+        is specified uniquely as a pair of coprime integers. Note that
+        in general this vector is not normalised.
+      - In index 1 a 2-tuple of CustomFraction objects representing the
+        Cartesian coordinates of the point at which the reflected beam
+        would next intersect the ellipse.
+    """
+    norm = ellipseInternalNormFraction(ellipse, pos)
     #print(f"norm = {norm}")
     norm_mag_sq = sum(x * x for x in norm)
     dot_prod = sum((y * x) for x, y in zip(vec, norm))
-    mult = dot_prod * 2 / norm_mag_sq
+    mult = CustomFraction(dot_prod * 2, norm_mag_sq)
     add_vec = tuple((-x * mult) for x in norm)
     #print(f"add_vec = {add_vec}")
     vec2 = tuple(x + y for x, y in zip(vec, add_vec))
+    l = lcm(vec2[0].denomintator, vec2[1].denominator)
+    vec2 = tuple(x.numerator * (l // x.denominator) for x in vec2)
+    g = gcd(*vec2)
+    vec2 = tuple(x // g for x in vec2)
     pos2 = otherRationalEllipseIntersection(ellipse, pos, vec2)
-    return (pos2, vec2)
+    return (vec2, pos2)
     """
     norm = ellipseInternalNorm(ellipse, pos)
     #print(f"norm = {norm}")
@@ -5449,12 +5546,16 @@ def laserBeamEllipseReflectionPointFractionGenerator(
     pos0_neg = (-pos0[0], -pos0[1])
     #print(reflect1, pos0_neg)
     vec = tuple(x + y for x, y in zip(reflect1, pos0_neg))
+    l = lcm(vec[0].denomintator, vec[1].denominator)
+    vec = tuple(x.numerator * (l // x.denominator) for x in vec)
+    g = gcd(*vec)
+    vec = tuple(x // g for x in vec)
     #print(f"vec0 = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
     #print(f"reflect1 = {reflect1} = {(reflect1[0][0] / reflect1[0][1], reflect1[1][0] / reflect1[1][1])}")
     
     pos = reflect1
     while True:
-        pos, vec = nextEllipseReflectedRayFraction(ellipse, pos, vec)
+        vec, pos = nextEllipseReflectedRayFraction(ellipse, pos, vec)
         #print(f"vec = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
         #print(f"pos = {pos} = {(pos[0][0] / pos[0][1], pos[1][0] / pos[1][1])}")
         
@@ -5557,7 +5658,7 @@ def nextEllipseReflectedRayFloat(
     #print(f"add_vec = {add_vec}")
     vec2 = tuple(x + y for x, y in zip(vec, add_vec))
     pos2 = otherEllipseIntersectionFloat(ellipse, pos, vec2)
-    return (pos2, vec2)
+    return (vec2, pos2)
 
 def laserBeamEllipseReflectionPointFloatGenerator(
     ellipse: Tuple[int, int, int],
@@ -5572,7 +5673,7 @@ def laserBeamEllipseReflectionPointFloatGenerator(
     
     pos = reflect1
     while True:
-        pos, vec = nextEllipseReflectedRayFloat(ellipse, pos, vec)
+        vec, pos = nextEllipseReflectedRayFloat(ellipse, pos, vec)
         #print(f"vec = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
         #print(f"pos = {pos} = {(pos[0][0] / pos[0][1], pos[1][0] / pos[1][1])}")
         
