@@ -32,6 +32,7 @@ from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 
 from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
+from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 
 # Problem 251
 def cardanoTripletGeneratorBySum(sum_max: Optional[int]=None) -> Generator[Tuple[int, Tuple[int, int, int]], None, None]:
@@ -1569,6 +1570,143 @@ def stoneGamePlayerTwoWinningConfigurationsSum(n_piles: int=3, pile_size_max: in
     print(counts)
     return res
 
+# Problem 261
+def distinctPivotalSquareSums(k_max: int) -> List[int]:
+
+
+
+    
+    res = set()
+    m_max = (isqrt(1 + 2 * k_max) - 1) >> 1
+
+    def isValidSolution(k: CustomFraction, m: int) -> bool:
+        
+        if k.denominator != 1 or k < m: return False
+        k = k.numerator
+        rhs = (m + 1) * (m + (2 * k - m) ** 2)
+        q, r = divmod(rhs, m)
+        
+        if r: return False
+        
+        q_rt = isqrt(q)
+        if q_rt * q_rt != q: return False
+        #print(k, m, q_rt, m)
+        if q_rt & 1 == m & 1: return False
+        n = (q_rt - m - 1) >> 1
+        #print(f"n = {n}")
+        if n < k: return False
+        #print(f"solution m = {m}, k = {k}, n = {n} is valid")
+        return True
+
+    def kGenerator(m: int) -> Generator[int, None, None]:
+        add = CustomFraction(m, 2)
+        
+        curr1 = (CustomFraction(m, 1), CustomFraction(m, 1))
+        curr2 = (CustomFraction(m, 1), -CustomFraction(m, 1))
+        k = (curr1[0] + curr2[0]) / 4 + add
+        print(f"k = {k}")
+        if k > k_max: return
+        if isValidSolution(k, m):
+            yield k.numerator
+        q = CustomFraction(m + 1, m)
+        mult1 = (m * (q + 1), CustomFraction(2 * m, 1))
+        mult2 = (m * (q + 1), -CustomFraction(2 * m, 1))
+        while True:
+            curr1 = (mult1[0] * curr1[0] + q * mult1[1] * curr1[1], mult1[0] * curr1[1] + mult1[1] * curr1[0])
+            curr2 = (mult2[0] * curr2[0] + q * mult2[1] * curr2[1], mult2[0] * curr2[1] + mult2[1] * curr2[0])
+            #print(curr1, curr2)
+            k = (curr1[0] + curr2[0]) / 4 + add
+            print(f"k = {k}")
+            if k > k_max: return
+            if isValidSolution(k, m):
+                yield k.numerator
+        return
+
+    cnt = 0
+    cnt2 = 0
+    for m in range(8, 9):#m_max + 1):
+        print(f"m = {m}")
+        for k in kGenerator(m):
+            print(f"m = {m}, k = {k}")
+            cnt += 1
+            cnt2 += k not in res
+            if k in res: print(f"repeated pivot {k}")
+            res.add(k)
+    print(f"total count = {cnt}, unique count = {cnt2}")
+    return sorted(res)
+    
+    """
+    res = set()
+    m_max = (isqrt(1 + 2 * k_max) - 1) >> 1
+
+    for sol in generalisedPellSolutionGenerator(2, -1):
+        
+        m = 1
+        mx = 2 * k_max - 1
+        k2, n2 = sol
+        if k2 > mx: break
+        if not k2 & 1: continue
+        k = (k2 + 1) >> 1
+        n = n2 - m
+        #print(m, k, n)
+        if n < k: continue
+        print(f"m = {m}, k = {k}, n = {n}")
+        res.add(k)
+    
+    for sol in generalisedPellSolutionGenerator(6, 3):
+        m = 2
+        mx = k_max - 1
+        n2, k2 = sol
+        if k2 > mx: break
+        k = k2 + 1
+        n = ((n2 + 1) >> 1) - m
+        if not n2 & 1: continue
+        #print(m, k, n)
+        if n < k: continue
+        print(f"m = {m}, k = {k}, n = {n}")
+        res.add(k)
+    
+    for sol in generalisedPellSolutionGenerator(3, -3):
+        m = 3
+        mx = 2 * k_max - 3
+        #print(m, sol)
+        k2, n2 = sol
+        if k2 > mx: break
+        if not k2 & 1: continue
+        k = (k2 + 3) >> 1
+        n = (n2 + 1) - m
+        #print(m, k, n)
+        if n < k: continue
+        print(f"m = {m}, k = {k}, n = {n}")
+        res.add(k)
+    
+    for sol in generalisedPellSolutionGenerator(5, 5):
+        m = 4
+        mx = k_max - 2
+        #print(m, sol)
+        n2, k2 = sol
+        if k2 > mx: break
+        if not n2 & 1: continue
+        k = k2 + 2
+        n = ((n2 + 3) >> 1) - m
+        #print(m, k, n)
+        if n < k: continue
+        print(f"m = {m}, k = {k}, n = {n}")
+        res.add(k)
+    
+    return sorted(res)
+    """
+
+def distinctPivotalSquareSumsTotal(k_max: int=10 ** 10) -> int:
+    """
+    Solution to Project Euler #261
+    """
+
+
+    res2 = sum(distinctPivotalSquareSums(k_max))
+    print(res, res2)
+    return res
+
 # Problem 265
 def findAllBinaryCircles(n: int) -> List[int]:
     if n == 1: return [1]
@@ -1772,6 +1910,11 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
         res = stoneGamePlayerTwoWinningConfigurationsSum(n_piles=3, pile_size_max=1000)
         print(f"Solution to Project Euler #260 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 261 in eval_nums:
+        since = time.time()
+        res = distinctPivotalSquareSumsTotal(k_max=10 ** 10)
+        print(f"Solution to Project Euler #261 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 265 in eval_nums:
         since = time.time()
         res = allBinaryCirclesSum(n=5)
@@ -1780,7 +1923,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {258}
+    eval_nums = {261}
     evaluateProjectEulerSolutions51to100(eval_nums)
 
 """

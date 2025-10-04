@@ -5328,7 +5328,7 @@ def torricelliTriangleUniqueLengthSum(sm_max: int=12 * 10 ** 4) -> int:
 # Problem 144
 def ellipseInternalNormFraction(
     ellipse: Tuple[int, int, int],
-    pos: Tuple[CustomFraction, CustomFraction]
+    pos: Tuple[CustomFraction, CustomFraction],
 ) -> Tuple[int, int]:
     """
     Given a rational ellipse in the x-y plane with its semi-major
@@ -5360,7 +5360,7 @@ def ellipseInternalNormFraction(
     
     # Pointing into the ellipse
     return (
-        -ellipse[0] * pos[0].numerator * pos[1].denomintator,
+        -ellipse[0] * pos[0].numerator * pos[1].denominator,
         -ellipse[1] * pos[0].denominator * pos[1].numerator,
     )
 
@@ -5519,7 +5519,7 @@ def nextEllipseReflectedRayFraction(
     add_vec = tuple((-x * mult) for x in norm)
     #print(f"add_vec = {add_vec}")
     vec2 = tuple(x + y for x, y in zip(vec, add_vec))
-    l = lcm(vec2[0].denomintator, vec2[1].denominator)
+    l = lcm(vec2[0].denominator, vec2[1].denominator)
     vec2 = tuple(x.numerator * (l // x.denominator) for x in vec2)
     g = gcd(*vec2)
     vec2 = tuple(x // g for x in vec2)
@@ -5546,7 +5546,7 @@ def laserBeamEllipseReflectionPointFractionGenerator(
     pos0_neg = (-pos0[0], -pos0[1])
     #print(reflect1, pos0_neg)
     vec = tuple(x + y for x, y in zip(reflect1, pos0_neg))
-    l = lcm(vec[0].denomintator, vec[1].denominator)
+    l = lcm(vec[0].denominator, vec[1].denominator)
     vec = tuple(x.numerator * (l // x.denominator) for x in vec)
     g = gcd(*vec)
     vec = tuple(x // g for x in vec)
@@ -5554,8 +5554,12 @@ def laserBeamEllipseReflectionPointFractionGenerator(
     #print(f"reflect1 = {reflect1} = {(reflect1[0][0] / reflect1[0][1], reflect1[1][0] / reflect1[1][1])}")
     
     pos = reflect1
+    cnt = 0
     while True:
         vec, pos = nextEllipseReflectedRayFraction(ellipse, pos, vec)
+        cnt += 1
+        print(cnt)
+        #print(vec, pos)
         #print(f"vec = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
         #print(f"pos = {pos} = {(pos[0][0] / pos[0][1], pos[1][0] / pos[1][1])}")
         
