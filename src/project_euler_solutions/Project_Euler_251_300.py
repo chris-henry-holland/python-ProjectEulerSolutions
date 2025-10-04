@@ -1572,10 +1572,35 @@ def stoneGamePlayerTwoWinningConfigurationsSum(n_piles: int=3, pile_size_max: in
 
 # Problem 261
 def distinctPivotalSquareSums(k_max: int) -> List[int]:
-
-
-
-    
+    res = set()
+    m_max = (isqrt(1 + 2 * k_max) - 1) >> 1
+    ps = PrimeSPFsieve(m_max + 1)
+    k2_max = k_max << 1
+    for m in range(1, m_max + 1):
+        pf1 = ps.primeFactorisation(m)
+        a, s = 1, 1
+        for p, f in pf1.items():
+            if f & 1: a *= p
+            s *= p ** (f >> 1)
+        pf2 = ps.primeFactorisation(m + 1)
+        b, r = 1, 1
+        for p, f in pf2.items():
+            if f & 1: b *= p
+            r *= p ** (f >> 1)
+        for alpha, gamma in pellSolutionGenerator(a * b, negative=False):
+            beta = gamma * a * s * b * r
+            k2 = m * (alpha + 1) + beta
+            if k2 > k2_max: break
+            if k2 & 1: continue
+            n2 = (m + 1) * (alpha - 1) + beta
+            if n2 & 1: continue
+            k = k2 >> 1
+            n = n2 >> 1
+            if n < k: continue
+            #print(f"solution with m = {m}, k = {k}, n = {n}")
+            res.add(k)
+    return sorted(res)
+    """
     res = set()
     m_max = (isqrt(1 + 2 * k_max) - 1) >> 1
 
@@ -1624,7 +1649,7 @@ def distinctPivotalSquareSums(k_max: int) -> List[int]:
 
     cnt = 0
     cnt2 = 0
-    for m in range(8, 9):#m_max + 1):
+    for m in range(m_max + 1):
         print(f"m = {m}")
         for k in kGenerator(m):
             print(f"m = {m}, k = {k}")
@@ -1634,7 +1659,7 @@ def distinctPivotalSquareSums(k_max: int) -> List[int]:
             res.add(k)
     print(f"total count = {cnt}, unique count = {cnt2}")
     return sorted(res)
-    
+    """
     """
     res = set()
     m_max = (isqrt(1 + 2 * k_max) - 1) >> 1
@@ -1701,10 +1726,7 @@ def distinctPivotalSquareSumsTotal(k_max: int=10 ** 10) -> int:
     """
     Solution to Project Euler #261
     """
-
-
-    res2 = sum(distinctPivotalSquareSums(k_max))
-    print(res, res2)
+    res = sum(distinctPivotalSquareSums(k_max))
     return res
 
 # Problem 265
