@@ -15,6 +15,7 @@ from typing import (
 )
 
 import bisect
+import functools
 import heapq
 import itertools
 import math
@@ -1729,6 +1730,183 @@ def distinctPivotalSquareSumsTotal(k_max: int=10 ** 10) -> int:
     res = sum(distinctPivotalSquareSums(k_max))
     return res
 
+# Problem 263
+def calculatePrimeFactorisation(
+    num: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> Dict[int, int]:
+    """
+    For a strictly positive integer, calculates its prime
+    factorisation.
+
+    This is performed using direct division.
+
+    Args:
+        Required positional:
+        num (int): The strictly positive integer whose prime
+                factorisation is to be calculated.
+    
+    Returns:
+    Dictionary (dict) giving the prime factorisation of num, whose
+    keys are strictly positive integers (int) giving the prime
+    numbers that appear in the prime factorisation of num, with the
+    corresponding value being a strictly positive integer (int)
+    giving the number of times that prime appears in the
+    factorisation (i.e. the power of that prime in the prime
+    factorisation of the factor num). An empty dictionary is
+    returned if and only if num is the multiplicative identity
+    (i.e. 1).
+    """
+    if ps is not None:
+        return ps.primeFactorisation(num)
+    exp = 0
+    while not num & 1:
+        num >>= 1
+        exp += 1
+    res = {2: exp} if exp else {}
+    for p in range(3, num, 2):
+        if p ** 2 > num: break
+        exp = 0
+        while not num % p:
+            num //= p
+            exp += 1
+        if exp: res[p] = exp
+    if num > 1:
+        res[num] = 1
+    return res
+
+def calculateFactors(
+    num: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> Set[int]:
+    """
+    Gives the complete set of positive factors of a strictly positive
+    integer.
+    
+    Args:
+        Required positional:
+        n (int): The strictly positive integer whose factors are to
+                be found.
+    
+    Returns:
+    Set of ints, representing the complete set of positive factors
+    of n.
+    """
+    p_fact = calculatePrimeFactorisation(num, ps=ps)
+    p_lst = list(p_fact.keys())
+    iter_lst = [[p ** x for x in range(p_fact[p] + 1)] for p in p_lst]
+    res = set()
+    for p_pow_tup in itertools.product(*iter_lst):
+        res.add(functools.reduce(lambda x, y: x * y, p_pow_tup))
+    return res
+
+def isPractical(num: int, ps: Optional[PrimeSPFsieve]=None) -> bool:
+
+    # Using that a number greater than 1 is practical if and only
+    # if it is even and every other prime in its prime factorisation,
+    # is no greater than one plus the divisor function of the
+    # product of all smaller primes to the power in the prime
+    # factorisation of the number
+    if num == 1: return True
+    if num & 1: return False
+    pf = calculatePrimeFactorisation(num, ps=ps)
+    sigma = (1 << (pf[2] + 1)) - 1
+    p_lst = sorted(pf.keys())
+    for p in p_lst[1:]:
+        if p > 1 + sigma: return False
+        sigma *= (p ** (pf[p] + 1) - 1) // (p - 1)
+    return True
+
+def primeGenerator(ps: Optional[Union[SimplePrimeSieve, PrimeSPFsieve]]=None, n_p_mults_ignore: int=7) -> Generator[int, None, None]:
+    if ps is not None:
+        yield from ps.endlessPrimeGenerator()
+        return
+    # Consider numbers that are not a multiple of any of
+    # the first n_p_mults_ignore primes
+    ps2 = PrimeSPFsieve()
+    ps3 = SimplePrimeSieve()
+    add_lst = [1]
+    p_prod = 1
+    p_gen = iter(ps2.endlessPrimeGenerator())
+    for i, p in enumerate(p_gen):
+        yield p
+        p_prod *= p
+        if i == n_p_mults_ignore - 1: break
+    ps2.extendSieve(p_prod - 1)
+    for num in range(p + 2, p_prod, 2):
+        #if ps2.getSmallestPrimeFactor(num) > init_p_max:
+        if ps2.sieve[num][0] <= p: continue
+        add_lst.append(num)
+        if ps2.sieve[num][0] == num:
+            yield num
+        #for p in init_p_lst[1:]:
+        #    if not num % p: break
+        #else: add_lst.append(num)
+    #for p in p_gen:
+    #    if p >= p_prod: break
+    #    add_lst.append(p)
+    print(add_lst)
+    print(len(add_lst), p_prod)
+    for num0 in itertools.count(p_prod, step=p_prod):
+        for add in add_lst:
+            num = num0 + add
+            if ps3.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]:
+                #print(f"{num} is prime")
+                yield num
+    return
+
+
+def engineersParidiseGenerator(ps: Optional[PrimeSPFsieve]=None) -> Generator[int, None, None]:
+    #if ps is None: ps = PrimeSPFsieve()
+    p_qu = deque()
+    p_set = set()
+    cnt = 0
+    practical_checked_dict = SortedDict()
+
+    for i, p in enumerate(primeGenerator(ps=None, n_p_mults_ignore=3)):
+        if (not i % 10 ** 5): print(f"next prime {p}, triple-pair seen count = {cnt}")
+        while p_qu and p_qu[0] < p - 18:
+            p_set.remove(p_qu[0])
+            p_qu.popleft()
+        p_qu.append(p)
+        p_set.add(p)
+        if len(p_set) != 4 or (p - 6) not in p_set or (p - 12) not in p_set or (p - 18) not in p_set:
+            continue
+        cnt += 1
+        #print(p - 18, p - 12, p - 6, p - 18, cnt)
+        n = p - 9
+        while practical_checked_dict and practical_checked_dict.peekitem(0)[0] < n - 8:
+            practical_checked_dict.popitem(0)
+        #print(len(practical_checked_dict))
+        for add in (-8, -4, 0, 4, 8):
+            num = n + add
+            if num in practical_checked_dict.keys():
+                if practical_checked_dict[num]: continue
+                break
+            practical = isPractical(num, ps)
+            practical_checked_dict[num] = practical
+            if not practical: break
+        else: yield n
+    #print(f"cnt = {cnt}")
+    return
+
+def engineersParadiseSum(n_incl: int=4, ps: Optional[PrimeSPFsieve]=None) -> int:
+    """
+    Solution to Project Euler #263
+    """
+    # Review- try to make faster using a more effective strategy
+    # for sieving out candidates using the properties of arithmetic
+    # progressions of primes and practical numbers modulo different
+    # small numbers
+    #if ps is None: ps = PrimeSPFsieve()
+    res = 0
+    if n_incl < 1: return 0
+    for i, num in enumerate(engineersParidiseGenerator(ps=ps)):
+        print(num)
+        res += num
+        if i >= n_incl - 1: break
+    return res
+
 # Problem 265
 def findAllBinaryCircles(n: int) -> List[int]:
     if n == 1: return [1]
@@ -1937,6 +2115,11 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
         res = distinctPivotalSquareSumsTotal(k_max=10 ** 10)
         print(f"Solution to Project Euler #261 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 263 in eval_nums:
+        since = time.time()
+        res = engineersParadiseSum(n_incl=3, ps=None)
+        print(f"Solution to Project Euler #263 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 265 in eval_nums:
         since = time.time()
         res = allBinaryCirclesSum(n=5)
@@ -1945,7 +2128,7 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {261}
+    eval_nums = {263}
     evaluateProjectEulerSolutions51to100(eval_nums)
 
 """
@@ -2011,3 +2194,9 @@ for num in range(2, 10 ** mx_n_dig):
     #if n_iter == 1: print(num)
 """
 #print(meanNumberOfIterationsOfHeronsMethodForIntegersFraction(7, 2606, base=10))
+
+"""
+num = 219869980
+for add in (-8, -4, 0, 4, 8):
+    print(num + add, isPractical(num + add, ps=None))
+"""
