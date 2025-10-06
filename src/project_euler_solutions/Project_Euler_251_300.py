@@ -1907,6 +1907,100 @@ def engineersParadiseSum(n_incl: int=4, ps: Optional[PrimeSPFsieve]=None) -> int
         if i >= n_incl - 1: break
     return res
 
+# Problem 264
+def sumOfTwoSquaresEqualToPrime(p: int) -> Optional[Tuple[int, int]]:
+    # Assumes that p is indeed prime
+    if p == 2:
+        return (1, 1)
+    residue = p % 4
+    if residue == 3:
+        return None
+    # Review- try using quadratic residues
+    for x in range(1, (p + 1) >> 1):
+        if pow(x, 2, p) == p - 1:
+            break
+    target = isqrt(p - 1)
+    a, b = sorted([p, x])
+    while b > target:
+        a, b = sorted([a, b % a])
+    return (a, b)
+    
+
+def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=None) -> Generator[Tuple[int, int], None, None]:
+    pf = calculatePrimeFactorisation(target, ps=ps)
+    gaussian_pf = {}
+    mult = 1
+    for p, f in pf.items():
+        if p == 2:
+            gaussian_pf[(1, 1)] = f
+            continue
+        residue = p % 4
+        if residue == 3:
+            if f & 1:
+                #print(p, f)
+                return
+            mult *= p ** (f >> 1)
+            continue
+        pair = sumOfTwoSquaresEqualToPrime(p)
+        gaussian_pf[pair] = f
+    
+    def multiplyComplex(num1: Tuple[int, int], num2: Tuple[int, int]) -> Tuple[int, int]:
+        #print(num1, num2)
+        return (
+            num1[0] * num2[0] - num1[1] * num2[1],
+            num1[0] * num2[1] + num1[1] * num2[0],
+        )
+    
+    def complexExponentiated(num: Tuple[int, int], exp: int) -> Tuple[int, int]:
+        curr = num
+        exp2 = exp
+        res = num if exp2 & 1 else (1, 0)
+        exp2 >>= 1
+        while exp2:
+            curr = multiplyComplex(curr, curr)
+            if exp2 & 1:
+                res = multiplyComplex(res, curr)
+            exp2 >>= 1
+        return res
+    #print(gaussian_pf)
+    p_lst = list(gaussian_pf.keys())
+    #print(p_lst)
+    #print(p_lst)
+    f_lst = [gaussian_pf[p] for p in p_lst]
+    #print(p_lst, f_lst)
+    n_p = len(p_lst)
+    seen = set()
+    def recur(idx: int, curr: Tuple[int, int]) -> Generator[Tuple[int, int], None, None]:
+        #print(idx, curr)
+        if idx == n_p:
+            ans = tuple(sorted(abs(x) for x in curr))
+            if ans in seen: return
+            seen.add(ans)
+            yield ans
+            return
+        # Review- can this be restricted to pos_f <= f / 2 without
+        # missing solutions?
+        curr2 = curr
+        p, f = p_lst[idx], f_lst[idx]
+        p_conj = (p[0], -p[1])
+        #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
+        for pos_f in range(f):
+            neg_f = f - pos_f
+            mult_neg = complexExponentiated(p_conj, neg_f)
+            #print(f"pos_f = {pos_f}, curr2 = {curr2}, mult_neg = {mult_neg}")
+            yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+            curr2 = multiplyComplex(curr2, p)
+        pos_f = f
+        yield from recur(idx + 1, curr2)
+        return
+        
+    #print(gaussian_pf)
+    #print(f"mult = {mult}")
+    yield from recur(0, (mult, 0))
+    return
+
+
+
 # Problem 265
 def findAllBinaryCircles(n: int) -> List[int]:
     if n == 1: return [1]
@@ -2042,9 +2136,9 @@ def allBinaryCirclesSum(n: int=5) -> List[int]:
     return sum(findAllBinaryCircles(n))
 
 ##############
-project_euler_num_range = (51, 100)
+project_euler_num_range = (251, 300)
 
-def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> None:
+def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) -> None:
     if not eval_nums:
         eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
 
@@ -2128,8 +2222,8 @@ def evaluateProjectEulerSolutions51to100(eval_nums: Optional[Set[int]]=None) -> 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {263}
-    evaluateProjectEulerSolutions51to100(eval_nums)
+    eval_nums = {266}
+    evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
 n_max = 1000
@@ -2200,3 +2294,6 @@ num = 219869980
 for add in (-8, -4, 0, 4, 8):
     print(num + add, isPractical(num + add, ps=None))
 """
+
+for pair in sumOfTwoSquaresSolutionGenerator(target=2450, ps=None):
+    print(pair)
