@@ -1908,6 +1908,23 @@ def engineersParadiseSum(n_incl: int=4, ps: Optional[PrimeSPFsieve]=None) -> int
     return res
 
 # Problem 264
+def legendreSymbol(a: int, p: int, ps: Optional[PrimeSPFsieve]=None) -> int:
+    # p must be an odd prime
+    a %= p
+    if not a: return 0
+    elif a == 1: return 1
+    elif a == p - 1: return 1 if p % 4 == 1 else -1
+    pf = calculatePrimeFactorisation(a, ps=ps)
+    res = 1
+    for p2, f in pf.items():
+        if not f & 1: continue
+        if p2 == 2:
+            res *= 1 if p % 8 in {1, 7} else -1
+            continue
+        res *= (-1) ** (((p - 1) * (p2 - 1)) >> 2) * legendreSymbol(p, p2)
+    return res
+
+
 def sumOfTwoSquaresEqualToPrime(p: int) -> Optional[Tuple[int, int]]:
     # Assumes that p is indeed prime
     if p == 2:
@@ -1916,9 +1933,15 @@ def sumOfTwoSquaresEqualToPrime(p: int) -> Optional[Tuple[int, int]]:
     if residue == 3:
         return None
     # Review- try using quadratic residues
-    for x in range(1, (p + 1) >> 1):
-        if pow(x, 2, p) == p - 1:
+    #for x in range(1, (p + 1) >> 1):
+    #    if pow(x, 2, p) == p - 1:
+    #        break
+    for a in range(2, p):
+        if legendreSymbol(a, p) == -1:
+            x = pow(a, (p - 1) >> 2, p)
             break
+    else: raise ValueError(f"Could not find a quadratic non-residue of {p}")
+    #print(f"{a}, {x}, {legendreSymbol(a, p)}")
     target = isqrt(p - 1)
     a, b = sorted([p, x])
     while b > target:
@@ -1974,15 +1997,38 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
         #print(idx, curr)
         if idx == n_p:
             ans = tuple(sorted(abs(x) for x in curr))
-            if ans in seen: return
+            if ans in seen:
+                print(f"repeat seen: {ans}")
+                return
             seen.add(ans)
             yield ans
             return
-        # Review- can this be restricted to pos_f <= f / 2 without
-        # missing solutions?
         curr2 = curr
         p, f = p_lst[idx], f_lst[idx]
         p_conj = (p[0], -p[1])
+
+        if not idx:
+            # For the first prime factor, only consider one of each conjugate
+            # pairs. This cannot be done for every prime factor due to how
+            # the results change when replacing with its one or both of the
+            # complex numbers in a product.
+            # Review- can this be taken further than just one to avoid
+            # calculating the same values repeatedly?
+            curr2 = curr
+            p, f = p_lst[idx], f_lst[idx]
+            p_conj = (p[0], -p[1])
+            #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
+            for pos_f in range(f >> 1):
+                neg_f = f - pos_f
+                mult_neg = complexExponentiated(p_conj, neg_f)
+                #print(f"pos_f = {pos_f}, curr2 = {curr2}, mult_neg = {mult_neg}")
+                yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+                curr2 = multiplyComplex(curr2, p)
+            pos_f = f >> 1
+            neg_f = f - pos_f
+            mult_neg = complexExponentiated(p_conj, neg_f)
+            yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+            return
         #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
         for pos_f in range(f):
             neg_f = f - pos_f
@@ -1992,6 +2038,7 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
             curr2 = multiplyComplex(curr2, p)
         pos_f = f
         yield from recur(idx + 1, curr2)
+        
         return
         
     #print(gaussian_pf)
@@ -2295,5 +2342,5 @@ for add in (-8, -4, 0, 4, 8):
     print(num + add, isPractical(num + add, ps=None))
 """
 
-for pair in sumOfTwoSquaresSolutionGenerator(target=2450, ps=None):
+for pair in sumOfTwoSquaresSolutionGenerator(target=4225, ps=None):
     print(pair)
