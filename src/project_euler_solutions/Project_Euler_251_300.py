@@ -1932,10 +1932,10 @@ def sumOfTwoSquaresEqualToPrime(p: int) -> Optional[Tuple[int, int]]:
     residue = p % 4
     if residue == 3:
         return None
-    # Review- try using quadratic residues
     #for x in range(1, (p + 1) >> 1):
     #    if pow(x, 2, p) == p - 1:
     #        break
+    # Using quadratic residues
     for a in range(2, p):
         if legendreSymbol(a, p) == -1:
             x = pow(a, (p - 1) >> 2, p)
@@ -2046,7 +2046,38 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
     yield from recur(0, (mult, 0))
     return
 
-
+def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
+    orthocentre_x: int,
+    perimeter_max: Optional[int]=None,
+) -> Generator[Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]], None, None]:
+    x0 = orthocentre_x
+    xA_maximiser = (x0 + math.sqrt(x0 ** 2 + 4)) / 2
+    k_sq_max = math.floor(4 * ((xA_maximiser ** 2 + 1) / ((xA_maximiser - x0) ** 2 + 1))) - 1
+    k_max = isqrt(k_sq_max)
+    # Remember the possible extra solutions for right angled triangles
+    for k in range(1, k_max + 1):
+        div = (k ** 2 - 3)
+        sub = (div + 4) * x0
+        num = 4 * (k ** 2 + 1) * x0
+        for a_, b_ in sumOfTwoSquaresSolutionGenerator(num, ps=None):
+            for a, b in [(a_, b_), (b_, a_)]:
+                xA, r = divmod(a - sub, div)
+                if r: continue
+                yA, r = divmod(b, div)
+                if r: continue
+                t_sq = (4 * (xA ** 2 + yA ** 2) // ((xA - x0) ** 2 + yA ** 2)) - 1
+                t = isqrt(t_sq)
+                if t * t != t_sq: continue
+                xB, r = divmod(x0 - xA + t * yA, 2)
+                if r: continue
+                yB, r = divmod(-yA + t * (x0 - xA), 2)
+                if r: continue
+                xC, r = divmod(x0 - xA - t * yA, 2)
+                if r: continue
+                yC, r = divmod(-yA - t * (x0 - xA), 2)
+                if r: continue
+                yield ((xA, yA), (xB, yB), (xC, yC))
+    return
 
 # Problem 265
 def findAllBinaryCircles(n: int) -> List[int]:
@@ -2342,5 +2373,11 @@ for add in (-8, -4, 0, 4, 8):
     print(num + add, isPractical(num + add, ps=None))
 """
 
-for pair in sumOfTwoSquaresSolutionGenerator(target=4225, ps=None):
-    print(pair)
+#for pair in sumOfTwoSquaresSolutionGenerator(target=4225, ps=None):
+#    print(pair)
+
+for triangle in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
+    orthocentre_x=5,
+    perimeter_max=50,
+):
+    print(triangle)
