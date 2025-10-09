@@ -2213,6 +2213,56 @@ def allBinaryCirclesSum(n: int=5) -> List[int]:
     """
     return sum(findAllBinaryCircles(n))
 
+# Problem 267
+def newtonRaphson(x0: float, f: Callable[[float], float], f_derivative: Callable[[float], float], eps: float) -> float:
+    x = x0
+    while True:
+        #print(f"x = {x}")
+        x1 = x - f(x) / f_derivative(x)
+        if abs(x1 - x) <= eps:
+            break
+        x = x1
+    return x1
+
+def maximiseProbabilityOfGivenProfitInCoinTossGameFraction(
+    n_tosses: int=10 ** 3,
+    target_multiplier: float=10 ** 9,
+    eps: float=1e-13
+) -> CustomFraction:
+
+    log_target = math.log(target_multiplier)
+    g = lambda f: (1 + 2 * f) * math.log(1 + 2 * f) + 2 * (1 - f) * math.log(1 - f) - 3 * log_target / n_tosses
+    g_deriv = lambda f: 2 * (math.log(1 + 2 * f) - math.log(1 - f))
+    f = newtonRaphson(0.5, g, g_deriv, eps)
+    print(f"f = {f}")
+
+    nw_min = math.ceil(math.log(target_multiplier / (1 - f) ** n_tosses) / math.log((1 + 2 * f) / (1 - f)))
+    #print(f"nw_min = {nw_min}")
+    res = 0
+    term_func = lambda nw: math.comb(n_tosses, nw)#lambda nw: (1 + 2 * f) ** nw * (1 - f) ** (n_tosses - nw) * math.comb(nw, n_tosses)
+    if nw_min > (n_tosses >> 1):
+        for nw in range(nw_min, n_tosses + 1):
+            term = term_func(nw)
+            res += term
+    else:
+        for nw in range(0, nw_min):
+            term = term_func(nw)
+            #print(nw, n_tosses, term)
+            res += term
+        res = (1 << n_tosses) - res
+    return CustomFraction(res, 1 << n_tosses)
+
+def maximiseProbabilityOfGivenProfitInCoinTossGameFloat(
+    n_tosses: int=10 ** 3,
+    target_multiplier: float=10 ** 9,
+    eps: float=1e-13
+) -> float:
+    """
+    Solution to Project Euler #267
+    """
+    res = maximiseProbabilityOfGivenProfitInCoinTossGameFraction(n_tosses=n_tosses, target_multiplier=target_multiplier, eps=eps)
+    return res.numerator / res.denominator
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -2297,10 +2347,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = allBinaryCirclesSum(n=5)
         print(f"Solution to Project Euler #265 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 267 in eval_nums:
+        since = time.time()
+        res = maximiseProbabilityOfGivenProfitInCoinTossGameFloat(n_tosses=10 ** 3, target_multiplier=10 ** 9, eps=1e-13)
+        print(f"Solution to Project Euler #267 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {266}
+    eval_nums = {267}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -2375,9 +2430,10 @@ for add in (-8, -4, 0, 4, 8):
 
 #for pair in sumOfTwoSquaresSolutionGenerator(target=4225, ps=None):
 #    print(pair)
-
+"""
 for triangle in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
     orthocentre_x=5,
     perimeter_max=50,
 ):
     print(triangle)
+"""
