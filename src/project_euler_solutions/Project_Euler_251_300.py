@@ -2216,8 +2216,9 @@ def allBinaryCirclesSum(n: int=5) -> List[int]:
 # Problem 266
 def calculateLargestFactorNotExceedingValue(
     num_pf: Dict[int, int],
-    factor_max: int
+    factor_max: int,
 ) -> int:
+    n_end_primes = 20
     
     p_lst = sorted(num_pf.keys(), reverse=True)
     n_p = len(p_lst)
@@ -2228,27 +2229,50 @@ def calculateLargestFactorNotExceedingValue(
         curr *= p_lst[i] ** f_lst[i]
         remain_lst[i] = curr
     
+    transition_idx = max(0, n_p - n_end_primes)
+    tail_nums = [1]
+    for idx in reversed(range(transition_idx, n_p)):
+        prev = list(tail_nums)
+        p = p_lst[idx]
+        f = f_lst[idx]
+        mult = 1
+        for f in range(1, f_lst[idx] + 1):
+            mult *= p
+            for num in prev:
+                num2 = mult * num
+                if num2 > factor_max: break
+                elif num2 == factor_max: return factor_max
+                tail_nums.append(num2)
+        tail_nums.sort()
+    print(f"number of tail numbers = {len(tail_nums)}")
+
     res = [0]
     print(num_pf, factor_max)
     print(p_lst, f_lst, remain_lst)
     
     def recur(idx: int=0, curr: int=1) -> None:
         #print(f"idx = {idx}, curr = {curr}, res = {res}")
-        if idx < 15:
+        if idx < 5:
             print(f"idx = {idx}, curr = {curr}, current best = {res[0]}, target = {factor_max}")
         mx_poss = curr * remain_lst[idx]
         #print(f"idx = {idx}, curr = {curr}, mx_poss = {mx_poss}")
         if mx_poss <= factor_max:
             res[0] = max(res[0], mx_poss)
             return
-        if idx == n_p - 1:
-            #print("hi")
-            for _ in range(1, f_lst[idx] + 1):
-                nxt = curr * p_lst[idx]
-                if nxt > factor_max: break
-                curr = nxt
-            res[0] = max(res[0], curr)
+        if idx == transition_idx:
+            t = factor_max // curr
+            j = bisect.bisect_right(tail_nums, t) - 1
+            if j < 0: return # should not happen
+            res[0] = max(res[0], tail_nums[j] * curr)
             return
+        #if idx == n_p - 1:
+        #    #print("hi")
+        #    for _ in range(1, f_lst[idx] + 1):
+        #        nxt = curr * p_lst[idx]
+        #        if nxt > factor_max: break
+        #        curr = nxt
+        #    res[0] = max(res[0], curr)
+        #    return
         for f in reversed(range(f_lst[idx] + 1)):
             curr2 = curr * p_lst[idx] ** f
             
