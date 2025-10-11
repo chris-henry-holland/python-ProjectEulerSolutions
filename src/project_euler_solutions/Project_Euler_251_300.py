@@ -2213,6 +2213,84 @@ def allBinaryCirclesSum(n: int=5) -> List[int]:
     """
     return sum(findAllBinaryCircles(n))
 
+# Problem 266
+def calculateLargestFactorNotExceedingValue(
+    num_pf: Dict[int, int],
+    factor_max: int
+) -> int:
+    
+    p_lst = sorted(num_pf.keys(), reverse=True)
+    n_p = len(p_lst)
+    f_lst = [num_pf[p] for p in p_lst]
+    remain_lst = [1] * n_p
+    curr = 1
+    for i in reversed(range(n_p)):
+        curr *= p_lst[i] ** f_lst[i]
+        remain_lst[i] = curr
+    
+    res = [0]
+    print(num_pf, factor_max)
+    print(p_lst, f_lst, remain_lst)
+    
+    def recur(idx: int=0, curr: int=1) -> None:
+        #print(f"idx = {idx}, curr = {curr}, res = {res}")
+        if idx < 15:
+            print(f"idx = {idx}, curr = {curr}, current best = {res[0]}, target = {factor_max}")
+        mx_poss = curr * remain_lst[idx]
+        #print(f"idx = {idx}, curr = {curr}, mx_poss = {mx_poss}")
+        if mx_poss <= factor_max:
+            res[0] = max(res[0], mx_poss)
+            return
+        if idx == n_p - 1:
+            #print("hi")
+            for _ in range(1, f_lst[idx] + 1):
+                nxt = curr * p_lst[idx]
+                if nxt > factor_max: break
+                curr = nxt
+            res[0] = max(res[0], curr)
+            return
+        for f in reversed(range(f_lst[idx] + 1)):
+            curr2 = curr * p_lst[idx] ** f
+            
+            if curr2 > factor_max: continue
+            if curr2 * remain_lst[idx + 1] <= res[0]:
+                break
+            #print(f"f = {f}, curr = {curr}, curr2 = {curr2}")
+            recur(idx=idx + 1, curr=curr2)
+            if res[0] == factor_max: break
+        return
+    
+    recur(idx=0, curr=1)
+    return res[0]
+
+def pseudoSquareRootFromPrimeFactorisation(
+    num_pf: Dict[int, int],
+    res_md: Optional[int]=None,
+) -> int:
+    num = 1
+    for p, f in num_pf.items():
+        num *= p ** f
+    target = isqrt(num)
+    res = calculateLargestFactorNotExceedingValue(
+        num_pf,
+        target,
+    )
+    return res if res_md is None else res % res_md
+
+def pseudoSquareRootOfProductOfInitialPrimes(
+    p_max: int=190,
+    res_md: Optional[int]=10 ** 16
+) -> int:
+    num_pf = {}
+    ps = SimplePrimeSieve(p_max)
+    for p in ps.p_lst:
+        if p > p_max: break
+        num_pf[p] = 1
+    return pseudoSquareRootFromPrimeFactorisation(
+        num_pf,
+        res_md=res_md,
+    )
+
 # Problem 267
 def newtonRaphson(x0: float, f: Callable[[float], float], f_derivative: Callable[[float], float], eps: float) -> float:
     x = x0
@@ -2347,6 +2425,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = allBinaryCirclesSum(n=5)
         print(f"Solution to Project Euler #265 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 266 in eval_nums:
+        since = time.time()
+        res = pseudoSquareRootOfProductOfInitialPrimes(
+            p_max=190,
+            res_md=10 ** 16,
+        )
+        print(f"Solution to Project Euler #266 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 267 in eval_nums:
         since = time.time()
         res = maximiseProbabilityOfGivenProfitInCoinTossGameFloat(n_tosses=10 ** 3, target_multiplier=10 ** 9, eps=1e-13)
@@ -2355,7 +2441,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {267}
+    eval_nums = {266}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
