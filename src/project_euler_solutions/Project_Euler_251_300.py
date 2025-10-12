@@ -2365,6 +2365,65 @@ def maximiseProbabilityOfGivenProfitInCoinTossGameFloat(
     res = maximiseProbabilityOfGivenProfitInCoinTossGameFraction(n_tosses=n_tosses, target_multiplier=target_multiplier, eps=eps)
     return res.numerator / res.denominator
 
+# Problem 268
+def numbersDivisibleByAtLeastNOfInitialPrimesCountBruteForce(
+    num_max: int,
+    p_max: int,
+    min_n_p_divide: int,
+) -> int:
+    ps = PrimeSPFsieve(num_max)
+    res = 0
+    for num in range(1, num_max + 1):
+        facts = ps.primeFactors(num)
+        n_fact = 0
+        for fact in facts:
+            n_fact += (fact <= p_max)
+        res += (n_fact >= min_n_p_divide)
+    return res
+
+def numbersDivisibleByAtLeastNOfInitialPrimesCount(
+    num_max: int=10 ** 16 - 1,
+    p_max: int=99,
+    min_n_p_divide: int=4,
+) -> int:
+    
+    # TODO- justify the factor of ((n_p_incl - 1) choose (min_n_p_divide - 1))
+    # in the inclusion-exclusion- probably related to the basic binomial coefficient
+    # recurrence relation
+    ps = SimplePrimeSieve(p_max)
+    p_lst = []
+    for p in ps.p_lst:
+        if p > p_max: break
+        p_lst.append(p)
+    p_lst = p_lst[::-1]
+    
+    n_p = len(p_lst)
+    
+    if n_p < min_n_p_divide: return 0
+    tail_p_prod_lst = [1]
+    for i in reversed(range(n_p - min_n_p_divide, n_p)):
+        tail_p_prod_lst.append(p_lst[i] * tail_p_prod_lst[-1])
+    print(p_lst)
+    print(tail_p_prod_lst)
+    def recur(idx: int, curr: int, n_p_incl: int) -> int:
+        #print(idx, curr, n_p_incl)
+        if curr * (tail_p_prod_lst[max(0, min_n_p_divide - n_p_incl)]) > num_max:
+            return 0
+        elif idx == n_p:
+            ans = (num_max // curr) * math.comb(n_p_incl - 1, min_n_p_divide - 1)
+            #if n_p_incl > min_n_p_divide:
+            #    print(n_p_incl, curr, ans)
+            #    return 0
+            return -ans if (n_p_incl - min_n_p_divide) & 1 else ans
+        elif idx + (min_n_p_divide - n_p_incl) == n_p:
+            #print(min_n_p_divide, curr * tail_p_prod_lst[n_p - idx])
+            return num_max // (curr * tail_p_prod_lst[n_p - idx])
+        
+        return recur(idx + 1, curr, n_p_incl) + recur(idx + 1, curr * p_lst[idx], n_p_incl + 1)
+    
+    res = recur(0, 1, 0)
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -2462,10 +2521,19 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = maximiseProbabilityOfGivenProfitInCoinTossGameFloat(n_tosses=10 ** 3, target_multiplier=10 ** 9, eps=1e-13)
         print(f"Solution to Project Euler #267 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 268 in eval_nums:
+        since = time.time()
+        res = numbersDivisibleByAtLeastNOfInitialPrimesCount(
+            num_max=10 ** 16 - 1,
+            p_max=99,
+            min_n_p_divide=4,
+        )
+        print(f"Solution to Project Euler #268 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {266}
+    eval_nums = {268}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
