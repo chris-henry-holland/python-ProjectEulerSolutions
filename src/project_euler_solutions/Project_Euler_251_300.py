@@ -2424,6 +2424,27 @@ def numbersDivisibleByAtLeastNOfInitialPrimesCount(
     res = recur(0, 1, 0)
     return res
 
+# Problem 271
+def carmichaelFunctionPrimeFactorisation(
+    n_pf: Dict[int, int],
+    ps: Optional[PrimeSPFsieve]=None
+) -> Dict[int, int]:
+    carmichael_pf = {}
+    print(f"finished creating prime sieve")
+    for p2, f in n_pf.items():
+        if p2 == 2:
+            f2 = f - 1 - (f >= 3)
+            carmichael_pf[p2] = max(carmichael_pf.get(p2, 0), f2)
+            continue
+        if f > 1: carmichael_pf[p2] = max(carmichael_pf.get(p2, 0), f - 1)
+        #pf2 = ps2.primeFactorisation(p2 >> 1)
+        for p3, f2 in calculatePrimeFactorisation(p2 >> 1, ps=ps):#pf2.items():
+            if p3 == 2:
+                #print(f"p3 = {p3}, f2 = {f2}")
+                carmichael_pf[2] = max(carmichael_pf.get(2, 0), f2 + 1)
+            else: carmichael_pf[p3] = max(carmichael_pf.get(p3, 0), f2)
+    return 
+
 ##############
 project_euler_num_range = (251, 300)
 
