@@ -31,7 +31,7 @@ from sortedcontainers import SortedDict, SortedList, SortedSet
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 
-from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot
+from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 
@@ -2425,7 +2425,7 @@ def numbersDivisibleByAtLeastNOfInitialPrimesCount(
     return res
 
 # Problem 271
-def carmichaelFunctionPrimeFactorisation(
+def carmichaelLambdaFunctionPrimeFactorisation(
     n_pf: Dict[int, int],
     ps: Optional[PrimeSPFsieve]=None
 ) -> Dict[int, int]:
@@ -2443,7 +2443,73 @@ def carmichaelFunctionPrimeFactorisation(
                 #print(f"p3 = {p3}, f2 = {f2}")
                 carmichael_pf[2] = max(carmichael_pf.get(2, 0), f2 + 1)
             else: carmichael_pf[p3] = max(carmichael_pf.get(p3, 0), f2)
-    return 
+    return carmichael_pf
+
+"""
+def solveSimultaneousLinearCongruence(a1: int, b1: int, a2: int, b2: int) -> Tuple[int, int]:
+    # Assumes b1 and b2 are coprime
+    if gcd(b1, b2) != 1:
+        raise ValueError("b1 and b2 must be coprime")
+
+    if b1 < b2: (a1, b1), (a2, b2) = (a2, b2), (a1, b1)
+    b3 = b2
+    k3, a3 = b1 % b3, (a2 - a1) % b3
+"""
+
+def sumOfNontrivialCubicRootsOfUnityModuloN(
+    n: int=13082761331670030,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+
+    # Using Chinese remainder theorem
+
+    # Review- consider converting into a generator
+
+    pf = calculatePrimeFactorisation(n, ps=None)
+    n_p = len(pf)
+    p_pow_lst = [p ** pf[p] for p in sorted(pf.keys())]
+    p_pow_lst.sort(reverse=True)
+    p_pow_bs = [[] for _ in range(n_p)]
+    md_lst = [0] * n_p
+    curr_md = 1
+    for idx, num in enumerate(p_pow_lst):
+        curr_md *= num
+        md_lst[idx] = curr_md
+        # 1 is always a cubic root of unity
+        p_pow_bs[idx].append(1)
+        for x in range(2, num):
+            if pow(x, 3, num) == 1:
+                p_pow_bs[idx].append(x)
+    #print(p_pow_lst)
+    #print(p_pow_mds)
+    #print(md_lst)
+    md_prods_cumu = [1]
+    for num in p_pow_lst[:-1]:
+        md_prods_cumu.append(md_prods_cumu[-1] * num)
+    md_prods_cumu_rev = [1]
+    for num in reversed(p_pow_lst[1:]):
+        md_prods_cumu_rev.append(md_prods_cumu_rev[-1] * num)
+    md_prods_cumu_rev = md_prods_cumu_rev[::-1]
+    #print(md_prods_cumu, md_prods_cumu_rev)
+    mults = [1] * n_p
+    for idx, num in enumerate(p_pow_lst):
+        N = md_prods_cumu[idx] * md_prods_cumu_rev[idx]
+        #print(num, N)
+        N_inv = solveLinearCongruence(N, 1, num)
+        #print(num, n // num, N, N_inv)
+        mults[idx] = (N * N_inv) % n
+
+    def recur(idx: int, curr: int) -> int:
+        if idx == n_p:
+            print(curr)
+            return 0 if curr == 1 else curr
+        res = 0
+        for b in p_pow_bs[idx]:
+            res += recur(idx + 1, curr=(curr + mults[idx] * b) % n)
+        return res
+
+    res = recur(0, 0)
+    return res
 
 ##############
 project_euler_num_range = (251, 300)
@@ -2551,10 +2617,18 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #268 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 271 in eval_nums:
+        since = time.time()
+        res = sumOfNontrivialCubicRootsOfUnityModuloN(
+            n=13082761331670030,
+            ps=None,
+        )
+        print(f"Solution to Project Euler #271 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {268}
+    eval_nums = {271}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
