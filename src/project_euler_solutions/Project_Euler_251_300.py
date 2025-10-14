@@ -2456,16 +2456,16 @@ def solveSimultaneousLinearCongruence(a1: int, b1: int, a2: int, b2: int) -> Tup
     k3, a3 = b1 % b3, (a2 - a1) % b3
 """
 
-def sumOfNontrivialCubicRootsOfUnityModuloN(
-    n: int=13082761331670030,
+def cubicRootsOfUnityModuloNGenerator(
+    n: int,
     ps: Optional[PrimeSPFsieve]=None,
-) -> int:
+) -> Generator[int, None, None]:
 
     # Using Chinese remainder theorem
 
     # Review- consider converting into a generator
 
-    pf = calculatePrimeFactorisation(n, ps=None)
+    pf = calculatePrimeFactorisation(n, ps=ps)
     n_p = len(pf)
     p_pow_lst = [p ** pf[p] for p in sorted(pf.keys())]
     p_pow_lst.sort(reverse=True)
@@ -2499,16 +2499,25 @@ def sumOfNontrivialCubicRootsOfUnityModuloN(
         #print(num, n // num, N, N_inv)
         mults[idx] = (N * N_inv) % n
 
-    def recur(idx: int, curr: int) -> int:
+    def recur(idx: int, curr: int) -> Generator[int, None, None]:
         if idx == n_p:
-            print(curr)
-            return 0 if curr == 1 else curr
-        res = 0
+            #print(curr)
+            #return 0 if curr == 1 else curr
+            yield curr
+            return
         for b in p_pow_bs[idx]:
-            res += recur(idx + 1, curr=(curr + mults[idx] * b) % n)
-        return res
+            yield from recur(idx + 1, curr=(curr + mults[idx] * b) % n)
+        return
 
-    res = recur(0, 0)
+    yield from recur(0, 0)
+    return
+
+def sumOfNontrivialCubicRootsOfUnityModuloN(
+    n: int=13082761331670030,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+
+    res = sum(cubicRootsOfUnityModuloNGenerator(n, ps=ps)) - 1
     return res
 
 ##############
