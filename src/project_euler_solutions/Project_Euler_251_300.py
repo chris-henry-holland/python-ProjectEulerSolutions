@@ -1083,6 +1083,99 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
     print(res)
     return res.numerator / res.denominator
 
+
+# Problem 256
+def isTatamiFree(w: int, h: int) -> int:
+    # Assumes at least one of w and h is even
+    if w > h: w, h = h, w
+
+    def transitionGenerator(
+        h_bm: int,
+        corner_bm: int,
+    ) -> Generator[Tuple[int, int], None, None]:
+        
+        def backtrack(
+            idx: int,
+            h_bm2: int,
+            corner_bm2: int,
+            prev_lvl: int,
+        ) -> Generator[Tuple[int, int], None, None]:
+            if idx == w:
+                if prev_lvl: yield (0, 0)
+                return
+            #if idx == w - 1:
+            #    if not prev_lvl:
+            #        if not h_bm2 & 1: yield (1, 0)
+            #        return
+            #    yield (0, 0)
+            #    return
+
+            # Space already filled
+            if h_bm2 & 1:
+                if not prev_lvl: return
+                for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 1):
+                    yield ((h_bm_head << 1), (corner_bm_head << 1) | (prev_lvl == 1))
+                return
+            # Adding horizontal
+            if prev_lvl:
+                for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 0):
+                    yield ((h_bm_head << 1), (corner_bm_head << 1) | (prev_lvl == 1))
+            if corner_bm & 1: return
+            if not prev_lvl:
+                for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 1):
+                    yield ((h_bm_head << 1), (corner_bm_head << 1))
+                return
+
+            # Adding vertical
+            for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 2):
+                yield ((h_bm_head << 1) | 1, (corner_bm_head << 1) | (prev_lvl == 2))
+            
+            return
+
+        if (h_bm & 1):
+            for (h_bm_head, corner_bm_head) in backtrack(0, h_bm >> 1, corner_bm >> 1, 1):
+                yield (h_bm_head << 1, corner_bm_head)
+            return
+
+        # Adding horizontal
+        for (h_bm_head, corner_bm_head) in backtrack(0, h_bm >> 1, corner_bm >> 1, 0):
+            yield (h_bm_head << 1, corner_bm_head)
+        # Adding vertical
+        for (h_bm_head, corner_bm_head) in backtrack(0, h_bm >> 1, corner_bm >> 1, 2):
+            yield ((h_bm_head << 1) | 1, corner_bm_head)
+        return
+
+    # True siginifies that a Tatami room has been found
+    seen = set()
+    def recur(h_remain: int, h_bm: int, corner_bm: int) -> bool:
+        args = (h_remain, h_bm, corner_bm)
+        if args in seen: return True
+        if h_remain == 1:
+            prev_filled = True
+            for _ in range(w - 1):
+                if h_bm & 1:
+                    if not prev_filled: return False
+                    prev_filled = True
+                elif prev_filled:
+                    prev_filled = False
+                else:
+                    if corner_bm & 1: return False
+                    prev_filled = True
+                h_bm >>= 1
+                corner_bm >>= 1
+            seen.add(args)
+            return True
+
+        for (h_bm2, corner_bm2) in transitionGenerator(h_bm, corner_bm):
+            if recur(h_remain - 1, h_bm2, corner_bm2): break
+        else: return False
+        seen.add(args)
+        return True
+
+    res = recur(h, 0, 0)
+    print(seen)
+    return not res
+
 # Problem 257
 def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max: int) -> int:
 
@@ -2463,7 +2556,7 @@ def cubicRootsOfUnityModuloNGenerator(
 
     # Using Chinese remainder theorem
 
-    # Review- consider converting into a generator
+    # Note- the values are not yielded in order of size.
 
     pf = calculatePrimeFactorisation(n, ps=ps)
     n_p = len(pf)
@@ -2637,7 +2730,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {271}
+    eval_nums = {272}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -2719,3 +2812,8 @@ for triangle in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocen
 ):
     print(triangle)
 """
+print(isTatamiFree(7, 10))
+#for w in range(1, 51):
+#    for h in range(w, 51):
+#        if isTatamiFree(w, h):
+#            print(w, h)
