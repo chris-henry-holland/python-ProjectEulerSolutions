@@ -1085,10 +1085,14 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
 
 
 # Problem 256
-def isTatamiFree(w: int, h: int) -> int:
+def isTatamiFreeBruteForce(
+    w: int,
+    h: int,
+    known_non_tatami: Optional[Set[Tuple[int, int, int, int]]]=None,
+) -> int:
     # Assumes at least one of w and h is even
     if w > h: w, h = h, w
-
+    if known_non_tatami is None: known_non_tatami = set()
     def transitionGenerator(
         h_bm: int,
         corner_bm: int,
@@ -1100,9 +1104,11 @@ def isTatamiFree(w: int, h: int) -> int:
             corner_bm2: int,
             prev_lvl: int,
         ) -> Generator[Tuple[int, int], None, None]:
+            
             if idx == w:
                 if prev_lvl: yield (0, 0)
                 return
+            #print(idx, format(h_bm2, "b"), format(corner_bm2, "b"), prev_lvl)
             #if idx == w - 1:
             #    if not prev_lvl:
             #        if not h_bm2 & 1: yield (1, 0)
@@ -1113,68 +1119,259 @@ def isTatamiFree(w: int, h: int) -> int:
             # Space already filled
             if h_bm2 & 1:
                 if not prev_lvl: return
+                #print("skipping filled space")
                 for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 1):
                     yield ((h_bm_head << 1), (corner_bm_head << 1) | (prev_lvl == 1))
                 return
             # Adding horizontal
             if prev_lvl:
+                #print("leaving space for horizontal")
                 for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 0):
                     yield ((h_bm_head << 1), (corner_bm_head << 1) | (prev_lvl == 1))
-            if corner_bm & 1: return
+            if corner_bm2 & 1: return
             if not prev_lvl:
+                #print(f"adding horizontal to this and previous space")
                 for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 1):
                     yield ((h_bm_head << 1), (corner_bm_head << 1))
                 return
 
             # Adding vertical
             for (h_bm_head, corner_bm_head) in backtrack(idx + 1, h_bm2 >> 1, corner_bm2 >> 1, 2):
+                #print("adding vertical")
                 yield ((h_bm_head << 1) | 1, (corner_bm_head << 1) | (prev_lvl == 2))
             
             return
 
         if (h_bm & 1):
-            for (h_bm_head, corner_bm_head) in backtrack(0, h_bm >> 1, corner_bm >> 1, 1):
+            for (h_bm_head, corner_bm_head) in backtrack(1, h_bm >> 1, corner_bm >> 1, 1):
                 yield (h_bm_head << 1, corner_bm_head)
             return
 
         # Adding horizontal
-        for (h_bm_head, corner_bm_head) in backtrack(0, h_bm >> 1, corner_bm >> 1, 0):
+        for (h_bm_head, corner_bm_head) in backtrack(1, h_bm >> 1, corner_bm >> 1, 0):
             yield (h_bm_head << 1, corner_bm_head)
         # Adding vertical
-        for (h_bm_head, corner_bm_head) in backtrack(0, h_bm >> 1, corner_bm >> 1, 2):
-            yield ((h_bm_head << 1) | 1, corner_bm_head)
+        if not corner_bm & 1:
+            for (h_bm_head, corner_bm_head) in backtrack(1, h_bm >> 1, corner_bm >> 1, 2):
+                yield ((h_bm_head << 1) | 1, corner_bm_head)
         return
 
     # True siginifies that a Tatami room has been found
-    seen = set()
+    #seen = set()
     def recur(h_remain: int, h_bm: int, corner_bm: int) -> bool:
-        args = (h_remain, h_bm, corner_bm)
-        if args in seen: return True
+        args = (w, h_remain, h_bm, corner_bm)
+        if args in known_non_tatami: return False
+        #print(f"h_remain = {h_remain}")
         if h_remain == 1:
             prev_filled = True
             for _ in range(w - 1):
                 if h_bm & 1:
-                    if not prev_filled: return False
+                    if not prev_filled:
+                        known_non_tatami.add(args)
+                        return False
                     prev_filled = True
                 elif prev_filled:
                     prev_filled = False
                 else:
-                    if corner_bm & 1: return False
+                    if corner_bm & 1:
+                        known_non_tatami.add(args)
+                        return False
                     prev_filled = True
                 h_bm >>= 1
                 corner_bm >>= 1
-            seen.add(args)
             return True
 
         for (h_bm2, corner_bm2) in transitionGenerator(h_bm, corner_bm):
-            if recur(h_remain - 1, h_bm2, corner_bm2): break
-        else: return False
-        seen.add(args)
-        return True
+            if recur(h_remain - 1, h_bm2, corner_bm2):
+                #print(h_remain - 1, format(h_bm2, "b"), format(corner_bm2, "b"))
+                return True
+        known_non_tatami.add(args)
+        return False
 
     res = recur(h, 0, 0)
-    print(seen)
+    #print(seen)
     return not res
+
+def isTatamiFree(
+    w: int,
+    h: int,
+) -> int:
+    # Assumes at least one of w and h is even
+    if w > h: w, h = h, w
+    m = (h - 2) // (w + 1)
+    if m < 1: return False
+    return h <= (m + 1) * (w - 1) - 2
+"""
+def integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
+    n_factors: int,
+) -> Generator[Tuple[int, Dict[int, int]], None, None]:
+    
+    ps = SimplePrimeSieve()
+
+    def numbersWithExactlyNPrimeFactorsFromTheFirstMPrimes(
+        m_primes: int,
+    ) -> Generator[Tuple[int, Dict[int, int]], None, None]:
+        p_lst = []
+        for p in ps.endlessPrimeGenerator():
+            p_lst.append(p)
+            if len(p_lst) == m_primes: break
+        f_lst = [0] * m_primes
+        
+        def recur(idx: int, n_facts: int) -> Generator[Tuple[int, Dict[int, int]], None, None]:
+            if not idx:
+                pass
+            return
+
+        return
+
+    def numbersWithLargestPrimeFactor(
+        largest_prime_idx: int,
+    ) -> Generator[Tuple[int, Dict[int, int]], None, None]:
+        
+        def getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(
+            m_primes: int,
+        ) -> Tuple[int, Tuple[int, Dict[int, int]], Iterable[Tuple[int, Dict[int, int]]]]:
+            for idx in itertools.count(idx):
+                it = iter(numbersWithExactlyNPrimeFactorsFromTheFirstMPrimes(m_primes))
+                try:
+                    ans = next(it)
+                except StopIteration:
+                    continue
+                break
+            return (idx, ans, it)
+
+        m_primes, ans, it = getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(1)
+        h = [(ans, it)]
+        nxt = getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(m_primes + 1)
+
+        while True:
+            if nxt[1] >= h[0][0]:
+                ans, it2 = h[0]
+                yield ans
+                try:
+                    ans = next(it2)
+                    heapq.heappushpop(h, (ans, it2))
+                except StopIteration:
+                    heapq.heappop()
+                continue
+
+            ans, it2 = (nxt[1], nxt[2])
+            yield ans
+            try:
+                ans = next(it2)
+                heapq.heappush(h, (ans, it2))
+            except StopIteration:
+                pass
+            idx = nxt[0] + 1
+            nxt = getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(idx)
+        return
+    
+    def getNextLargestPrimeFactorGenerator(
+        idx: int,
+    ) -> Tuple[int, Tuple[int, Dict[int, int]], Iterable[Tuple[int, Dict[int, int]]]]:
+        for idx in itertools.count(idx):
+            it = iter(numbersWithLargestPrimeFactor(idx))
+            try:
+                ans = next(it)
+            except StopIteration:
+                continue
+            break
+        return (idx, ans, it)
+
+    idx, ans, it = getNextLargestPrimeFactorGenerator(0)
+    h = [(ans, it)]
+    nxt = getNextLargestPrimeFactorGenerator(idx + 1)
+
+    while True:
+        if nxt[1] >= h[0][0]:
+            ans, it2 = h[0]
+            yield ans
+            try:
+                ans = next(it2)
+                heapq.heappushpop(h, (ans, it2))
+            except StopIteration:
+                heapq.heappop()
+            continue
+
+        ans, it2 = (nxt[1], nxt[2])
+        yield ans
+        try:
+            ans = next(it2)
+            heapq.heappush(h, (ans, it2))
+        except StopIteration:
+            pass
+        idx = nxt[0] + 1
+        nxt = getNextLargestPrimeFactorGenerator(idx)
+        
+    return
+"""
+def smallestRoomSizeWithExactlyNTatamiFreeConfigurations(n_config: int=200) -> int:
+    """
+    Solution to Project Euler #256
+    """
+    ps = PrimeSPFsieve()
+    known_non_tatami = set()
+    # note that no perfect squares are Tatami-free
+    mn_factor_cnt = (n_config << 1)
+    for sz in itertools.count(2, step=2):
+        #print(sz)
+        if (not sz % 10 ** 5): print(f"size = {sz}")
+        fc = ps.factorCount(sz) 
+        if fc < mn_factor_cnt: continue
+        
+        # For rooms of width less than 5 and height such that
+        # both height and width are not both odd there is always
+        # a Tatami-free configuration
+        #for f in range(7, rt + 1):
+        #    f2, r = divmod(sz, f)
+        #    if not r: fact_pairs.append((f, f2))
+        #if len(fact_pairs) < n_config: continue
+        
+        #fact_pairs = []
+        rt = isqrt(sz)
+        remain = fc >> 1
+        cnt = 0
+        for w in sorted(ps.factors(sz)):
+            if w > rt: break
+            h = sz // w
+            remain -= 1
+            if isTatamiFree(w, h):
+                cnt += 1
+                if cnt > n_config: break
+            elif cnt + remain < n_config: break
+            """
+            rng = (w + 1, ((w ** 2 - 4 * w - 1) >> 1) if w & 1 else ((w * (w - 5)) >> 1))
+            if rng[0] > rng[1]: continue
+            h = sz // w
+            if h < rng[0] or h > rng[1]: continue
+            fact_pairs.append((w, h))
+            """
+            #if w < 7: continue
+            #fact_pairs.append((w, sz // w))
+        if cnt == n_config: break
+        """
+        if len(fact_pairs) < n_config: continue
+        print(sz, fact_pairs)
+        #mx = isqrt(sz)
+        cnt = 0
+        n_fact_pairs = len(fact_pairs)
+        for idx in range(n_fact_pairs):
+            w, h = fact_pairs[idx]
+            #print(w, h)
+            #if w > mx: break
+            h = sz // w
+            if isTatamiFree(w, h):
+                cnt += 1
+                
+                if cnt > n_config: break
+            elif cnt + (n_fact_pairs - idx - 1) < n_config:
+                break
+            print((w, h), cnt)
+        print(cnt)
+        if cnt == n_config: break
+        """
+    return sz
+
 
 # Problem 257
 def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max: int) -> int:
@@ -2657,6 +2854,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #255 = {res}, calculated in {time.time() - since:.4f} seconds")
     
+    if 256 in eval_nums:
+        since = time.time()
+        res = smallestRoomSizeWithExactlyNTatamiFreeConfigurations(n_config=200)
+        print(f"Solution to Project Euler #256 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 257 in eval_nums:
         since = time.time()
         res = angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max=10 ** 8)
@@ -2730,7 +2932,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {272}
+    eval_nums = {256}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -2812,8 +3014,22 @@ for triangle in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocen
 ):
     print(triangle)
 """
-print(isTatamiFree(7, 10))
-#for w in range(1, 51):
-#    for h in range(w, 51):
-#        if isTatamiFree(w, h):
-#            print(w, h)
+"""
+#print(isTatamiFree(100, 101))
+known_non_tatami = set()
+for w in range(1, 21):
+    h_rng = (w + 1, ((w ** 2 - 4 * w - 1) >> 1) if w & 1 else ((w * (w - 5)) >> 1))
+    for h in range(h_rng[0], h_rng[1] + 1):
+        if w & 1 and h & 1: continue
+        if isTatamiFree(w, h):
+            print(w, h, w * h)
+"""
+"""
+sz = 6683040
+cnt = 0
+for w in range(1, isqrt(sz) + 1):
+    h, r = divmod(sz, w)
+    if r: continue
+    cnt += isTatamiFree(w, h)
+print(f"sz = {sz}, Tatami-free count = {cnt}")
+"""
