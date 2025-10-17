@@ -1201,110 +1201,179 @@ def isTatamiFree(
     m = (h - 2) // (w + 1)
     if m < 1: return False
     return h <= (m + 1) * (w - 1) - 2
-"""
+
 def integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
     n_factors: int,
 ) -> Generator[Tuple[int, Dict[int, int]], None, None]:
     
     ps = SimplePrimeSieve()
 
-    def numbersWithExactlyNPrimeFactorsFromTheFirstMPrimes(
-        m_primes: int,
+    def numbersWithExactlyNPrimeFactorsWithLargestPrimeGenerator(
+        largest_prime_idx: int,
+        n_prime_factors: int,
     ) -> Generator[Tuple[int, Dict[int, int]], None, None]:
         p_lst = []
         for p in ps.endlessPrimeGenerator():
             p_lst.append(p)
-            if len(p_lst) == m_primes: break
-        f_lst = [0] * m_primes
+            if len(p_lst) == largest_prime_idx + 1: break
+        #f_lst = [0] * m_primes
         
-        def recur(idx: int, n_facts: int) -> Generator[Tuple[int, Dict[int, int]], None, None]:
+        def recur(idx: int, p_remain: int, min_n_facts_reqd: int, f_lst: List[int]) -> Generator[Tuple[int, Dict[int, int]], None, None]:
+            #print(f"recur() with idx = {idx}, p_remain = {p_remain}, min_n_facts_reqd = {min_n_facts_reqd}, f_lst = {f_lst}")
             if not idx:
-                pass
+                if min_n_facts_reqd > p_remain + 1:
+                    return
+                num = 1#p_lst[0] ** p_remain
+                f_lst[0] = p_remain
+                num_facts = {}
+                for i in range(largest_prime_idx + 1):
+                    if not f_lst[i]: continue
+                    num *= p_lst[i] ** f_lst[i]
+                    num_facts[p_lst[i]] = f_lst[i]
+                yield (num, num_facts)
+                return
+            h1 = []
+            #f_mx = min(p_remain, )
+            f_mn, f_mx = None, None
+            f_mn = 0
+            f_mx = p_remain
+            if idx == largest_prime_idx: f_mn = max(f_mn, 1)
+            for f in range(f_mn, f_mx + 1):
+                min_n_facts_reqd2 = ((min_n_facts_reqd - 1) // (f + 1)) + 1
+                q, r = divmod(p_remain, idx)
+                if q ** (idx - r) * (q + 1) ** r < min_n_facts_reqd2: continue
+                f_lst[idx] = f
+                it = iter(recur(idx - 1, p_remain - 1, min_n_facts_reqd2, list(f_lst)))
+                try:
+                    ans = next(it)
+                    heapq.heappush(h1, (ans, it))
+                except StopIteration:
+                    pass
+            f_lst[idx] = 0
+            while h1:
+                ans, it = h1[0]
+                yield ans
+                try:
+                    ans = next(it)
+                    heapq.heappushpop(h1, (ans, it))
+                except StopIteration:
+                    heapq.heappop(h1)
             return
 
+        yield from recur(largest_prime_idx, n_prime_factors, n_factors, [0] * (largest_prime_idx + 1))
         return
 
     def numbersWithLargestPrimeFactor(
         largest_prime_idx: int,
     ) -> Generator[Tuple[int, Dict[int, int]], None, None]:
         
-        def getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(
-            m_primes: int,
+        def getNextNumberWithExactlyNPrimeFactorsWithLargestPrimeGenerator(
+            n_prime_factors: int,
         ) -> Tuple[int, Tuple[int, Dict[int, int]], Iterable[Tuple[int, Dict[int, int]]]]:
-            for idx in itertools.count(idx):
-                it = iter(numbersWithExactlyNPrimeFactorsFromTheFirstMPrimes(m_primes))
+            for n_p_facts in itertools.count(n_prime_factors):
+                it = iter(numbersWithExactlyNPrimeFactorsWithLargestPrimeGenerator(largest_prime_idx, n_p_facts))
                 try:
                     ans = next(it)
                 except StopIteration:
                     continue
                 break
-            return (idx, ans, it)
+            return (n_p_facts, ans, it)
 
-        m_primes, ans, it = getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(1)
-        h = [(ans, it)]
-        nxt = getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(m_primes + 1)
+        n_p_facts, ans, it = getNextNumberWithExactlyNPrimeFactorsWithLargestPrimeGenerator(1)
+        h2 = [(ans, it)]
+        nxt = getNextNumberWithExactlyNPrimeFactorsWithLargestPrimeGenerator(n_p_facts + 1)
 
-        while True:
-            if nxt[1] >= h[0][0]:
-                ans, it2 = h[0]
+        while h2 or nxt is not None:
+            while not h2 or (nxt is not None and nxt[1] < h2[0][0]):
+                idx, ans, it2 = nxt
+                heapq.heappush(h2, (ans, it2))
+                nxt = getNextNumberWithExactlyNPrimeFactorsWithLargestPrimeGenerator(idx + 1)
+            ans, it2 = h2[0]
+            yield ans
+            try:
+                ans = next(it2)
+                heapq.heappushpop(h2, (ans, it2))
+            except StopIteration:
+                heapq.heappop(h2)
+            """
+            if h2 and (nxt is None or nxt[1] >= h2[0][0]):
+                ans, it2 = h2[0]
                 yield ans
                 try:
                     ans = next(it2)
-                    heapq.heappushpop(h, (ans, it2))
+                    heapq.heappushpop(h2, (ans, it2))
                 except StopIteration:
-                    heapq.heappop()
+                    heapq.heappop(h2)
                 continue
 
             ans, it2 = (nxt[1], nxt[2])
             yield ans
             try:
                 ans = next(it2)
-                heapq.heappush(h, (ans, it2))
+                heapq.heappush(h2, (ans, it2))
             except StopIteration:
                 pass
             idx = nxt[0] + 1
-            nxt = getNextNumberWithExactlyNPrimeFactorsFromTheFirstMPrimesGenerator(idx)
+            nxt = getNextNumberWithExactlyNPrimeFactorsWithLargestPrimeGenerator(idx)
+            """
         return
     
     def getNextLargestPrimeFactorGenerator(
-        idx: int,
+        largest_prime_idx: int,
     ) -> Tuple[int, Tuple[int, Dict[int, int]], Iterable[Tuple[int, Dict[int, int]]]]:
-        for idx in itertools.count(idx):
-            it = iter(numbersWithLargestPrimeFactor(idx))
+        for l_p_idx in itertools.count(largest_prime_idx):
+            it = iter(numbersWithLargestPrimeFactor(l_p_idx))
             try:
                 ans = next(it)
             except StopIteration:
                 continue
             break
-        return (idx, ans, it)
+        return (l_p_idx, ans, it)
 
     idx, ans, it = getNextLargestPrimeFactorGenerator(0)
-    h = [(ans, it)]
+    h0 = [(ans, it)]
     nxt = getNextLargestPrimeFactorGenerator(idx + 1)
+    #print(h0, nxt)
 
-    while True:
-        if nxt[1] >= h[0][0]:
-            ans, it2 = h[0]
+    while h0 or nxt is not None:
+        
+        while not h0 or (nxt is not None and nxt[1] < h0[0][0]):
+            print(h0[0], nxt)
+            idx, ans, it2 = nxt
+            heapq.heappush(h0, (ans, it2))
+            nxt = getNextLargestPrimeFactorGenerator(idx + 1)
+        ans, it2 = h0[0]
+        yield ans
+        try:
+            ans = next(it2)
+            heapq.heappushpop(h0, (ans, it2))
+        except StopIteration:
+            heapq.heappop(h0)
+
+        """
+        if h0 and (nxt is None or nxt[1] >= h0[0][0]):
+            ans, it2 = h0[0]
             yield ans
             try:
                 ans = next(it2)
-                heapq.heappushpop(h, (ans, it2))
+                heapq.heappushpop(h0, (ans, it2))
             except StopIteration:
-                heapq.heappop()
+                heapq.heappop(h0)
             continue
 
         ans, it2 = (nxt[1], nxt[2])
         yield ans
         try:
             ans = next(it2)
-            heapq.heappush(h, (ans, it2))
+            heapq.heappush(h0, (ans, it2))
         except StopIteration:
             pass
         idx = nxt[0] + 1
         nxt = getNextLargestPrimeFactorGenerator(idx)
+        """
         
     return
-"""
+
 def smallestRoomSizeWithExactlyNTatamiFreeConfigurations(n_config: int=200) -> int:
     """
     Solution to Project Euler #256
@@ -2932,7 +3001,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {256}
+    eval_nums = {200}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -3033,3 +3102,9 @@ for w in range(1, isqrt(sz) + 1):
     cnt += isTatamiFree(w, h)
 print(f"sz = {sz}, Tatami-free count = {cnt}")
 """
+
+for num, num_pf in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
+    n_factors=400,
+):
+    if num > 10 ** 8: break
+    print(num, num_pf)
