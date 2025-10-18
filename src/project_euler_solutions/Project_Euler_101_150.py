@@ -5342,8 +5342,11 @@ def ellipseInternalNormFraction(
 
     Args:
         Required positional:
-        ellipse (3-tuple of ints): 3 integers specifying the
-                equation of the ellipse as shown above.
+        The ellipse is the set of points on the 2D plane with Cartesian
+            coordinates (x, y) defined by the equation:
+                ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+            where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+            positive integers.
         pos (2-tuple of CustomFraction objects): Two fractions,
                 specifying the Cartesian coordinates of the point
                 on the ellipse for which the internal normal is
@@ -5378,6 +5381,8 @@ def otherRationalEllipseIntersection(
     The ellipse is the set of points on the 2D plane with Cartesian
     coordinates (x, y) defined by the equation:
         ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
     
     Note that for a rational ellipse (i.e. an ellipse whose equation
     can be expressed with only integer coefficients), a rational point
@@ -5477,6 +5482,8 @@ def nextEllipseReflectedRayFraction(
     The ellipse is the set of points on the 2D plane with Cartesian
     coordinates (x, y) defined by the equation:
         ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
     
     Note that for a rational ellipse (i.e. an ellipse whose equation
     can be expressed with only integer coefficients), a rational point
@@ -5488,8 +5495,8 @@ def nextEllipseReflectedRayFraction(
 
     Args:
         Required positional:
-        ellipse (3-tuple of ints): 3 integers specifying the
-                equation of the ellipse as shown above.
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
         pos (2-tuple of CustomFraction objects): Two fractions,
                 specifying the Cartesian coordinates of the point
                 on the ellipse for which the beam intersects with
@@ -5543,6 +5550,103 @@ def laserBeamEllipseReflectionPointFractionGenerator(
     pos0: Tuple[CustomFraction, CustomFraction],
     reflect1: Tuple[CustomFraction, CustomFraction],
 ) -> Generator[Tuple[CustomFraction, CustomFraction], None, None]:
+    """
+    Generator yielding the points at which a beam of light reflects
+    off the interior boundary of a given reflective ellipse (in the
+    chronological order at which the reflections occur) where the
+    beam originates from the point pos0 and first reflects at the
+    point reflect1 on the boundary of the ellipse (distinct from
+    pos0). As such, reflect1 is the first value yielded.
+
+    It is assumed that when the beam is reflected by the ellipse,
+    that relative to the tangent of the ellipse at the point of
+    intersection the angle of incidence equals the angle of reflection
+    (i.e. the angle the tangent on one side of the intersection makes
+    with the incoming beam is equal to the angle the tangent on the
+    other side of the intersection makes with the reflected beam).
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
+
+    It is required that pos0 and reflect1 must be defined in such
+    a way that the beam approaches reflect1 from the inside of the
+    ellipse, otherwise the beam would reflect away from the
+    ellipse and never again approach the boundary of the ellipse.
+    
+    Note that the generator never terminates and thus any
+    iterator over this generator must include provision to
+    terminate (e.g. a break or return statement), otherwise
+    it would result in an infinite loop.
+
+    Further note that for a rational ellipse (i.e. an ellipse whose
+    equation can be expressed with only integer coefficients, as is
+    the case here), a beam travelling along a vector for which one
+    of the Cartesian coordinate coefficients is a rational multiple
+    of the other to a point on the ellipse that can be expressed
+    with rational Cartesian coordinates, the direction reflected
+    beam will also be able to be represented by a vector for which
+    one of the Cartesian coordinate coefficients is a rational
+    multiple of the other, and furthermore will next intersect
+    with (and so be reflected by) the ellipse at a point that
+    can be expressed with rational Cartesian coordinates. Thus,
+    given that the initial beam is in a direction that can be
+    expressed as a vector in the manner described and the first
+    point of reflection is specified using rational Cartesian
+    coordinates, by induction the points of reflection of this
+    generator the point of intersection will all have rational
+    Cartesian coordinates, thus justifying the form of the yielded
+    values as ordered pairs of fractions representing rational
+    Cartesian coordinates.
+
+    Args:
+        Required positional:
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
+        pos0 (2-tuple of CustomFraction objects): An ordered pair
+                of rational numbers represented by fractions,
+                specifying the Cartesian coordinates of the location
+                from which the beam originates.
+        reflect1 (2-tuple of CustomFraction objects): An ordered pair
+                of rational numbers represented by fractions,
+                specifying the Cartesian coordinates of the location
+                at which the beam reflects from the interior boundary
+                of the ellipse. This is the first value yielded.
+                This location is required to be on the boundary of the
+                ellipse, and thus should satisfy:
+                 ellipse[0] * reflect1[0] ** 2 + ellipse[1] * reflect1[1] ** 2 = reflect1[2]
+                Note that if the beam intersects with the ellipse when
+                travelling between pos0 and reflect1 before the first
+                reflection then these intersections are ignored and
+                do not result in any reflections.
+    
+    Yields:
+    2-tuples of CustomFraction objects representing rational numbers as
+    fractions, with each successive value yielded giving the Cartesian
+    coordinates of the next location at which the beam reflects off the
+    interior boundary of the ellipse, with the first value yielded being
+    reflect1. As such, each yielded point is on the boundary of the ellipse
+    and therefore satisifies the ellipse equation.
+    As this process can in principle continue indefinitely with an
+    infinite number of reflections, this generator does not of itself
+    terminate and so any iterator utilising this generator must have
+    its own mechanism for terminating (e.g. a conditional break or
+    return statement) to avoid an infinite loop.
+    """
+    if (ellipse[0] <= 0 or ellipse[1] <= 0 or ellipse[2] <= 0):
+        raise ValueError("All three numbers in ellipse are required to be "
+                    "strictly positive, otherwise the represented conic "
+                    "section is not an ellipse.")
+    if ellipse[0] * reflect1[0] * reflect1[0] + ellipse[1] * reflect1[1] * reflect1[1] != ellipse[2]:
+        raise ValueError("reflect1 is required to be on the boundary "
+                "of the ellipse")
+    if pos0 == reflect1:
+        raise ValueError("pos0 and reflect1 must be different.")
+    # Review- consider working out and adding a condition that checkes
+    # that pos0 and reflect1 are defined so that the beam does indeed
+    # approach reflect1 from the interior of the ellipse.
     pos0_neg = (-pos0[0], -pos0[1])
     #print(reflect1, pos0_neg)
     vec = tuple(x + y for x, y in zip(reflect1, pos0_neg))
@@ -5554,6 +5658,7 @@ def laserBeamEllipseReflectionPointFractionGenerator(
     #print(f"reflect1 = {reflect1} = {(reflect1[0][0] / reflect1[0][1], reflect1[1][0] / reflect1[1][1])}")
     
     pos = reflect1
+    yield pos
     cnt = 0
     while True:
         vec, pos = nextEllipseReflectedRayFraction(ellipse, pos, vec)
@@ -5676,6 +5781,7 @@ def laserBeamEllipseReflectionPointFloatGenerator(
     #print(f"reflect1 = {reflect1} = {(reflect1[0][0] / reflect1[0][1], reflect1[1][0] / reflect1[1][1])}")
     
     pos = reflect1
+    yield pos
     while True:
         vec, pos = nextEllipseReflectedRayFloat(ellipse, pos, vec)
         #print(f"vec = {vec} = {(vec[0][0] / vec[0][1], vec[1][0] / vec[1][1])}")
@@ -5710,7 +5816,7 @@ def laserBeamEllipseReflectionCount(
     """
     #since = time.time()
     #print(reflect1)
-    res = 1
+    res = 0
     closest = float("inf")
     if use_float:
         x_window_float = tuple(x.numerator / x.denominator for x in x_window)
