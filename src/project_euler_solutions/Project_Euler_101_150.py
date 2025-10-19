@@ -5334,19 +5334,18 @@ def ellipseInternalNormFraction(
     Given a rational ellipse in the x-y plane with its semi-major
     axes parallel to the x and y axes giving by the equation:
         ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
-    and a point at position in with rational Cartesian coordinates
-    pos on the ellipse, finds a vector in Cartesian coordinates
-    with integer coefficients normal to the ellipse at that
-    point, pointing towards the interior of the ellipse.
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers, and a point at position with rational
+    Cartesian coordinates pos on the ellipse, finds a vector in
+    Cartesian coordinates with integer coefficients normal to the
+    ellipse at that point, pointing towards the interior of the
+    ellipse.
     Note that the returned vector is not in general normalized.
 
     Args:
         Required positional:
-        The ellipse is the set of points on the 2D plane with Cartesian
-            coordinates (x, y) defined by the equation:
-                ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
-            where ellipse[0], ellipse[1] and ellipse[2] are all strictly
-            positive integers.
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
         pos (2-tuple of CustomFraction objects): Two fractions,
                 specifying the Cartesian coordinates of the point
                 on the ellipse for which the internal normal is
@@ -5461,16 +5460,11 @@ def nextEllipseReflectedRayFraction(
     """
     Given a rational point on a rational ellipse and a vector with a
     integer Cartesian coefficients, for a beam travelling in the
-    direction of that vector intersecting the the ellipse at that
-    point from inside the ellipse, calculates the direction the beam
+    direction of that vector intersecting the ellipse at that point
+    from inside the ellipse, calculates the direction the beam
     would be reflected by the ellipse as a vector with integer
     Cartesian coefficients and the point at which the reflected beam
     would next intersect with the ellipse.
-
-    It is further required that pos and vec are defined such that the
-    beam approaches the intersection from the inside of the ellipse,
-    otherwise the reflected beam would never again intersect the
-    ellipse.
 
     It is assumed that when the beam is reflected by the ellipse,
     that relative to the tangent of the ellipse at the point of
@@ -5478,6 +5472,11 @@ def nextEllipseReflectedRayFraction(
     (i.e. the angle the tangent on one side of the intersection makes
     with the incoming beam is equal to the angle the tangent on the
     other side of the intersection makes with the reflected beam).
+
+    It is further required that pos and vec are defined such that the
+    beam approaches the intersection from the inside of the ellipse,
+    otherwise the reflected beam would never again intersect the
+    ellipse.
 
     The ellipse is the set of points on the 2D plane with Cartesian
     coordinates (x, y) defined by the equation:
@@ -5552,9 +5551,9 @@ def laserBeamEllipseReflectionPointFractionGenerator(
 ) -> Generator[Tuple[CustomFraction, CustomFraction], None, None]:
     """
     Generator yielding the points at which a beam of light reflects
-    off the interior boundary of a given reflective ellipse (in the
-    chronological order at which the reflections occur) where the
-    beam originates from the point pos0 and first reflects at the
+    off the interior boundary of a given reflective rational ellipse
+    (in the chronological order at which the reflections occur) where
+    the beam originates from the point pos0 and first reflects at the
     point reflect1 on the boundary of the ellipse (distinct from
     pos0). As such, reflect1 is the first value yielded.
 
@@ -5690,29 +5689,34 @@ def laserBeamEllipseReflectionPointFractionGenerator(
 def ellipseInternalNormFloat(
     ellipse: Tuple[int, int, int],
     pos: Tuple[float, float],
-) -> Tuple[float]:
+) -> Tuple[float, float]:
     """
     Given a rational ellipse in the x-y plane with its semi-major
     axes parallel to the x and y axes giving by the equation:
         ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
-    and a point at position in Cartesian coordinates:
-        (pos[0], pos[1])
-    on the ellipse, finds a vector in Cartesian coordinates
-    normal to the ellipse at that point, pointing towards the
-    interior of the ellipse.
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers, and a point at position with real
+    Cartesian coordinates pos on the ellipse, finds a vector in
+    Cartesian coordinates with real coefficients normal to the
+    ellipse at that point, pointing towards the interior of the
+    ellipse.
     Note that the returned vector is not in general normalized.
 
     Args:
         Required positional:
-        ellipse (3-tuple of ints): 3 integers specifying the
-                equation of the ellipse as shown above.
-        pos (2-tuple of 2-tuples of ifloats): The point on the
-                ellipse in Cartesian coordinates.
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
+        pos (2-tuple of floats): Two real numbers, specifying the
+                Cartesian coordinates of the point on the ellipse for
+                which the internal normal is to be found. It is assumed
+                without checking that pos is a point on the ellipse
+                (i.e. pos satisfies the equation for the ellipse given
+                above).
     
     Returns:
     2-tuple of floats giving a normal vector for the ellipse at
-    the given point expressed Cartesian coordinates, pointing to
-    the interior of the ellipse.
+    the given point expressed Cartesian coordinates, pointing to the
+    interior of the ellipse.
     """
     
     # Pointing into the ellipse
@@ -5724,10 +5728,37 @@ def otherEllipseIntersectionFloat(
     vec: Tuple[float, float]
 ) -> Tuple[float, float]:
     """
-    Given a rational point on a rational ellipse and a vector with a
-    rational Cartesian representation, for a line parallel to that
-    vector intersecting that ellipse at that rational point, identifies
-    the other point at which the line and ellipse intersect.
+    Given a point on a rational ellipse and a vector, for a line
+    parallel to that vector intersecting that ellipse at that point,
+    identifies the other point at which the line and ellipse intersect.
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
+
+    Args:
+        Required positional:
+        ellipse (3-tuple of ints): 3 integers specifying the
+                equation of the ellipse as shown above.
+        pos (2-tuple of floats): An ordered pair of real numbers,
+                specifying the Cartesian coordinates of the point
+                on the ellipse for which the other point on the line
+                through that point parallel to vec is to be found.
+                It is assumed without checking that pos is a point
+                on the ellipse (i.e. pos satisfies the equation for
+                the ellipse given above).
+        vec (2-tuple of floats): An ordered pair of real numbers,
+                specifying the Cartesian coordinate coefficients of
+                the vector which the line through the point pos and
+                the other point on the ellipse to be found is to be
+                parallel.
+    
+    Returns:
+    2-tuple of floats giving the Cartesian coordinates of the other
+    point at which the ellipse and the line parallel to vec passing
+    through the point pos intersect.
     """
     #print(pos, vec)
     A, B, C = ellipse
@@ -5757,7 +5788,59 @@ def nextEllipseReflectedRayFloat(
     pos: Tuple[float, float],
     vec: Tuple[float, float]
 ) -> Tuple[Tuple[float, float], Tuple[float, float]]: 
+    """
+    Given a point on a rational ellipse and a vector, for a beam
+    travelling in the direction of that vector intersecting the ellipse
+    at that point from inside the ellipse, calculates the direction
+    the beam would be reflected by the ellipse as a vector with real
+    Cartesian coefficients and the point at which the reflected beam
+    would next intersect with the ellipse.
 
+    It is assumed that when the beam is reflected by the ellipse,
+    that relative to the tangent of the ellipse at the point of
+    intersection the angle of incidence equals the angle of reflection
+    (i.e. the angle the tangent on one side of the intersection makes
+    with the incoming beam is equal to the angle the tangent on the
+    other side of the intersection makes with the reflected beam).
+
+    It is further required that pos and vec are defined such that the
+    beam approaches the intersection from the inside of the ellipse,
+    otherwise the reflected beam would never again intersect the
+    ellipse.
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
+
+    Args:
+        Required positional:
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
+        pos (2-tuple of floats): Two real numbers, specifying the
+                Cartesian coordinates of the point on the ellipse for
+                which the beam intersects with the ellipse and is to
+                be reflected.
+                It is assumed without checking that pos is a point
+                on the ellipse (i.e. pos satisfies the equation for
+                the ellipse given above).
+        vec (2-tuple of floats): An ordered pair of real numbers,
+                specifying the Cartesian coordinate coefficients of
+                the vector representing the direction of the beam to
+                be reflected.
+    
+    Returns:
+    2-tuple containing:
+      - In index 0 a 2-tuple of floats representing a vector with real
+        coefficients giving the direction of the reflected beam. This
+        is specified uniquely as a pair of floats such that the length
+        of the vector is equal to that of vec. Hence, this vector is
+        normalised if and only if vec is normalised.
+      - In index 1 a 2-tuple of floats representing the Cartesian
+        coordinates of the point at which the reflected beam would next
+        intersect the ellipse.
+    """
     norm = ellipseInternalNormFloat(ellipse, pos)
     #print(f"norm = {norm}")
     norm_mag_sq = sum(x * x for x in norm)
@@ -5774,6 +5857,69 @@ def laserBeamEllipseReflectionPointFloatGenerator(
     pos0: Tuple[float, float],
     reflect1: Tuple[float, float]
 ) -> Generator[Tuple[float, float], None, None]:
+    """
+    Generator yielding the points at which a beam of light reflects
+    off the interior boundary of a given reflective rational ellipse
+    (in the chronological order at which the reflections occur) where
+    the beam originates from the point pos0 and first reflects at the
+    point reflect1 on the boundary of the ellipse (distinct from
+    pos0). As such, reflect1 is the first value yielded.
+
+    It is assumed that when the beam is reflected by the ellipse,
+    that relative to the tangent of the ellipse at the point of
+    intersection the angle of incidence equals the angle of reflection
+    (i.e. the angle the tangent on one side of the intersection makes
+    with the incoming beam is equal to the angle the tangent on the
+    other side of the intersection makes with the reflected beam).
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
+
+    It is required that pos0 and reflect1 must be defined in such
+    a way that the beam approaches reflect1 from the inside of the
+    ellipse, otherwise the beam would reflect away from the
+    ellipse and never again approach the boundary of the ellipse.
+    
+    Note that the generator never terminates and thus any
+    iterator over this generator must include provision to
+    terminate (e.g. a break or return statement), otherwise
+    it would result in an infinite loop.
+
+    Args:
+        Required positional:
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
+        pos0 (2-tuple of floats): An ordered pair of real numbers,
+                specifying the Cartesian coordinates of the location
+                from which the beam originates.
+        reflect1 (2-tuple of floats): An ordered pair of real numbers,
+                specifying the Cartesian coordinates of the location
+                at which the beam reflects from the interior boundary
+                of the ellipse. This is the first value yielded.
+                This location is required to be on the boundary of the
+                ellipse, and thus should satisfy:
+                 ellipse[0] * reflect1[0] ** 2 + ellipse[1] * reflect1[1] ** 2 = reflect1[2]
+                Note that if the beam intersects with the ellipse when
+                travelling between pos0 and reflect1 before the first
+                reflection then these intersections are ignored and
+                do not result in any reflections.
+    
+    Yields:
+    2-tuples of floats representing real numbers as with each successive
+    value yielded giving the Cartesian coordinates of the next location
+    at which the beam reflects off the interior boundary of the ellipse,
+    with the first value yielded being reflect1. As such, each yielded point
+    is on the boundary of the ellipse and therefore satisifies the ellipse
+    equation.
+    As this process can in principle continue indefinitely with an
+    infinite number of reflections, this generator does not of itself
+    terminate and so any iterator utilising this generator must have
+    its own mechanism for terminating (e.g. a conditional break or
+    return statement) to avoid an infinite loop.
+    """
     pos0_neg = (-pos0[0], -pos0[1])
     #print(reflect1, pos0_neg)
     vec = tuple(x + y for x, y in zip(reflect1, pos0_neg))
@@ -6539,8 +6685,8 @@ def maximumGridSumSubsequence(grid: List[List[int]]) -> int:
                 all the contained lists are the same length.
     
     Returns:
-    Integer (int) giving the the largest sum elements that
-    appear in a continuous straight line in the array.
+    Integer (int) giving the largest sum elements that appear in
+    a continuous straight line in the array.
 
     Outline of rationale:
     For each possible line that goes across the whole grid along
