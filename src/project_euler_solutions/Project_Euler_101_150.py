@@ -5946,19 +5946,96 @@ def laserBeamEllipseReflectionCount(
     """
     Solution to Project Euler #144
 
-    Note that this solves the problem very quickly if use_float is set to
-    True, even though this means that we cannot be completely confident
-    in the answer due to rounding errors. If use_float is set to False then
-    the solution is exact, though this results in fractions whose numberator
-    and denominator that get larger with each reflection (it appears to be
-    exponentially so), rapidly resulting in unmanageably large integers
-    which not only makes it extremely slow, but also likely to exhaust all
-    memory resources. The exact version has never been run to the extent
-    that it solves for the parameters used in the Project Euler problem
-    due to the extreme slow down (it reached reflection 56 before being
-    abandoned). However, the option to solve exactly has been left in
-    to illustrate that at least in theory, an exact solution in rationals
-    is possible.
+    Consider a rational elliptical reflective surface in the Cartesian
+    plane centred on the origin defined by the equation ellipse that
+    has a single gap in the positive y half-plane around the y-axis in
+    the x-range x_window. For a beam of light originating from the
+    rational point pos0 that is either inside the ellipse or enters
+    the ellipse and first reflects off the interior or the elliptical
+    surface at the rational point reflect1, calculates the number of
+    times the beam reflects off the ellipse before it exits through
+    the gap.
+
+    It is assumed that when the beam is reflected by the ellipse,
+    that relative to the tangent of the ellipse at the point of
+    intersection the angle of incidence equals the angle of reflection
+    (i.e. the angle the tangent on one side of the intersection makes
+    with the incoming beam is equal to the angle the tangent on the
+    other side of the intersection makes with the reflected beam).
+
+    The ellipse is the set of points on the 2D plane with Cartesian
+    coordinates (x, y) defined by the equation:
+        ellipse[0] * x ** 2 + ellipse[1] * y ** 2 = ellipse[2]
+    where ellipse[0], ellipse[1] and ellipse[2] are all strictly
+    positive integers.
+
+    It is required that pos0 and reflect1 must be defined in such
+    a way that the beam approaches reflect1 from the inside of the
+    ellipse, otherwise the beam would reflect away from the
+    ellipse and never again approach the boundary of the ellipse.
+
+    Note that depending on the value of use_float, the reflections are
+    evaluated exactly with fractions (False) or approximately with floats
+    (True). For the latter, the problem is solved significantly facter,
+    even though this means that we cannot be completely confident
+    in the answer due to rounding errors, although it does result in the
+    correct solution for the parameters given for Project Euler problem
+    #144.
+    If use_float is set to False then the solution is exact, though this
+    results in fractions whose numberator and denominator that get
+    larger with each reflection (it appears to be exponentially so),
+    rapidly resulting in unmanageably large integers which not only makes
+    it extremely slow, but also likely to exhaust all memory resources.
+    The exact version has never been run to the extent that it solves
+    for the parameters used in the Project Euler problem due to the
+    extreme slow down (it reached reflection 56 before being abandoned).
+    However, the option to solve exactly has been left in to illustrate
+    that at least in theory, an exact solution in rationals is possible.
+    
+    Args:
+        Optional named:
+        ellipse (3-tuple of ints): 3 strictly positive integers
+                specifying the equation of the ellipse as shown above.
+            Default: (4, 1, 100)
+        pos0 (2-tuple of CustomFraction objects): An ordered pair
+                of rational numbers represented by fractions,
+                specifying the Cartesian coordinates of the location
+                from which the beam originates.
+            Default: (CustomFraction(0, 1), CustomFraction(101, 10))
+        reflect1 (2-tuple of CustomFraction objects): An ordered pair
+                of rational numbers represented by fractions,
+                specifying the Cartesian coordinates of the location
+                at which the beam reflects from the interior boundary
+                of the ellipse. This is the first value yielded.
+                This location is required to be on the boundary of the
+                ellipse, and thus should satisfy:
+                 ellipse[0] * reflect1[0] ** 2 + ellipse[1] * reflect1[1] ** 2 = reflect1[2]
+                Note that if the beam intersects with the ellipse when
+                travelling between pos0 and reflect1 before the first
+                reflection then these intersections are ignored and
+                do not result in any reflections.
+            Default: (CustomFraction(7, 5), CustomFraction(-48, 5))
+        x_window (2-tuple of CustomFraction objects): An ordered pair
+                of rational numbers represented as fractions giving the
+                inclusive range of x-values of the gap in the ellipse
+                in the positive y half-plane.
+            Default: (CustomFraction(-1, 100), CustomFraction(1, 100))
+        use_float (bool): Boolean specifying whether to calculated the
+                reflections exactly using fractions (False) or
+                approximately using floats (True). In the case of the
+                latter, the correct answer is not guaranteed due to
+                rounding errors, but in the case of the former in
+                cases where many reflections occur, the solution is
+                likely to result in a prohibitive amount of time and/or
+                memory being used due to the increasingly large
+                numbers needed to represent the fractions with each
+                reflection.
+            Default: True
+
+    Returns:
+    Integer (int) giving the number of reflections that occur before the
+    beam exits the ellipse through the gap, including the first reflection
+    at reflect1.
     """
     #since = time.time()
     #print(reflect1)
