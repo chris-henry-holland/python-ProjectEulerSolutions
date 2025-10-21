@@ -6558,6 +6558,28 @@ def investigatingAPrimePatternSum(n_max: int=150 * 10 ** 6 - 1, add_nums: List[i
 def rectanglesInCrossHatchedGrids(m: int=47, n: int=43) -> int:
     """
     Solution to Project Euler #147
+
+    For a grid of m x n crossed squares (i.e. squares for which every
+    vertex is connected by a straight line, including diagonals, in such
+    a way that the diagonals meet at the centre of the square), calculates
+    the number of ways four intersections of straight lines in the grid
+    (including the square centres) can be selected such that they form the
+    vertices of a rectangle in the grid whose edges all coincide with the
+    lines on the grid over their whole extent.
+
+    Args:
+        Optional named:
+        m (int): The number of rows of crossed squares in the grid.
+            Default: 47
+        n (int): The number of columns of crossed squares in the grid.
+            Default: 43
+    
+    Returns:
+    Integer (int) giving the number of distinct sets of four intersections
+    in the grid that form the vertices rectangles in the manner described.
+
+    Outline of rationale:
+    TODO
     """
     #since = time.time()
     if n < m: m, n = n, m
@@ -6822,7 +6844,12 @@ def maximumGridSumSubsequence(grid: List[List[int]]) -> int:
             )
     return res
 
-def generalisedLaggedFibonacciGenerator(poly_coeffs: Tuple[int]=(100003, -200003, 0, 300007), lags: Tuple[int]=(24, 55), min_val: int=-5 * 10 ** 5, max_val: int=5 * 10 ** 5 - 1) -> Generator[int, None, None]:
+def generalisedLaggedFibonacciGenerator(
+    poly_coeffs: Tuple[int]=(100003, -200003, 0, 300007),
+    lags: Tuple[int]=(24, 55),
+    min_val: int=-5 * 10 ** 5,
+    max_val: int=5 * 10 ** 5 - 1,
+) -> Generator[int, None, None]:
     """
     Generator iterating over the terms in a generalisation
     of a lagged Fibonacci generator sequence for given for a
@@ -6946,7 +6973,12 @@ def constructLaggedFibonacciGrid(
 ) -> List[List[int]]:
     
 
-    it = generalisedLaggedFibonacciGenerator(poly_coeffs=l_fib_poly_coeffs, lags=l_fib_lags, min_val=min_grid_val, max_val=max_grid_val)
+    it = generalisedLaggedFibonacciGenerator(
+        poly_coeffs=l_fib_poly_coeffs,
+        lags=l_fib_lags,
+        min_val=min_grid_val,
+        max_val=max_grid_val,
+    )
     grid = []
     for i1 in range(shape[0]):
         grid.append([])
@@ -6965,7 +6997,13 @@ def maximumLaggedFibonacciGridSumSubsequence(
     Solution to Project Euler #149
     """
     #since = time.time()
-    grid = constructLaggedFibonacciGrid(shape, l_fib_poly_coeffs=l_fib_poly_coeffs, l_fib_lags=l_fib_lags, min_grid_val=min_grid_val, max_grid_val=max_grid_val)
+    grid = constructLaggedFibonacciGrid(
+        shape,
+        l_fib_poly_coeffs=l_fib_poly_coeffs,
+        l_fib_lags=l_fib_lags,
+        min_grid_val=min_grid_val,
+        max_grid_val=max_grid_val,
+    )
     """
     it = laggedFibonacciGenerator()
     grid = []
@@ -7223,7 +7261,12 @@ def constructLinearCongruentialTriangle(
     lists has an integer value between min_triangle_value
     and max_triangle_value inclusive.
     """
-    it = linearCongruentialGenerator(k=l_cong_k, m=l_cong_m, min_value=min_triangle_value, max_value=max_triangle_value)
+    it = linearCongruentialGenerator(
+        k=l_cong_k,
+        m=l_cong_m,
+        min_value=min_triangle_value,
+        max_value=max_triangle_value,
+    )
     triangle = []
     for i in range(n_rows):
         triangle.append([])
@@ -7231,7 +7274,13 @@ def constructLinearCongruentialTriangle(
             triangle[-1].append(next(it))
     return triangle
 
-def subLinearCongruentialTriangleSubTriangleSum(n_rows: int=1000, l_cong_k: int=615949, l_cong_m: int=797807, min_triangle_value: int=-(1 << 19), max_triangle_value: int=(1 << 19) - 1) -> int:
+def subLinearCongruentialTriangleSubTriangleSum(
+    n_rows: int=1000,
+    l_cong_k: int=615949,
+    l_cong_m: int=797807,
+    min_triangle_value: int=-(1 << 19),
+    max_triangle_value: int=(1 << 19) - 1,
+) -> int:
     """
     Solution to Project Euler #150
 
