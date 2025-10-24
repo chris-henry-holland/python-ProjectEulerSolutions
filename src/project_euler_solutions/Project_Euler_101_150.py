@@ -6752,7 +6752,7 @@ def kadane(seq: Iterable[int]) -> int:
 
 def maximumGridSumSubsequence(grid: List[List[int]]) -> int:
     """
-    For a 2D array of integers, finds the largest sum elements
+    For a 2D grid of integers, finds the largest sum elements
     that appear in a straight line in the array, where the allowed
     lines are vertical, horizontal, diagonal or antidiagonal and
     if two elements on the line are included then all elements
@@ -6971,7 +6971,68 @@ def constructLaggedFibonacciGrid(
     min_grid_val: int=-5 * 10 ** 5,
     max_grid_val: int=5 * 10 ** 5 - 1,
 ) -> List[List[int]]:
+    """
+    Function constructing a 2-dimensional grid of integers between
+    min_grid-val and max_grid_val inclusive with entries calculated
+    from a generalisation of the lagged Fibonacci generator sequence,
+    in which the entry at indices (i1, i2) (zero-indexed) is given
+    by the (i1 * shape[1] + i2 + 1)th term in the generalisation of
+    the lagged Fibonacci generator equence.
+
+    The generalisation of the lagged Fibonacci generator sequence for
+    the given tuple of integers l_fib_poly_coeffs, tuple of strictly
+    positive integers l_fib_lags, and the integers min_val and max_val
+    is the sequence such that for integer i >= 1, the i:th term in
+    the sequence is:
+        t_i = ((sum j from 0 to len(l_fib_poly_coeffs) - 1) (l_fib_poly_coeffs[j] * i ** j) % (max_grid_val - min_grid_val + 1)) - min_grid_val
+                for i <= max(l_fib_lags)
+              (((sum j from 0 to len(l_fib_lags) - 1) (t_(i - l_fib_lags[i]))) % (max_grid_val - min_grid_val + 1)) - min_grid_val
+                otherwise
+    where % signifies modular division (i.e. the remainder of the integer
+    preceding that symbol by the integer succeeding it).
+
+    Args:
+        Required positional:
+        shape (2-tuple of ints): An ordered pair of strictly positive
+                integers, giving the number of rows and columns respectively
+                of the 2-dimensional grid to be constructed.
+
+        Optional named:
+        l_fib_poly_coeffs (tuple of ints): Tuple of integers giving the
+                coefficients of the polynomial used to calculate the
+                polynomial terms of the generalisation of the lagged
+                Fibonacci generator sequence used to generate the
+                edges.
+            Default: (100003, -200003, 0, 300007)
+        l_fib_lags (tuple of ints): Tuple of strictly positive integers,
+                which when calculating the recursive terms of the
+                generlisation of the lagged Fibonacci generator sequence
+                used to generate the edges, indicates how many steps back
+                in the sequence the previous terms summed should each be
+                from the position of the term being generated. Additionally,
+                the maximum value determines at which term the transition
+                from the polynomial terms to the recursive terms will occur
+                in this sequence.
+            Default: (24, 55)
+        min_grid_val (int): Integer no greater than max_grid_val giving
+                the smallest value that it may appear in the grid, and
+                used in the calculation of the terms in the generalisation
+                of the lagged Fibonacci generator sequence.
+            Default: -5 * 10 ** 5
+        max_grid_val (int): Integer no less than min_grid_val giving
+                the largest value that it may appear in the grid, and
+                used in the calculation of the terms in the generalisation
+                of the lagged Fibonacci generator sequence.
+            Default: 5 * 10 ** 5 - 1
     
+    Returns:
+    List of lists of integers (int) representing a 2-dimensional grid with
+    shape[0] rows and shape[1] columns, where the main list contains exactly
+    shape[0] entries and each sub-list contains exactly shape[1] entries
+    (each sub-list representing a row), with the entries of each sub-list
+    determined by the generalisation of the lagged Fibonacci generator
+    sequence as outlined above.
+    """
 
     it = generalisedLaggedFibonacciGenerator(
         poly_coeffs=l_fib_poly_coeffs,
@@ -6995,6 +7056,96 @@ def maximumLaggedFibonacciGridSumSubsequence(
 ) -> int:
     """
     Solution to Project Euler #149
+
+    For a 2D grid of integers created based on a generalisation
+    of the lagged Fibonacci generator sequence, finds the largest
+    sum elements that appear in a straight line in the array, where
+    the allowed lines are vertical, horizontal, diagonal or
+    antidiagonal and if two elements on the line are included then
+    all elements between them on that line must also be included (we
+    refer to this as the line being continuous).
+
+    A horizontal line in the grid is one in which for two
+    consecutive elements the first index is the same and the
+    second index differs by exactly 1.
+
+    A vertical line in the grid is one in which for two
+    consecutive elements the second index is the same and the
+    index index differs by exactly 1.
+
+    A diagonal line in the grid is one in which for two
+    consecutive elements, if their indices are (i1, i2) and
+    (j1, j2) then i1 - j1 = i2 - j2 and equals either
+    1 or -1.
+
+    An antidiagonal line in the grid is one in which for two
+    consecutive elements, if their indices are (i1, i2) and
+    (j1, j2) then i1 - j1 = -(i2 - j2) and equals either
+    1 or -1.
+
+    The entries of the 2-dimensional grid of integers are between
+    min_grid-val and max_grid_val inclusive with entries calculated
+    from a generalisation of the lagged Fibonacci sequence, in which
+    the entry at indices (i1, i2) (zero-indexed) is given by the
+    (i1 * shape[1] + i2 + 1)th term in the generalisation of the
+    lagged Fibonacci sequence.
+
+    The generalisation of the lagged Fibonacci generator sequence for
+    the given tuple of integers l_fib_poly_coeffs, tuple of strictly
+    positive integers l_fib_lags, and the integers min_val and max_val
+    is the sequence such that for integer i >= 1, the i:th term in
+    the sequence is:
+        t_i = ((sum j from 0 to len(l_fib_poly_coeffs) - 1) (l_fib_poly_coeffs[j] * i ** j) % (max_grid_val - min_grid_val + 1)) - min_grid_val
+                for i <= max(l_fib_lags)
+              (((sum j from 0 to len(l_fib_lags) - 1) (t_(i - l_fib_lags[i]))) % (max_grid_val - min_grid_val + 1)) - min_grid_val
+                otherwise
+    where % signifies modular division (i.e. the remainder of the
+    integer preceding that symbol by the integer succeeding it).
+
+    Args:
+        Optional named:
+        shape (2-tuple of ints): An ordered pair of strictly positive
+                integers, giving the number of rows and columns
+                respectively of the 2-dimensional grid for which the
+                largest sum of elements in a continuous line is to be
+                calculated.
+            Default: (2000, 2000)
+        l_fib_poly_coeffs (tuple of ints): Tuple of integers giving the
+                coefficients of the polynomial used to calculate the
+                polynomial terms of the generalisation of the lagged
+                Fibonacci generator sequence used to generate the
+                edges.
+            Default: (100003, -200003, 0, 300007)
+        l_fib_lags (tuple of ints): Tuple of strictly positive integers,
+                which when calculating the recursive terms of the
+                generlisation of the lagged Fibonacci generator sequence
+                used to generate the edges, indicates how many steps back
+                in the sequence the previous terms summed should each be
+                from the position of the term being generated. Additionally,
+                the maximum value determines at which term the transition
+                from the polynomial terms to the recursive terms will occur
+                in this sequence.
+            Default: (24, 55)
+        min_grid_val (int): Integer no greater than max_grid_val giving
+                the smallest value that it may appear in the grid, and
+                used in the calculation of the terms in the generalisation
+                of the lagged Fibonacci generator sequence.
+            Default: -5 * 10 ** 5
+        max_grid_val (int): Integer no less than min_grid_val giving
+                the largest value that it may appear in the grid, and
+                used in the calculation of the terms in the generalisation
+                of the lagged Fibonacci generator sequence.
+            Default: 5 * 10 ** 5 - 1
+    
+    Returns:
+    Integer (int) giving the largest sum elements that appear in
+    a continuous straight line in the 2-dimensional grid constructed
+    based on the generalisation of the lagged Fibonacci generator
+    sequence as described above.
+
+    Outline of rationale:
+    See the outline of rationale in the documentation for the function
+    maximumGridSumSubsequence()
     """
     #since = time.time()
     grid = constructLaggedFibonacciGrid(
