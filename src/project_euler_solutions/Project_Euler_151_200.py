@@ -33,92 +33,16 @@ from data_structures.fractions import CustomFraction
 from algorithms.string_searching_algorithms import rollingHashWithValue, KnuthMorrisPratt
 from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
 from algorithms.continued_fractions_and_Pell_equations import sqrtBestRationalApproximation
-from algorithms.geometry_algorithms import twoDimensionalLineSegmentPairCrossing, BentleyOttmannAlgorithmIntegerEndpoints
-from algorithms.number_theory_algorithms import gcd, lcm
-
-
-def isqrt(n: int) -> int:
-    """
-    For a non-negative integer n, finds the largest integer m
-    such that m ** 2 <= n (or equivalently, the floor of the
-    positive square root of n).
-    Uses the Newton-Raphson method.
-    
-    Args:
-        Required positional:
-        n (int): The number for which the above process is
-                performed.
-    
-    Returns:
-    Integer (int) giving the largest integer m such that
-    m ** 2 <= n.
-    
-    Examples:
-    >>> isqrt(4)
-    2
-    >>> isqrt(15)
-    3
-    """
-    x2 = n
-    x1 = (n + 1) >> 1
-    while x1 < x2:
-        x2 = x1
-        x1 = (x2 + n // x2) >> 1
-    return x2
-
-def integerNthRoot(m: int, n: int) -> int:
-    """
-    For an integer m and a strictly positive integer n,
-    finds the largest integer a such that a ** n <= m (or
-    equivalently, the floor of the largest real n:th root
-    of m. Note that for even n, m must be non-negative.
-    Uses the Newton-Raphson method.
-    
-    Args:
-        Required positional:
-        m (int): Integer giving the number whose root is
-                to be calculated. Must be non-negative
-                if n is even.
-        n (int): Strictly positive integer giving the
-                root to be calculated.
-    
-    Returns:
-    Integer (int) giving the largest integer a such that
-    m ** n <= a.
-    
-    Examples:
-    >>> integerNthRoot(4, 2)
-    2
-    >>> integerNthRoot(15, 2)
-    3
-    >>> integerNthRoot(27, 3)
-    3
-    >>> integerNthRoot(-26, 3)
-    -3
-    """
-
-    # Finds the floor of the n:th root of m, using the positive
-    # root in the case that n is even.
-    # Newton-Raphson method
-    if n < 1:
-        raise ValueError("n must be strictly positive")
-    if m < 0:
-        if n & 1:
-            neg = True
-            m = -m
-        else:
-            raise ValueError("m can only be negative if n is odd")
-    else: neg = False
-    if not m: return 0
-    x2 = float("inf")
-    x1 = m
-    while x1 < x2:
-        x2 = x1
-        x1 = ((n - 1) * x2 + m // x2 ** (n - 1)) // n
-    if not neg: return x2
-    if x2 ** n < m:
-        x2 += 1
-    return -x2
+from algorithms.geometry_algorithms import (
+    twoDimensionalLineSegmentPairCrossing,
+    BentleyOttmannAlgorithmIntegerEndpoints,
+)
+from algorithms.number_theory_algorithms import (
+    gcd,
+    lcm,
+    isqrt,
+    integerNthRoot,
+)
 
 def addFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> Tuple[int, int]:
     """
@@ -207,7 +131,9 @@ def floorHarmonicSeries(n: int) -> int:
     return sum(n // i for i in range(1, k + 1)) - k ** 2
 
 # Problem 151
-def singleSheetCountExpectedValueFraction(n_halvings: int) -> Tuple[int, int]:
+def singleSheetCountExpectedValueFraction(
+    n_halvings: int,
+) -> CustomFraction:
     """
     Consider a sheet of paper in an envelope. This sheet should
     produce 2 ** n_halvings sheets of paper, each 1 / 2 ** n_halvings
@@ -283,13 +209,13 @@ def singleSheetCountExpectedValueFraction(n_halvings: int) -> Tuple[int, int]:
     mx_tot = 1 << n_halvings
 
     memo = {}
-    def recur(state: List[int], tot: int, sm: int) -> Tuple[int, int]:
+    def recur(state: List[int], tot: int, sm: int) -> CustomFraction:
         if tot >= mx_tot:
-            return (int(tot == mx_tot and state[0] == 1), 1)
+            return CustomFraction(int(tot == mx_tot and state[0] == 1), 1)
         args = tuple(state)
         #print(args, sm, tot)
         if args in memo.keys(): return memo[args]
-        res = (0, 1)
+        res = CustomFraction(0, 1)
         for i in reversed(range(n_halvings + 1)):
             #if state[i] == mx_counts[i]:
             #    sub = 1
@@ -302,7 +228,7 @@ def singleSheetCountExpectedValueFraction(n_halvings: int) -> Tuple[int, int]:
             sm += add
             state[i] += add
             #print(i)
-            res = addFractions(res, multiplyFractions(recur(state, tot, sm), (state[i], sm)))
+            res += recur(state, tot, sm) * CustomFraction(state[i], sm)
             sub = 2
             state[i] -= sub
             if state[i] < 0: break
@@ -318,14 +244,14 @@ def singleSheetCountExpectedValueFraction(n_halvings: int) -> Tuple[int, int]:
 
     state = [0] * (n_halvings + 1)
     state[0] = 1
-    res = (0, 1)
+    res = CustomFraction(0, 1)
     for i in range(1, n_halvings):
         state[i] += 1
         state[i - 1] -= 1
         #print(state)
         ans = recur(state, 1 << (n_halvings - i), 1)
         #print(ans)
-        res = addFractions(res, ans)
+        res += ans
     #print(memo)
     return res
 
@@ -378,10 +304,10 @@ def singleSheetCountExpectedValueFloat(n_halvings: int=5) -> float:
     Outline of rationale:
     See doumentation for singleSheetCountExpectedValueFraction().
     """
-    since = time.time()
+    #since = time.time()
     frac = singleSheetCountExpectedValueFraction(n_halvings=n_halvings)
-    res = frac[0] / frac[1]
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    res = frac.numerator / frac.denominator
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 152
@@ -2119,7 +2045,9 @@ def calculatePrimeFactorisation(num: int) -> Dict[int, int]:
         res[num] = 1
     return res
 
-def countReciprocalPairSumsMultipleOfReciprocal(q_factorisation: Dict[int, int]) -> int:
+def countReciprocalPairSumsMultipleOfReciprocal(
+    q_factorisation: Dict[int, int],
+) -> int:
     """
     Given the prime factorisation of a strictly positive integer
     q_factorisation, finds the number of distinct ordered pairs
@@ -2189,7 +2117,11 @@ def countReciprocalPairSumsMultipleOfReciprocal(q_factorisation: Dict[int, int])
     return res
 
 
-def countReciprocalPairSumsMultipleOfReciprocalPower2(reciprocal_factorisation: Dict[int, int]={2: 1, 5: 1}, min_power: int=1, max_power: int=9) -> int:
+def countReciprocalPairSumsMultipleOfReciprocalPower2(
+    reciprocal_factorisation: Dict[int, int]={2: 1, 5: 1},
+    min_power: int=1,
+    max_power: int=9,
+) -> int:
     """
     Given the prime factorisation of a strictly positive integer
     reciprocal_factorisation, finds the number of distinct ordered
@@ -9732,66 +9664,85 @@ def findNthPrimeProofSqubeWithSubstring(substr_num: int=200, substr_num_lead_zer
     print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-if __name__ == "__main__":
-    to_evaluate = {186}
+##############
+project_euler_num_range = (151, 200)
 
-    if not to_evaluate or 151 in to_evaluate:
+def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) -> None:
+    if not eval_nums:
+        eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
+
+    if 151 in eval_nums:
+        since = time.time()
         res = singleSheetCountExpectedValueFloat(n_halvings=4)
-        print(f"Solution to Project Euler #151 = {res}")
+        print(f"Solution to Project Euler #151 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 152 in to_evaluate:
+    if 152 in eval_nums:
+        since = time.time()
         res = sumsOfSquareReciprocalsCount(target=(1, 2), denom_min=2, denom_max=80)
-        print(f"Solution to Project Euler #152 = {res}")
+        print(f"Solution to Project Euler #152 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 153 in to_evaluate:
+    if 153 in eval_nums:
+        since = time.time()
         res = findRealPartSumOverGaussianIntegerDivisors(n_max=10 ** 8)
-        print(f"Solution to Project Euler #153 = {res}")
+        print(f"Solution to Project Euler #153 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 154 in to_evaluate:
+    if 154 in eval_nums:
+        since = time.time()
         res = multinomialCoefficientMultiplesCount2(n=2 * 10 ** 5, n_k=3, factor_p_factorisation={2: 12, 5: 12})
-        print(f"Solution to Project Euler #154 = {res}")
+        print(f"Solution to Project Euler #154 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 155 in to_evaluate:
+    if 155 in eval_nums:
+        since = time.time()
         res = countDistinctCapacitorCombinationValues(max_n_capacitors=18)
-        print(f"Solution to Project Euler #155 = {res}")
+        print(f"Solution to Project Euler #155 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 156 in to_evaluate:
+    if 156 in eval_nums:
+        since = time.time()
         res = cumulativeNonZeroDigitCountEqualsNumberSum(base=10)
-        print(f"Solution to Project Euler #156 = {res}")
+        print(f"Solution to Project Euler #156 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 157 in to_evaluate:
+    if 157 in eval_nums:
+        since = time.time()
         res = countReciprocalPairSumsMultipleOfReciprocalPower(reciprocal_factorisation={2: 1, 5: 1}, min_power=1, max_power=9)
-        print(f"Solution to Project Euler #157 = {res}")
+        print(f"Solution to Project Euler #157 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 158 in to_evaluate:
+    if 158 in eval_nums:
+        since = time.time()
         res = maximumDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars=26, max_len=26, n_smaller_left_neighbours=1)
-        print(f"Solution to Project Euler #158 = {res}")
+        print(f"Solution to Project Euler #158 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 159 in to_evaluate:
+    if 159 in eval_nums:
+        since = time.time()
         res = maximalDigitalRootFactorisationsSum(n_min=2, n_max=10 ** 6 - 1, base=10)
-        print(f"Solution to Project Euler #159 = {res}")
+        print(f"Solution to Project Euler #159 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 160 in to_evaluate:
+    if 160 in eval_nums:
+        since = time.time()
         res = factorialFinalDigitsBeforeTrailingZeros(n=10 ** 12, n_digs=5, base=10)
-        print(f"Solution to Project Euler #160 = {res}")
+        print(f"Solution to Project Euler #160 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 161 in to_evaluate:
+    if 161 in eval_nums:
+        since = time.time()
         res = triominoAreaFillCombinations(n_rows=9, n_cols=12)
-        print(f"Solution to Project Euler #161 = {res}")
+        print(f"Solution to Project Euler #161 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 162 in to_evaluate:
+    if 162 in eval_nums:
+        since = time.time()
         res = countHexadecimalIntegersContainGivenDigits(max_n_dig=16, n_contained_digs=3, contained_includes_zero=True)
-        print(f"Solution to Project Euler #162 = {res}")
+        print(f"Solution to Project Euler #162 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 163 in to_evaluate:
+    if 163 in eval_nums:
+        since = time.time()
         res = countCrossHatchedTriangles(n_layers=36)
-        print(f"Solution to Project Euler #163 = {res}")
+        print(f"Solution to Project Euler #163 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 164 in to_evaluate:
+    if 164 in eval_nums:
+        since = time.time()
         res = countIntegersConsecutiveDigitSumCapped(n_digs=20, n_consec=3, consec_sum_cap=9, base=10)
-        print(f"Solution to Project Euler #164 = {res}")
+        print(f"Solution to Project Euler #164 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 165 in to_evaluate:
+    if 165 in eval_nums:
+        since = time.time()
         res = blumBlumShubPseudoRandomTwoDimensionalLineSegmentsCountInternalCrossings(
             n_line_segments=5000,
             blumblumshub_s_0=290797,
@@ -9801,85 +9752,105 @@ if __name__ == "__main__":
             use_bentley_ottmann=False,
         )
         #res = twoDimensionalLineSegmentsCountInternalCrossings([((27, 44), (12, 32)), ((46, 53), (17, 62)), ((46, 70), (22, 40))])
-        print(f"Solution to Project Euler #165 = {res}")
+        print(f"Solution to Project Euler #165 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 166 in to_evaluate:
+    if 166 in eval_nums:
+        since = time.time()
         res = magicSquareWithRepeatsCount(square_side_length=4, val_max=9)
-        print(f"Solution to Project Euler #166 = {res}")
+        print(f"Solution to Project Euler #166 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 167 in to_evaluate:
+    if 167 in eval_nums:
+        since = time.time()
         res = ulamSequenceTwoOddTermValueSum(a2_min=5, a2_max=21, term_number=10 ** 11)
-        print(f"Solution to Project Euler #167 = {res}")
+        print(f"Solution to Project Euler #167 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 168 in to_evaluate:
+    if 168 in eval_nums:
+        since = time.time()
         res = rightRotationMultiplesSum(min_n_digs=2, max_n_digs=100, n_tail_digs=5, base=10)
-        print(f"Solution to Project Euler #168 = {res}")
+        print(f"Solution to Project Euler #168 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 169 in to_evaluate:
+    if 169 in eval_nums:
+        since = time.time()
         res = sumOfPowersOfTwoEachMaxTwice(num=10 ** 25)
-        print(f"Solution to Project Euler #169 = {res}")
+        print(f"Solution to Project Euler #169 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 170 in to_evaluate:
+    if 170 in eval_nums:
+        since = time.time()
         res = largestPandigitalConcatenatingProduct(min_n_prods=3, incl_zero=True, base=10)
-        print(f"Solution to Project Euler #170 = {res}")
+        print(f"Solution to Project Euler #170 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 171 in to_evaluate:
+    if 171 in eval_nums:
+        since = time.time()
         res = sumSquareOfTheDigitalSquares(max_n_dig=20, n_tail_digs=9, base=10)
-        print(f"Solution to Project Euler #171 = {res}")
+        print(f"Solution to Project Euler #171 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 172 in to_evaluate:
+    if 172 in eval_nums:
+        since = time.time()
         res = countNumbersWithDigitRepeatCap(n_dig=18, max_dig_rpt=3, base=10)
-        print(f"Solution to Project Euler #172 = {res}")
+        print(f"Solution to Project Euler #172 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 173 in to_evaluate:
+    if 173 in eval_nums:
+        since = time.time()
         res = hollowSquareLaminaCount(max_n_squares=10 ** 6)
-        print(f"Solution to Project Euler #173 = {res}")
+        print(f"Solution to Project Euler #173 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 174 in to_evaluate:
+    if 174 in eval_nums:
+        since = time.time()
         res = hollowSquareLaminaTypeCountSum(max_n_squares=10 ** 6, min_type=1, max_type=10)
-        print(f"Solution to Project Euler #174 = {res}")
+        print(f"Solution to Project Euler #174 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 175 in to_evaluate:
+    if 175 in eval_nums:
+        since = time.time()
         res = fractionsAndSumOfPowersOfTwoShortenedBinary(numerator=123456789, denominator=987654321)
-        print(f"Solution to Project Euler #175 = {res}")
+        print(f"Solution to Project Euler #175 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 176 in to_evaluate:
+    if 176 in eval_nums:
+        since = time.time()
         res = smallestCathetusCommonToNRightAngledTriangles(n_common=47547)
-        print(f"Solution to Project Euler #176 = {res}")
+        print(f"Solution to Project Euler #176 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 177 in to_evaluate:
+    if 177 in eval_nums:
+        since = time.time()
         res = integerAngledQuadrilaterals(tol=10 ** -9)
-        print(f"Solution to Project Euler #177 = {res}")
+        print(f"Solution to Project Euler #177 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 178 in to_evaluate:
+    if 178 in eval_nums:
+        since = time.time()
         res = countPandigitalStepNumbers(max_n_digs=40, incl_zero=True, base=10)
-        print(f"Solution to Project Euler #178 = {res}")
+        print(f"Solution to Project Euler #178 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 179 in to_evaluate:
+    if 179 in eval_nums:
+        since = time.time()
         res = countConsecutiveNumberPositiveDivisorsMatch(n_max=10 ** 7)
-        print(f"Solution to Project Euler #179 = {res}")
+        print(f"Solution to Project Euler #179 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 180 in to_evaluate:
+    if 180 in eval_nums:
+        since = time.time()
         res = goldenTripletsSumTotalNumeratorDenominator(max_order=35)
-        print(f"Solution to Project Euler #180 = {res}")
+        print(f"Solution to Project Euler #180 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 181 in to_evaluate:
+    if 181 in eval_nums:
+        since = time.time()
         res = groupingNDifferentColouredObjects(colour_counts=[60, 40])
-        print(f"Solution to Project Euler #181 = {res}")
+        print(f"Solution to Project Euler #181 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 182 in to_evaluate:
+    if 182 in eval_nums:
+        since = time.time()
         res = exponentsMinimisingRSAEncryptionUnconcealedSum(p=1009, q=3643) 
-        print(f"Solution to Project Euler #182 = {res}")
+        print(f"Solution to Project Euler #182 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 183 in to_evaluate:
+    if 183 in eval_nums:
+        since = time.time()
         res = maximumProductOfPartsTerminatingSum(n_min=5, n_max=10 ** 4, base=10)
-        print(f"Solution to Project Euler #183 = {res}")
+        print(f"Solution to Project Euler #183 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 184 in to_evaluate:
+    if 184 in eval_nums:
+        since = time.time()
         res = latticeTrianglesContainingOriginCount(lattice_radius=105, incl_edge=False)
-        print(f"Solution to Project Euler #184 = {res}")
+        print(f"Solution to Project Euler #184 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 185 in to_evaluate:
+    if 185 in eval_nums:
+        since = time.time()
         res = numberMindSimulatedAnnealing(alphabet="0123456789", n_trials=20, guesses=[
             ("5616185650518293", 2),
             ("3847439647293047", 1),
@@ -9904,17 +9875,10 @@ if __name__ == "__main__":
             ("1841236454324589", 3),
             ("2659862637316867", 2),
         ])
-        print(f"Solution to Project Euler #185 = {res}")
+        print(f"Solution to Project Euler #185 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    """
-            ("90342", 2),
-            ("70794", 0),
-            ("39458", 2),
-            ("34109", 1),
-            ("51545", 2),
-            ("12531", 1),
-    """
-    if not to_evaluate or 186 in to_evaluate:
+    if 186 in eval_nums:
+        since = time.time()
         res = laggedFibonacciGraphEdgeCountForVertexToConnectToProportionOfGraph(
                 n_vertices=10 ** 6,
                 vertex=524287,
@@ -9923,104 +9887,81 @@ if __name__ == "__main__":
                 l_fib_lags=(24, 55),
                 ignore_self_edges=True,
             )
-        print(f"Solution to Project Euler #186 = {res}")
+        print(f"Solution to Project Euler #186 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 187 in to_evaluate:
+    if 187 in eval_nums:
+        since = time.time()
         res = semiPrimeCount(n_max=10 ** 8 - 1)
-        print(f"Solution to Project Euler #187 = {res}")
+        print(f"Solution to Project Euler #187 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 188 in to_evaluate:
+    if 188 in eval_nums:
+        since = time.time()
         res = modTetration(base=1777, tetr=100, md=10 ** 8)
-        print(f"Solution to Project Euler #188 = {res}")
+        print(f"Solution to Project Euler #188 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 189 in to_evaluate:
+    if 189 in eval_nums:
+        since = time.time()
         res = numberOfTriangularGridColourings(n_colours=3, n_rows=8)
-        print(f"Solution to Project Euler #189 = {res}")
+        print(f"Solution to Project Euler #189 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 190 in to_evaluate:
+    if 190 in eval_nums:
+        since = time.time()
         res = sumFloorMaximisedRestrictedPowerProduct(n_min=2, n_max=15)
-        print(f"Solution to Project Euler #190 = {res}")
+        print(f"Solution to Project Euler #190 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 191 in to_evaluate:
+    if 191 in eval_nums:
+        since = time.time()
         res = attendancePrizeStringCount(n_days=30, n_consec_absent=3, n_late=2)
-        print(f"Solution to Project Euler #191 = {res}")
+        print(f"Solution to Project Euler #191 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 192 in to_evaluate:
+    if 192 in eval_nums:
+        since = time.time()
         res = bestSqrtApproximationsDenominatorSum(n_max=10 ** 5, denom_bound=10 ** 12)
-        print(f"Solution to Project Euler #192 = {res}")
+        print(f"Solution to Project Euler #192 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 193 in to_evaluate:
+    if 193 in eval_nums:
+        since = time.time()
         res = squareFreeNumberCount(n_max=2 ** 50 - 1)
-        print(f"Solution to Project Euler #193 = {res}")
+        print(f"Solution to Project Euler #193 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 194 in to_evaluate:
+    if 194 in eval_nums:
+        since = time.time()
         res = allowedColouredConfigurationsCount(type_a_count=25, type_b_count=75, n_colours=1984, md=10 ** 8)
-        print(f"Solution to Project Euler #194 = {res}")
+        print(f"Solution to Project Euler #194 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 195 in to_evaluate:
+    if 195 in eval_nums:
+        since = time.time()
         res = integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(radius_max=1053779)
-        print(f"Solution to Project Euler #195 = {res}")
+        print(f"Solution to Project Euler #195 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 196 in to_evaluate:
+    if 196 in eval_nums:
+        since = time.time()
         res = numberTrianglePrimeTripletRowsSum(row_nums=[5678027, 7208785])
-        print(f"Solution to Project Euler #196 = {res}")
+        print(f"Solution to Project Euler #196 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 197 in to_evaluate:
+    if 197 in eval_nums:
+        since = time.time()
         res = findFloorRecursiveSequenceTermSum(term_numbers=[10 ** 12, 10 ** 12 + 1], u0=-1, base=2, a=-1., b=0., c=30.403243784, div=10 ** 9)
-        print(f"Solution to Project Euler #197 = {res}")
+        print(f"Solution to Project Euler #197 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    if not to_evaluate or 198 in to_evaluate:
+    if 198 in eval_nums:
+        since = time.time()
         res = ambiguousNumberCountUpToFraction(max_denominator=10 ** 8, upper_bound=(1, 100), incl_upper_bound=False)
         #res = ambiguousNumberCountUpToReciprocal(max_denominator=10 ** 8, upper_bound_reciprocal=100, incl_upper_bound=False)
-        print(f"Solution to Project Euler #198 = {res}")
+        print(f"Solution to Project Euler #198 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 199 in to_evaluate:
+    if 199 in eval_nums:
+        since = time.time()
         res = IterativeCirclePackingUncoveredAreaProportion(n_iter=10)
-        print(f"Solution to Project Euler #199 = {res}")
+        print(f"Solution to Project Euler #199 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 200 in to_evaluate:
+    if 200 in eval_nums:
+        since = time.time()
         res = findNthPrimeProofSqubeWithSubstring(substr_num=200, substr_num_lead_zeros_count=0, n=200, base=10)
-        print(f"Solution to Project Euler #200 = {res}")
-
-    #for n in range(2, 11):
-    #    usg = iter(ulamSequenceGenerator(2, 2 * n + 1))
-    #    even_pair = []
-    #    for num in usg:
-    #        if num & 1: continue
-    #        even_pair.append(num)
-    #        if len(even_pair) == 2: break
-    #    print(2 * n + 1, even_pair)
-    #usg = iter(ulamSequenceGenerator(2, 11))
-    #res = [next(usg) for _ in range(100)]
-    #print(res)
-    #for n in range(5, 20, 2):
-    #    ulamSequenceTwoOddDifferences(num2=n)
-
-
-    #for i in range(1, 251):
-    #    print(i, format(i, "b"), sumOfPowersOfTwoWithMaxRepeats(num=i, max_rpt=2))
-    #num = 23
-    #for _ in range(10):
-    #    print(num, format(num, "b"), sumOfPowersOfTwoWithMaxRepeats(num=num, max_rpt=2))
-    #    num <<= 1
-
-    #print(fractionsAndSumOfPowersOfTwo(13, 17))
-
-    #num = 9
-    #print(num, partsCountMaximisingProductOfParts(num))
-
-    #cf = lambda i: 1
-    #it = iter(sqrtConvergentGenerator(13))
-    #for i in range(8):
-    #    print(i, next(it))
-    #print(sqrtContinuedFractionRepresentation(13))
-
-    #for frac in orderedFractionsWithMaxNumeratorDenominatorSquareSum(max_numerator_denominator_square_sum=100, reverse=True):
-    #    print(frac)
-
-    #for pair in orderedFareyFractionPairsWithMaxDenominatorProductGenerator(max_denominator_product=100):
-    #    print(pair)
+        print(f"Solution to Project Euler #200 = {res}, calculated in {time.time() - since:.4f} seconds")
     
-    #seg = ((18, 220), (280, 408)), ((231, 373), (362, 411))
-    #p = twoDimensionalLineSegmentPairCrossing(*seg, internal_only=True, allow_endpoint_to_endpoint=False)
-    #print(p, (p[0].numerator / p[0].denominator, p[1].numerator / p[1].denominator))
+    return
+
+if __name__ == "__main__":
+    eval_nums = {151}
+    evaluateProjectEulerSolutions151to200(eval_nums)
