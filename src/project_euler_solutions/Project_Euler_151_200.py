@@ -311,7 +311,11 @@ def singleSheetCountExpectedValueFloat(n_halvings: int=5) -> float:
     return res
 
 # Problem 152
-def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, denom_max: int=80) -> Set[Tuple[int]]:
+def sumsOfSquareReciprocals(
+    target: CustomFraction=CustomFraction(1, 2),
+    denom_min: int=2,
+    denom_max: int=80,
+) -> Set[Tuple[int]]:
     """
     Finds the distinct ways the fraction target can be constructed
     by summing recpirocals of squares of integers, where the
@@ -324,11 +328,9 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
 
     Args:
         Optional named:
-        target (2-tuple of ints): Two strictly positive integers,
-                representing the numerator and denominator
-                respectively of the target fraction that the
-                sums must equal.
-            Default: (1, 2)- representing a half
+        target (CustomFraction object): A fraction representing
+                the rational number the sums must equal.
+            Default: CustomFraction(1, 2)- representing a half
         denom_min (int): Strictly positive integer giving the
                 smallest integer for whose squared reciprocal
                 can appear in the sum.
@@ -346,7 +348,7 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
     they represent all such distinct sums.
 
     Example:
-        >>> sumsOfSquareReciprocals(target=(1, 2), denom_min=2, denom_max=45))
+        >>> sumsOfSquareReciprocals(target=CustomFraction(1, 2), denom_min=2, denom_max=45))
         {(2, 3, 4, 6, 7, 9, 10, 20, 28, 35, 36, 45), (2, 3, 4, 6, 7, 9, 12, 15, 28, 30, 35, 36, 45), (2, 3, 4, 5, 7, 12, 15, 20, 28, 35)}
 
         This indicates that there are exactly three distinct sums
@@ -371,15 +373,15 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
     # Try to make more efficient and rule out more combinations
     # at an early stage
 
-    g = gcd(*target)
-    target = tuple(t // g for t in target)
+    #g = gcd(*target)
+    #target = tuple(t // g for t in target)
 
     #since = time.time()
 
     def checkSolution(denoms: Tuple[int]) -> bool:
-        res = (0, 1)
+        res = CustomFraction(0, 1)
         for d in denoms:
-            res = addFractions(res, (1, d ** 2))
+            res += CustomFraction(1, d ** 2)
         #print(f"solution check: {denoms}, {res}")
         return res == target
     
@@ -399,7 +401,7 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
     ps = PrimeSPFsieve(n_max=denom_max // i)
 
     p_set = set(ps.p_lst)
-    target_denom_pf = ps.primeFactorisation(target[1])
+    target_denom_pf = ps.primeFactorisation(target.denominator)
     p_lst = sorted(p_set.union(target_denom_pf.keys()))
 
     p_split_idx = 2
@@ -537,7 +539,7 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
         if denom_tup and denom_tup[0] < denom_min: continue
         tot = target
         for denom in denom_set:
-            tot = addFractions(tot, (-1, denom ** 2))
+            tot -= CustomFraction(1, denom ** 2)
         #frac_counts[tot] = frac_counts.get(tot, 0) + 1
         frac_sets.setdefault(tot, set())
         #if denom_tup in frac_sets[tot]: print(f"repeated denominator tuple: {denom_tup}")
@@ -551,12 +553,12 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
     #print("finished stage 1")
 
     n_p1 = len(p_lst1)
-    curr = {(0, 1): [()]}
+    curr = {CustomFraction(0, 1): [()]}
     seen = set()
     # Ensure the results that already equal the target with only
     # the denominators considered in the previous step are included
     # in the answer
-    res = list(frac_sets.get((0, 1), set()))
+    res = list(frac_sets.get(CustomFraction(0, 1), set()))
     #print(res)
 
     def recur(p_idx: int=0, denom: int=1) -> None:
@@ -564,13 +566,13 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
         if p_idx == n_p1:
             if denom < denom_min: return
             #print(f"denom = {denom}")
-            val = (1, denom ** 2)
+            val = CustomFraction(1, denom ** 2)
             prev = {x: list(y) for x, y in curr.items()}
             #print(prev)
             for frac, tups in prev.items():
-                frac2 = addFractions(frac, val)
+                frac2 = frac + val
                 #if frac2 == (31, 72): print("found")
-                if frac2[0] * target[1] > frac2[1] * target[0]: continue
+                if frac2 > target: continue
                 curr.setdefault(frac2, [])
                 for tup in tups:
                     denom_tup2 = (*tup, denom)
@@ -606,6 +608,8 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
 
     recur(p_idx=0, denom=1)
     #print(res)
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
+    return set(res)
     """
     pow2_mx = 0
     num = denom_max // 3
@@ -713,10 +717,12 @@ def sumsOfSquareReciprocals(target: Tuple[int, int]=(1, 2), denom_min: int=2, de
 
     print(len(frac_counts))
     """
-    #print(f"Time taken = {time.time() - since:.4f} seconds")
-    return set(res)
 
-def sumsOfSquareReciprocalsCount(target: Tuple[int, int]=(1, 2), denom_min: int=2, denom_max: int=80) -> int:
+def sumsOfSquareReciprocalsCount(
+    target: (1, 2),
+    denom_min: int=2,
+    denom_max: int=80,
+) -> int:
     """
     Solution to Project Euler #152
 
@@ -731,10 +737,10 @@ def sumsOfSquareReciprocalsCount(target: Tuple[int, int]=(1, 2), denom_min: int=
 
     Args:
         Optional named:
-        target (2-tuple of ints): Two strictly positive integers,
-                representing the numerator and denominator
-                respectively of the target fraction that the
-                sums must equal.
+        target (2-tuple of ints): An ordered pair of strictly
+                positive integers, representing the numerator
+                and denominator respectively of the target
+                fraction that the sums must equal.
             Default: (1, 2)- representing a half
         denom_min (int): Strictly positive integer giving the
                 smallest integer for whose squared reciprocal
@@ -751,7 +757,11 @@ def sumsOfSquareReciprocalsCount(target: Tuple[int, int]=(1, 2), denom_min: int=
     inclusive that are equal to target.
     """
     since = time.time()
-    sols = set(sumsOfSquareReciprocals(target=target, denom_min=denom_min, denom_max=denom_max))
+    sols = set(sumsOfSquareReciprocals(
+        target=CustomFraction(target[0], target[1]),
+        denom_min=denom_min,
+        denom_max=denom_max,
+    ))
     #for sol in sols:
     #    print(sol)
     res = len(sols)
@@ -9963,5 +9973,5 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
     return
 
 if __name__ == "__main__":
-    eval_nums = {151}
+    eval_nums = {152}
     evaluateProjectEulerSolutions151to200(eval_nums)
