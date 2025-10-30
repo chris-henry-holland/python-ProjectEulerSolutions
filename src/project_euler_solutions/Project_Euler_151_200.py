@@ -756,7 +756,7 @@ def sumsOfSquareReciprocalsCount(
     reciprocals of different integers between denom_min and denom_max
     inclusive that are equal to target.
     """
-    since = time.time()
+    #since = time.time()
     sols = set(sumsOfSquareReciprocals(
         target=CustomFraction(target[0], target[1]),
         denom_min=denom_min,
@@ -765,7 +765,7 @@ def sumsOfSquareReciprocalsCount(
     #for sol in sols:
     #    print(sol)
     res = len(sols)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 153
@@ -779,7 +779,9 @@ def findIntegerCountGaussianIntegerDivides(a: int, b: int, n_max: int) -> int:
     return res
 """
 
-def findRealPartSumOverGaussianIntegerDivisors(n_max: int=10 ** 8) -> int:
+def findRealPartSumOverGaussianIntegerDivisors(
+    n_max: int=10 ** 8,
+) -> int:
     """
     Solution to Project Euler #153
 
@@ -852,7 +854,7 @@ def findRealPartSumOverGaussianIntegerDivisors(n_max: int=10 ** 8) -> int:
         2 * (sum a from 1 to n_max) a * (n_max // (2 * a))
     Case 3: TODO
     """
-    since = time.time()
+    #since = time.time()
 
     memo = {}
     def divisorSum(mag_sq: int) -> int:
@@ -891,11 +893,15 @@ def findRealPartSumOverGaussianIntegerDivisors(n_max: int=10 ** 8) -> int:
             
         #print(a, res)
     res += 2 * divisorSum(2)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 154
-def multinomialCoefficientMultiplesCount(n: int=2 * 10 ** 5, n_k: int=3, factor_p_factorisation: Dict[int, int]={2: 12, 5: 12}) -> int:
+def multinomialCoefficientMultiplesCount(
+    n: int=2 * 10 ** 5,
+    n_k: int=3,
+    factor_p_factorisation: Dict[int, int]={2: 12, 5: 12},
+) -> int:
     """
     For integers n and n_k and a prime factorisation
     factor_p_factorisation, finds the number of non-zero n_k-nomial
@@ -954,7 +960,7 @@ def multinomialCoefficientMultiplesCount(n: int=2 * 10 ** 5, n_k: int=3, factor_
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     #ps = PrimeSPFsieve(n_max=factor)
     #factor_p_factorisation = ps.primeFactorisation(factor)
     p_lst = sorted(factor_p_factorisation.keys())
@@ -1171,7 +1177,7 @@ def multinomialCoefficientMultiplesCount(n: int=2 * 10 ** 5, n_k: int=3, factor_
         inds = tuple(max(t - (x - y - z), 0) for t, x, y, z in zip(target, counts[n], counts[k], counts[n - k]))
         #print(inds, target)
         res += getNDimensionalArrayElement(curr[k], inds)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     """
     arr = createNDimensionalArray((2, 2, 2))
@@ -1183,7 +1189,11 @@ def multinomialCoefficientMultiplesCount(n: int=2 * 10 ** 5, n_k: int=3, factor_
     print(arr)
     """
 
-def multinomialCoefficientMultiplesCount2(n: int=2 * 10 ** 5, n_k: int=3, factor_p_factorisation: Dict[int, int]={2: 12, 5: 12}) -> int:
+def multinomialCoefficientMultiplesCount2(
+    n: int=2 * 10 ** 5,
+    n_k: int=3,
+    factor_p_factorisation: Dict[int, int]={2: 12, 5: 12},
+) -> int:
     """
     Solution to Project Euler #154
 
@@ -1245,7 +1255,7 @@ def multinomialCoefficientMultiplesCount2(n: int=2 * 10 ** 5, n_k: int=3, factor
     TODO
     """
     # TODO- try to make faster
-    since = time.time()
+    #since = time.time()
     p_lst = sorted(factor_p_factorisation.keys())
     n_p = len(p_lst)
     target = [factor_p_factorisation[p] for p in p_lst]
@@ -1321,11 +1331,13 @@ def multinomialCoefficientMultiplesCount2(n: int=2 * 10 ** 5, n_k: int=3, factor
         if k1 < k1_mn: continue
         #print("hello", n_k - 1, n - k1, facts_remain)
         res += recur(n_k - 1, n - k1, k1, 1, math.factorial(n_k), [x - y for x, y in zip(counts_n, counts_curr)])
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 155
-def findNewCapacitorCombinationValuesNoLessThanOne(max_n_capacitors: int) -> List[Set[Tuple[int, int]]]:
+def findNewCapacitorCombinationValuesNoLessThanOne(
+    max_n_capacitors: int,
+) -> List[Set[Tuple[int, int]]]:
     """
     Finds the values of capacitances that are possible for
     combinations of a number of capacitors with unit capacitance
@@ -1360,26 +1372,27 @@ def findNewCapacitorCombinationValuesNoLessThanOne(max_n_capacitors: int) -> Lis
     the list is the set of fractions representing the new capacitances
     possible for i capacitors.
     """
-    seen = {(1, 1)}
-    curr = [set(), {(1, 1)}]
+    seen = {CustomFraction(1, 1)}
+    curr = [set(), {CustomFraction(1, 1)}]
     for i in range(2, max_n_capacitors + 1):
         st = set()
         for j in range(1, (i >> 1) + 1):
             for frac1 in curr[j]:
+                frac1_inv = CustomFraction(frac1.denominator, frac1.numerator)
                 for frac2 in curr[i - j]:
-                    for frac3 in (addFractions(frac1, frac2), addFractions(frac1, (frac2[1], frac2[0])), addFractions((frac1[1], frac1[0]), frac2)):
+                    frac2_inv = CustomFraction(frac2.denominator, frac2.numerator)
+                    for frac3 in (frac1 + frac2, frac1 + frac2_inv, frac1_inv + frac2):
                         if frac3 not in seen:
                             st.add(frac3)
                             seen.add(frac3)
-                    frac3 = addFractions((frac1[1], frac1[0]), (frac2[1], frac2[0]))
-                    if frac3 not in seen and frac3[0] >= frac3[1]:
+                    frac3 = frac1_inv + frac2_inv
+                    if frac3 not in seen and frac3.numerator >= frac3.denominator:
                         st.add(frac3)
                         seen.add(frac3)
-                    frac3 = addFractions((frac1[1], frac1[0]), (frac2[1], frac2[0]))
-                    frac3 = (frac3[1], frac3[0])
-                    if frac3 not in seen and frac3[0] >= frac3[1]:
-                        st.add(frac3)
-                        seen.add(frac3)
+                    frac3_inv = CustomFraction(frac3.denominator, frac3.numerator)
+                    if frac3_inv not in seen and frac3_inv.numerator >= frac3_inv.denominator:
+                        st.add(frac3_inv)
+                        seen.add(frac3_inv)
         curr.append(st)
         print(f"n = {i}, number of new capacitances no less than one = {len(st)}")
         #print(i, st)
@@ -1388,7 +1401,9 @@ def findNewCapacitorCombinationValuesNoLessThanOne(max_n_capacitors: int) -> Lis
     return curr
 
 
-def possibleCapacitorCombinationValuesNoLessThanOne(max_n_capacitors: int) -> List[Set[Tuple[int, int]]]:
+def possibleCapacitorCombinationValuesNoLessThanOne(
+    max_n_capacitors: int,
+) -> List[Set[Tuple[int, int]]]:
     """
     Finds the values of capacitances that are possible for
     combinations of a number of capacitors with unit capacitance
@@ -1421,26 +1436,28 @@ def possibleCapacitorCombinationValuesNoLessThanOne(max_n_capacitors: int) -> Li
     the list is the set of fractions representing the capacitances
     possible for combinations of exactly i unit capacitors.
     """
-    curr = [set(), {(1, 1)}]
+    curr = [set(), {CustomFraction(1, 1)}]
     cumu = 1
-    tot_set = {(1, 1)}
+    tot_set = {CustomFraction(1, 1)}
     for i in range(2, max_n_capacitors + 1):
         st = set()
         for j in range(1, (i >> 1) + 1):
             for frac1 in curr[j]:
+                frac1_inv = CustomFraction(frac1.denominator, frac1.numerator)
                 for frac2 in curr[i - j]:
-                    st.add(addFractions(frac1, frac2))
-                    st.add(addFractions(frac1, (frac2[1], frac2[0])))
-                    st.add(addFractions((frac1[1], frac1[0]), frac2))
-                    frac3 = addFractions((frac1[1], frac1[0]), (frac2[1], frac2[0]))
-                    if frac3[0] >= frac3[1]:
+                    frac2_inv = CustomFraction(frac2.denominator, frac2.numerator)
+                    st.add(frac1 + frac2)
+                    st.add(frac1 + frac2_inv)
+                    st.add(frac1_inv + frac2)
+                    frac3 = frac1_inv + frac2_inv
+                    if frac3.numerator >= frac3.numerator:
                         st.add(frac3)
-                    frac3 = addFractions((frac1[1], frac1[0]), (frac2[1], frac2[0]))
-                    if frac3[1] >= frac3[0]:
-                        st.add((frac3[1], frac3[0]))
+                    frac3_inv = CustomFraction(frac3.denominator, frac3.numerator)
+                    if frac3_inv.numerator >= frac3_inv.denominator:
+                        st.add(frac3_inv)
         curr.append(st)
         tot_set |= st
-        print(f"n_capacitors = {i}, n_combinations = {2 * len(st) - ((1, 1) in st)}, cumulative n_combinations = {2 * len(tot_set) - ((1, 1) in tot_set)}")
+        print(f"n_capacitors = {i}, n_combinations = {2 * len(st) - (CustomFraction(1, 1) in st)}, cumulative n_combinations = {2 * len(tot_set) - ((1, 1) in tot_set)}")
     return curr
 
 def countDistinctCapacitorCombinationValues(max_n_capacitors: int=18) -> int:
@@ -1486,7 +1503,7 @@ def countDistinctCapacitorCombinationValues(max_n_capacitors: int=18) -> int:
     The solution to this problem is equivalent to the sequence given
     by OEIS A153588.
     """
-    since = time.time()
+    #since = time.time()
     new_combs_lst = findNewCapacitorCombinationValuesNoLessThanOne(max_n_capacitors)
     res = 2 * sum(len(x) for x in new_combs_lst) - 1
     """
@@ -1496,7 +1513,7 @@ def countDistinctCapacitorCombinationValues(max_n_capacitors: int=18) -> int:
         tot_combs |= comb
     res = 2 * len(tot_combs) - ((1, 1) in tot_combs)
     """
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 156
@@ -9973,5 +9990,5 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
     return
 
 if __name__ == "__main__":
-    eval_nums = {152}
+    eval_nums = {155}
     evaluateProjectEulerSolutions151to200(eval_nums)
