@@ -1569,7 +1569,10 @@ def cumulativeDigitCount(d: int, n_max: int, base: int=10) -> int:
     
     return res
 
-def cumulativeNonZeroDigitCountEqualsNumber(d: int, base: int=10) -> List[int]:
+def cumulativeNonZeroDigitCountEqualsNumber(
+    d: int,
+    base: int=10
+) -> List[int]:
     """
     For a given base and the value of a non-zero digit in that base (i.e.
     an integer between 1 and (base - 1) inclusive), finds the all the
@@ -1726,15 +1729,18 @@ def cumulativeNonZeroDigitCountEqualsNumberSum(base: int=10) -> int:
     See Outline of rationale in the documentation for the function
     cumulativeNonZeroDigitCountEqualsNumber().
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for d in range(1, base):
         res += sum(cumulativeNonZeroDigitCountEqualsNumber(d, base=base))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 157
-def reciprocalPartnerSumsEqualToMultipleOfReciprocal(a: int, reciprocal: int) -> List[int]:
+def reciprocalPartnerSumsEqualToMultipleOfReciprocal(
+    a: int,
+    reciprocal: int,
+) -> List[int]:
     """
     Given the strictly positive integers a and reciprocal, identifies
     all strictly positive integers b such that:
@@ -1769,7 +1775,9 @@ def reciprocalPartnerSumsEqualToMultipleOfReciprocal(a: int, reciprocal: int) ->
             res.append(b)
     return res
 
-def reciprocalPairSumsEqualToMultipleOfReciprocal(reciprocal: int) -> List[Tuple[int]]:
+def reciprocalPairSumsEqualToMultipleOfReciprocal(
+    reciprocal: int,
+) -> List[Tuple[int]]:
     """
     Given the strictly positive integer reciprocal, identifies all
     pairs of strictly positive integers (a, b) such that b is no
@@ -1802,7 +1810,9 @@ def reciprocalPairSumsEqualToMultipleOfReciprocal(reciprocal: int) -> List[Tuple
             res.append((a, b))
     return res
 
-def reciprocalPairSumsEqualToFraction(frac: Tuple[int]) -> List[Tuple[int]]:
+def reciprocalPairSumsEqualToFraction(
+    frac: Tuple[int],
+) -> List[Tuple[int]]:
     """
     For a strictly positive rational number frac, finds all ordered
     pairs of strictly positive integers (a, b) such that b is no
@@ -2187,7 +2197,7 @@ def countReciprocalPairSumsMultipleOfReciprocalPower2(
     q having the prime factorisation represented by
     reciprocal_factorisation.
     """
-    since = time.time()
+    #since = time.time()
     b = 1
     b2 = 1
     for k, v in reciprocal_factorisation.items():
@@ -2236,7 +2246,7 @@ def countReciprocalPairSumsMultipleOfReciprocalPower2(
             curr, r = divmod(curr, b2)
         res += ans
     #res += 1 + sum(v + 1 for v in q_factorisation.values())
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 def countReciprocalPairSumsMultipleOfReciprocalPower(reciprocal_factorisation: Dict[int, int]={2: 1, 5: 1}, min_power: int=1, max_power: int=9) -> int:
@@ -2280,12 +2290,12 @@ def countReciprocalPairSumsMultipleOfReciprocalPower(reciprocal_factorisation: D
     q having the prime factorisation represented by
     reciprocal_factorisation.
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for exp in range(min_power, max_power + 1):
         q_factorisation = {k: v * exp for k, v in reciprocal_factorisation.items()}
         res += countReciprocalPairSumsMultipleOfReciprocal(q_factorisation)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 158
@@ -2377,9 +2387,9 @@ def maximumDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars: int=26, max
     length no greater than max_len satisfying the specified
     conditions.
     """
-    since = time.time()
+    #since = time.time()
     res = max(countAllDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars, max_len, n_smaller_left_neighbours))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 159
@@ -2616,11 +2626,11 @@ def maximalDigitalRootFactorisationsSum(n_min: int=2, n_max: int=10 ** 6 - 1, ba
     Outline of rationale:
     See documentation for maximalDigitalRootFactorisations().
     """
-    since = time.time()
+    #since = time.time()
     arr = maximalDigitalRootFactorisations(n_max, base=10)
     #print(arr)
     res = sum(arr[n_min:])
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 160
@@ -2724,7 +2734,7 @@ def factorialFinalDigitsBeforeTrailingZeros(n: int=10 ** 12, n_digs: int=5, base
     prime factors of base.
     TODO
     """
-    since = time.time()
+    #since = time.time()
     base_pf = calculatePrimeFactorisation(base)
     #print(base_pf)
     fact_cnts = {}
@@ -2775,7 +2785,7 @@ def factorialFinalDigitsBeforeTrailingZeros(n: int=10 ** 12, n_digs: int=5, base
         res = (res * pow(i, exp, md)) % md
     #print(res)
     #print(math.factorial(n))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 161
@@ -2984,7 +2994,7 @@ def triominoAreaFillCombinations(grid_width: int=9, grid_height: int=12) -> int:
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     n_triominos, r = divmod(grid_width * grid_height, 3)
     if r: return 0
     #print(n_triominos)
@@ -3040,7 +3050,7 @@ def triominoAreaFillCombinations(grid_width: int=9, grid_height: int=12) -> int:
                 print(f"match: {state}, {cnt}, {state_c}, {states_counts.get(state_c, 0)}")
                 res += states_counts.get(state_c, 0) * cnt
     """
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 162
@@ -3163,11 +3173,11 @@ def countHexadecimalIntegersContainGivenDigits(max_n_dig: int=16, n_contained_di
     strictly positive integers satisfying the requirements described
     above.
     """
-    since = time.time()
+    #since = time.time()
     res1 = countIntegersContainGivenDigits(max_n_dig, n_contained_digs, contained_includes_zero, base=16)
     print(res1)
     res2 = intAsHexadecimal(res1)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res2
 
 # Problem 163
@@ -3305,16 +3315,16 @@ def countCrossHatchedTriangles2(n_layers: int=36) -> int:
     give correct answer for n_layers >= 4 (unclear where the mistake
     is)
     """
-    since = time.time()
+    #since = time.time()
     res = sum(countCrossHatchedTrianglesUsingBottomLayer(i) for i in range(1, n_layers + 1))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 def countCrossHatchedTriangles(n_layers: int=36) -> int:
     """
     Solution to Project Euler #163
     """
-    since = time.time()
+    #since = time.time()
     n = n_layers
     
     hs1_crossings = []
@@ -3410,7 +3420,7 @@ def countCrossHatchedTriangles(n_layers: int=36) -> int:
     # Triangle edges (included for completeness, gives answer zero as only 2 lines intersect here)
     res -= (3 * ((n * (n - 1)) >> 1)) * math.comb(2, 3)
 
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 164
@@ -3466,7 +3476,7 @@ def countIntegersConsecutiveDigitSumCapped(
     than each possible digit, as we consider each digit in turn from left
     to right.
     """
-    since = time.time()
+    #since = time.time()
     if consec_sum_cap >= (base - 1) * n_consec:
         return (base - 1) * base ** (n_digs - 1)
     if n_consec == 1:
@@ -3566,7 +3576,7 @@ def countIntegersConsecutiveDigitSumCapped(
         #print(curr)
     #res = sum(curr[d][-1] for d in range(base_eff))
     res = sum(x[0][-1] for x in arraySliceGenerator(curr, n_consec - 2))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 
@@ -3921,7 +3931,7 @@ def blumBlumShubPseudoRandomTwoDimensionalLineSegmentsCountInternalCrossings(
     the n_line_segments line segments generated by
     blumBlumShubPseudoRandomLineSegmentGenerator().
     """
-    since = time.time()
+    #since = time.time()
     it = iter(blumBlueShubPseudoRandomLineSegmentGenerator(
         n_dim=2,
         s_0=blumblumshub_s_0,
@@ -3931,7 +3941,7 @@ def blumBlumShubPseudoRandomTwoDimensionalLineSegmentsCountInternalCrossings(
     ))
     line_segments = [next(it) for _ in range(n_line_segments)]
     res = twoDimensionalLineSegmentsCountInternalCrossings(line_segments, use_bentley_ottmann=use_bentley_ottmann)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 166
@@ -3988,7 +3998,7 @@ def magicSquareWithRepeatsCount(square_side_length: int=4, val_max: int=9) -> in
     about the symmetries used and why they can be used.
     """
     # Review- try to make faster by utilising more symmetries
-    since = time.time()
+    #since = time.time()
     # TODO- generalise to arbitrary size grids
     base = val_max + 1
     n = square_side_length
@@ -4411,7 +4421,7 @@ def magicSquareWithRepeatsCount(square_side_length: int=4, val_max: int=9) -> in
         res += mult * ans
         #break
     print(tot_dict)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     """
     base = val_max + 1
@@ -4690,11 +4700,11 @@ def ulamSequenceTwoOddTermValueSum(a2_min: int=5, a2_max: int=21, term_number: i
     Outline of rationale:
     See outline of rationale for ulamSequenceTwoOddTermValue().
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for a2 in range(max(5, a2_min + (not a2_min & 1)), a2_max + 1, 2):
         res += ulamSequenceTwoOddTermValue(a2, term_number)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 168
@@ -4757,7 +4767,7 @@ def rightRotationMultiplesSum(min_n_digs: int=2, max_n_digs: int=100, n_tail_dig
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     md = None if n_tail_digs is None else base ** n_tail_digs
 
     def recur(mult: int, carry: int=0) -> Optional[Tuple[int]]:
@@ -4811,7 +4821,7 @@ def rightRotationMultiplesSum(min_n_digs: int=2, max_n_digs: int=100, n_tail_dig
                     a = a * base + ans[-i]
                 res = (res + a * mult * (max_n_incl - max(q, min_n_incl - 1))) % md
             #print(res)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 
@@ -4934,9 +4944,9 @@ def sumOfPowersOfTwoEachMaxTwice(num: int=10 ** 25) -> int:
     Outline of rationale:
     See documentation for sumOfPowersOfTwoWithMaxRepeats().
     """
-    since = time.time()
+    #since = time.time()
     res = sumOfPowersOfTwoWithMaxRepeats(num=num, max_rpt=2)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     """
     print(format(num, "b"))
@@ -5009,7 +5019,7 @@ def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=Tr
     # number in the concatenation is smaller than the previous
     # one by making the first digit be less than the first
     # digit in the previous number.
-    since = time.time()
+    #since = time.time()
 
     if min_n_prods == 1:
         mult_max_n_digs = base >> 1
@@ -5176,7 +5186,7 @@ def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=Tr
     res = 0
     for d in res_digs[0]:
         res = res * base + d
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 
@@ -5223,7 +5233,7 @@ def sumSquareOfTheDigitalSquares(max_n_dig: int=20, n_tail_digs: Optional[int]=9
     contain no more than max_n_dig digits and the sum of the
     squares of those digits is itself a perfect square.
     """
-    since = time.time()
+    #since = time.time()
     md = None if n_tail_digs is None else base ** n_tail_digs
 
     curr = [0] * (base - 1)
@@ -5258,7 +5268,7 @@ def sumSquareOfTheDigitalSquares(max_n_dig: int=20, n_tail_digs: Optional[int]=9
             if not cnt: continue
             res = (res + mult * d * ((multinom * cnt) // max_n_dig))
             if md is not None: res %= md
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
         
 
@@ -5336,7 +5346,7 @@ def countNumbersWithDigitRepeatCap(n_dig: int=18, max_dig_rpt: int=3, base: int=
     digit value occurs once (with the minus one in the value being
     due to the digit not being allowed to be zero).
     """
-    since = time.time()
+    #since = time.time()
     if max_dig_rpt * base < n_dig: return 0
     f_lst = [0] * (max_dig_rpt + 1)
     f_lst[0] = base - 1
@@ -5359,7 +5369,7 @@ def countNumbersWithDigitRepeatCap(n_dig: int=18, max_dig_rpt: int=3, base: int=
                 f_lst[f + 1] -= 1
         #print(curr)
     res = sum(curr.values())
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 173
@@ -5405,13 +5415,13 @@ def hollowSquareLaminaCount(max_n_squares: int=10 ** 6) -> int:
     of ordered pairs of strictly positive integers (a, b) such
     that a > b and 4 * a * b <= max_n_squares.
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     max_prod = max_n_squares >> 2
     for b in range(1, isqrt(max_prod)):
         a = max_prod // b
         res += a - b
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 def hollowSquareLaminaCount2(max_n_squares: int=10 ** 6) -> int:
@@ -5442,7 +5452,7 @@ def hollowSquareLaminaCount2(max_n_squares: int=10 ** 6) -> int:
     """
 
     # Review- try to make more efficient
-    since = time.time()
+    #since = time.time()
     i0 = isqrt(max_n_squares)
     i0_hlf = i0 >> 1
     res = (i0_hlf * (i0_hlf - 1))
@@ -5455,7 +5465,7 @@ def hollowSquareLaminaCount2(max_n_squares: int=10 ** 6) -> int:
         #print(i, j, ans)
         res += ans
         i += 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 174
@@ -5579,12 +5589,12 @@ def hollowSquareLaminaTypeCountSum(max_n_squares: int=10 ** 6, min_type: int=1, 
     See outline of rationale section of documentation for function
     hollowSquareLaminaTypeCounts().
     """
-    since = time.time()
+    #since = time.time()
     cnts = hollowSquareLaminaTypeCounts(max_n_squares)
     res = sum(cnts.get(i, 0) for i in range(min_type, max_type + 1))
     if min_type < 1 and max_type >= 1:
         res += max_n_squares - sum(cnts.values())
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 175
@@ -5613,7 +5623,7 @@ def fractionsAndSumOfPowersOfTwoShortenedBinary(numerator: int=123456789, denomi
 
     Calkin-Wilf Tree
     """
-    since = time.time()
+    #since = time.time()
     
     def recur(p: int, q: int) -> List[int]:
         #print(p, q)
@@ -5630,7 +5640,7 @@ def fractionsAndSumOfPowersOfTwoShortenedBinary(numerator: int=123456789, denomi
             res.append(n_ones)
         return res
     res = recur(numerator, denominator)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 176
@@ -5669,7 +5679,7 @@ def smallestCathetusCommonToNRightAngledTriangles(n_common: int=47547) -> int:
     For even a ...
     TODO
     """
-    since = time.time()
+    #since = time.time()
     pf = calculatePrimeFactorisation((n_common << 1) + 1)
     ps = PrimeSPFsieve()
     pg = iter(ps.endlessPrimeGenerator())
@@ -5680,7 +5690,7 @@ def smallestCathetusCommonToNRightAngledTriangles(n_common: int=47547) -> int:
     for i in range(1, len(p_facts)):
         for _ in range(pf[p_facts[i]]):
             res *= next(pg) ** ((p_facts[i] - 1) >> 1)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 177
@@ -5709,7 +5719,7 @@ def integerAngledQuadrilaterals(tol: float=10 ** -9):
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
     #res = 0
     seen = set()
     for a1 in range(45, 179):
@@ -5772,7 +5782,7 @@ def integerAngledQuadrilaterals(tol: float=10 ** -9):
                     #print(angles)
                     seen.add(angles_final)
     res = len(seen)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 178
@@ -5842,7 +5852,7 @@ def countPandigitalStepNumbers(max_n_digs: int=40, incl_zero: bool=True, base: i
     1-(base - 1) pandigital.
     """
 
-    since = time.time()
+    #since = time.time()
     lower = int(not incl_zero)
     upper = base - 1
     #print(max_n_digs, lower, upper)
@@ -5878,7 +5888,7 @@ def countPandigitalStepNumbers(max_n_digs: int=40, incl_zero: bool=True, base: i
     #    print(i, ans)
     #    res += ans
     res = sum(recur(0, i, incl_lower=False, incl_upper=False) for i in range(max(lower, 1), upper + 1))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 179
@@ -5909,7 +5919,7 @@ def countConsecutiveNumberPositiveDivisorsMatch(n_max: int=10 ** 7) -> int:
     factors and compare this with that of the next integer to
     see whether it should contribute to the count.
     """
-    since = time.time()
+    #since = time.time()
     print(f"n_max = {n_max}")
     ps = PrimeSPFsieve(n_max + 1)
     print("created prime sieve")
@@ -5921,7 +5931,7 @@ def countConsecutiveNumberPositiveDivisorsMatch(n_max: int=10 ** 7) -> int:
         #if cnt == prev:
         #    print(num - 1)
         prev = cnt
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 180
@@ -6190,10 +6200,10 @@ def goldenTripletsSumTotalNumeratorDenominator(max_order: int=35) -> int:
     for details of the method of finding the values of (x, y, z) and
     n satisfying the given properties.
     """
-    since = time.time()
+    #since = time.time()
     frac = goldenTripletsSum(max_order)
     res = sum(frac)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 181
@@ -6234,7 +6244,7 @@ def groupingNDifferentColouredObjects(colour_counts: List[int]=[40, 60]) -> int:
     different possible multiples of that partition).
     """
     # Review- currently very slow
-    since = time.time()
+    #since = time.time()
     remain = sorted(colour_counts, reverse=True)
     while remain and not remain[-1]: remain.pop()
     #print(remain)
@@ -6307,7 +6317,7 @@ def groupingNDifferentColouredObjects(colour_counts: List[int]=[40, 60]) -> int:
         return res
     #grps = []
     res = recur(tuple(float("inf") for _ in range(n_colours)))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 182
@@ -6458,9 +6468,9 @@ def exponentsMinimisingRSAEncryptionUnconcealedSum(p: int=1009, q: int=3643) -> 
     See outline of rationale for the function
     exponentsMinimisingRSAEncryptionUnconcealed().
     """
-    since = time.time()
+    #since = time.time()
     res = sum(exponentsMinimisingRSAEncryptionUnconcealed(p, q))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 183
@@ -6541,7 +6551,7 @@ def maximumProductOfPartsTerminatingSum(n_min: int=5, n_max: int=10 ** 4, base: 
         (sum n from n_min to n_max) D(n, base)
     where D(n, base) is defined above.
     """
-    since = time.time()
+    #since = time.time()
     base_pf = calculatePrimeFactorisation(base)
     base_p_facts = set(base_pf.keys())
     res = 0
@@ -6560,7 +6570,7 @@ def maximumProductOfPartsTerminatingSum(n_min: int=5, n_max: int=10 ** 4, base: 
             res += num
             continue
         res -= num
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 184
@@ -6810,7 +6820,7 @@ def latticeTrianglesContainingOriginCount(lattice_radius: int=105, incl_edge: bo
     to obtain the final answer.
     """
     # Review- Outline of rationale for clarity and verbosity.
-    since = time.time()
+    #since = time.time()
     r_sq = lattice_radius ** 2
     cnt1 = 0
     cnt2 = 0
@@ -6827,7 +6837,7 @@ def latticeTrianglesContainingOriginCount(lattice_radius: int=105, incl_edge: bo
             cnt1 += degen
 
     res <<= 1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 
@@ -6926,7 +6936,7 @@ def numberMindSimulatedAnnealing(alphabet: str="0123456789", n_trials: int=20, g
     strings in guesses. Note that while this may be the original string,
     it is not guaranteed.
     """
-    since = time.time()
+    #since = time.time()
     n = len(guesses[0][0])
     #print(n)
     alpha_dict = {l: i for i, l in enumerate(alphabet)}
@@ -6993,7 +7003,7 @@ def numberMindSimulatedAnnealing(alphabet: str="0123456789", n_trials: int=20, g
                 print(f"new best = {d}")
     
     res = "".join(decode(x) for x in curr)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 def numberMindExact(alphabet: str="0123456789", guesses: List[Tuple[str, int]]=[
@@ -7086,7 +7096,7 @@ def numberMindExact(alphabet: str="0123456789", guesses: List[Tuple[str, int]]=[
     # Review- try finding ways to prune the search space to 
     # make this method viable
 
-    since = time.time()
+    #since = time.time()
     n = len(guesses[0][0])
 
     f_sets = [set() for _ in range(max(x[1] for x in guesses) + 1)]
@@ -7138,7 +7148,7 @@ def numberMindExact(alphabet: str="0123456789", guesses: List[Tuple[str, int]]=[
         return
     
     recur(idx=n - 1)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 186
@@ -7510,7 +7520,7 @@ def laggedFibonacciGraphEdgeCountForVertexToConnectToProportionOfGraph(
     connected to a proportion of the vertices in the graph (including itself)
     no less than target_proportion.
     """
-    since = time.time()
+    #since = time.time()
     mx_n_edges = None
     res = edgeCountForVertexToConnectToProportionOfGraph(
             n_vertices,
@@ -7519,7 +7529,7 @@ def laggedFibonacciGraphEdgeCountForVertexToConnectToProportionOfGraph(
             laggedFibonacciGraphEdgeGenerator(n_vertices=n_vertices, n_edges=mx_n_edges, l_fib_poly_coeffs=l_fib_poly_coeffs, l_fib_lags=l_fib_lags),
             ignore_self_edges=ignore_self_edges,
         )
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
     
 
@@ -7543,7 +7553,7 @@ def semiPrimeCount(n_max: int=10 ** 8 - 1) -> int:
     Integer (int) giving the number of strictly positive
     integers no greater than n_max that are semi-prime.
     """
-    since = time.time()
+    #since = time.time()
     pf = SimplePrimeSieve(n_max >> 1)
     p_mx = isqrt(n_max)
     i2 = len(pf.p_lst) - 1
@@ -7558,7 +7568,7 @@ def semiPrimeCount(n_max: int=10 ** 8 - 1) -> int:
                 break
         else: break
         #print(p1, res)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 188
@@ -7688,7 +7698,7 @@ def modTetration(base: int=1777, tetr: int=1855, md: int=10 ** 8) -> int:
     and the checking for cycles to potentially reduce the number of
     iterations needing to be performed)
     """
-    since = time.time()
+    #since = time.time()
     e_tot_md = eulerTotientFunction(md)
     #print(md, e_tot_md)
     if not tetr: return 1
@@ -7706,7 +7716,7 @@ def modTetration(base: int=1777, tetr: int=1855, md: int=10 ** 8) -> int:
         seen_lst.append(res)
         seen_dict[res] = i
         #print(i, res)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 189
@@ -7766,7 +7776,7 @@ def numberOfTriangularGridColourings(n_colours: int=3, n_rows: int=8) -> int:
     calculate each equivalent colouring once and saving duplicated
     calculations.
     """
-    since = time.time()
+    #since = time.time()
     if n_rows == 1: return n_colours
     if n_colours <= 1: return 0
     elif n_colours == 2: return n_colours
@@ -7811,7 +7821,7 @@ def numberOfTriangularGridColourings(n_colours: int=3, n_rows: int=8) -> int:
         return res
 
     res = recur(0, 0)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 
@@ -7939,12 +7949,12 @@ def sumFloorMaximisedRestrictedPowerProduct(n_min: int=2, n_max: int=15) -> int:
     See outline of rationale in the documentation for the function
     maximisedRestrictedPowerProduct().
     """
-    since = time.time()
+    #since = time.time()
     res = 0
     for i in range(n_min, n_max + 1):
         frac = maximisedRestrictedPowerProduct(i)
         res += math.floor(frac[0] / frac[1])
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 191
@@ -7990,7 +8000,7 @@ def attendancePrizeStringCount(n_days: int=30, n_consec_absent: int=3, n_late: i
     The solution is then the total of these numbers for day number
     n_days.
     """
-    since = time.time()
+    #since = time.time()
     curr = [[0] * n_consec_absent for _ in range(n_late)]
     curr[0][0] = 1
     for _ in range(n_days):
@@ -8006,7 +8016,7 @@ def attendancePrizeStringCount(n_days: int=30, n_consec_absent: int=3, n_late: i
         i_l = n_late - 1
         curr[i_l][0] += sum(prev[i_l])
     res = sum(sum(x) for x in curr)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 192
@@ -8043,7 +8053,7 @@ def bestSqrtApproximationsDenominatorSum(n_max: int=10 ** 5, denom_bound: int=10
     https://shreevatsa.wordpress.com/2011/01/10/not-all-best-rational-approximations-are-the-convergents-of-the-continued-fraction/
     """
     # See https://shreevatsa.wordpress.com/2011/01/10/not-all-best-rational-approximations-are-the-convergents-of-the-continued-fraction/
-    since = time.time()
+    #since = time.time()
     m = 2
     nxt_sq = m ** 2
     res = 0
@@ -8055,7 +8065,7 @@ def bestSqrtApproximationsDenominatorSum(n_max: int=10 ** 5, denom_bound: int=10
         frac = sqrtBestRationalApproximation(denom_bound, num)
         res += frac[1]
         #print(num, frac)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 193
@@ -8110,7 +8120,7 @@ def squareFreeNumberCount(n_max: int=2 ** 50 - 1) -> int:
     """
     # Review- consider making the explanation more rigerous
     # Review- Try to find a faster method (look into Mobius function)
-    since = time.time()
+    #since = time.time()
     mx = isqrt(n_max)
     ps = PrimeSPFsieve(mx)
     res = 0
@@ -8127,7 +8137,7 @@ def squareFreeNumberCount(n_max: int=2 ** 50 - 1) -> int:
             res += contrib if (p_cnt & 1) else -contrib
     #print(res)
     res = n_max - res
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 194
@@ -8309,7 +8319,7 @@ def allowedColouredConfigurationsCount(type_a_count: int=25, type_b_count: int=7
             (n_colours - 2)_5) ** type_b_count *
     """
     # Review- generalise to different graph structures
-    since = time.time()
+    #since = time.time()
     if not type_a_count and not type_b_count: return 1
     if n_colours < 3: return 0
 
@@ -8320,7 +8330,7 @@ def allowedColouredConfigurationsCount(type_a_count: int=25, type_b_count: int=7
             ((n - 2) * (6 + (n - 3) * (38 + (n - 4) * (40 + (n - 5) * (12 + (n - 6)))))) ** type_b_count
     if md is not None:
         res %= md
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 195
@@ -8328,7 +8338,7 @@ def integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(radius_max:
     """
     Solution to Project Euler #195
     """
-    since = time.time()
+    #since = time.time()
     r_sq_mx = radius_max ** 2
     """
     
@@ -8398,8 +8408,8 @@ def integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(radius_max:
                 res += isqrt(k_sq_mx)
             else: continue
             break
-    since1 = time.time()
-    print(since1 - since)
+    #since1 = time.time()
+    #print(since1 - since)
     m_max2 = isqrt(48 * r_sq_mx)
     for m0 in range(1, m_max2 + 1, 3):
         for i, m in enumerate((m0, m0 + 1)):
@@ -8469,8 +8479,8 @@ def integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(radius_max:
             #if not k_sq_mx: break
             res += isqrt(k_sq_mx)
     """
-    print(time.time() - since1)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(time.time() - since1)
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 196
@@ -8812,10 +8822,10 @@ def numberTrianglePrimeTripletRowsSum(row_nums: List[int]=[5678027, 7208785]) ->
     # defining a row in the array, as this is the terminology used in the
     # outline of rationale in primeTriangleTripletRowSum() and is probably
     # more intuitive.
-    since = time.time()
+    #since = time.time()
     ps = SimplePrimeSieve()
     res = sum(numberTrianglePrimeTripletRowSum(row_num=row_num, ps=ps) for row_num in set(row_nums))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 197
@@ -8959,7 +8969,7 @@ def findFloorRecursiveSequenceTermSum(term_numbers: List[int]=[10 ** 12, 10 ** 1
         (k - (number of initial terms) % len(number of cycle_terms)
     (0-indexed) from the list of cycle terms.
     """
-    since = time.time()
+    #since = time.time()
     _, init_terms, loop_terms = findFloorRecursiveSequenceLoop(u0, max_term=max(term_numbers), base=base, a=a, b=b, c=c, div=div)
     #print(init_terms, loop_terms)
     res = 0
@@ -8970,7 +8980,7 @@ def findFloorRecursiveSequenceTermSum(term_numbers: List[int]=[10 ** 12, 10 ** 1
         j = (i - len(init_terms)) % len(loop_terms)
         res += loop_terms[j]
     res /= div
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 198
@@ -9111,7 +9121,7 @@ def ambiguousNumberCountUpToFraction(max_denominator: int=10 ** 8, upper_bound: 
     Outline of rationale:
     TODO
     """
-    since = time.time()
+    #since = time.time()
 
     g = gcd(*upper_bound)
     if g != 1:
@@ -9160,7 +9170,7 @@ def ambiguousNumberCountUpToFraction(max_denominator: int=10 ** 8, upper_bound: 
         d = pair[0] + pair[1]
         safe_stk.append((pair[0], d))
         safe_stk.append((d, pair[1]))
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
     """
@@ -9182,7 +9192,7 @@ def ambiguousNumberCountUpToFraction(max_denominator: int=10 ** 8, upper_bound: 
         #res += comp((numer, denom))
     res += mx - ((((upper_bound[1] - 1) // upper_bound[0]) + 1) >> 1)
     """
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 def ambiguousNumberCountUpToReciprocal(max_denominator: int=10 ** 8, upper_bound_reciprocal=100, incl_upper_bound: bool=False) -> int:
@@ -9235,7 +9245,7 @@ def ambiguousNumberCountUpToReciprocal(max_denominator: int=10 ** 8, upper_bound
     have a denominator no greater than max_denominator.
     """
     # Alternative solution that only works when the upper bound is a reciprocal
-    since = time.time()
+    #since = time.time()
     
     mx = max_denominator >> 1
 
@@ -9257,7 +9267,7 @@ def ambiguousNumberCountUpToReciprocal(max_denominator: int=10 ** 8, upper_bound
         res += 1
         stk.append(denom1 + denom2)
     
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 199
@@ -9358,7 +9368,7 @@ def IterativeCirclePackingUncoveredAreaProportion(n_iter: int=10) -> float:
     type in the final calculation.
     """
     # Review- consider rewording the documentation for clarity
-    since = time.time()
+    #since = time.time()
     n_initial_internal_circles = 3
     if n_initial_internal_circles < 2: return 0.
     counts = [0, n_initial_internal_circles]
@@ -9394,7 +9404,7 @@ def IterativeCirclePackingUncoveredAreaProportion(n_iter: int=10) -> float:
         radii_inv.append(r_inv)
         res -= f / r_inv ** 2
     #print(radii_inv)
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 200
@@ -9653,7 +9663,7 @@ def findNthPrimeProofSqubeWithSubstring(substr_num: int=200, substr_num_lead_zer
     strictly positive integer substr_num when represented in the same base with
     exactly substr_num_lead_zeros_count leading zeros.
     """
-    since = time.time()
+    #since = time.time()
     ps = SimplePrimeSieve()
 
     memo = {}
@@ -9688,7 +9698,7 @@ def findNthPrimeProofSqubeWithSubstring(substr_num: int=200, substr_num_lead_zer
             found = True
             break
     res = num if found else -1
-    print(f"Time taken = {time.time() - since:.4f} seconds")
+    #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 ##############
