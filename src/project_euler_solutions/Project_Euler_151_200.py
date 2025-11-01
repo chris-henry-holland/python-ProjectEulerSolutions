@@ -108,27 +108,7 @@ def compareFractions(frac1: Tuple[int, int], frac2: Tuple[int, int]) -> int:
     elif num < 0: return -1
     return 0
 
-def floorHarmonicSeries(n: int) -> int:
-    """
-    Calculates the value of the sum:
-        (sum i from 1 to n) floor(n / i)
-    using the identity that:
-        (sum i from 1 to n) floor(n / i) = ((sum i from 1 to k) floor(n / i)) - k ** 2
-    where k = floor(sqrt(n))
-    
-    Args:
-        Required positional:
-        n (int): Strictly positive integer giving the value
-                for which the value of the above formula is
-                to be calculated.
-    
-    Returns:
-    Integer (int) giving the value of:
-        sum (i from 1 to n) floor(n / i)
-    for the given value of n.
-    """
-    k = isqrt(n)
-    return sum(n // i for i in range(1, k + 1)) - k ** 2
+
 
 # Problem 151
 def singleSheetCountExpectedValueFraction(
@@ -719,7 +699,7 @@ def sumsOfSquareReciprocals(
     """
 
 def sumsOfSquareReciprocalsCount(
-    target: (1, 2),
+    target: Tuple[int, int]=(1, 2),
     denom_min: int=2,
     denom_max: int=80,
 ) -> int:
@@ -1878,7 +1858,9 @@ def countReciprocalPairSumsEqualToFraction(frac: Tuple[int]) -> int:
         res += (frac2[0] == 1)
     return res
 
-def reciprocalPairSumsMultipleOfReciprocal2(q_factorisation: Dict[int, int]) -> List[Tuple[int, int]]:
+def reciprocalPairSumsMultipleOfReciprocal2(
+    q_factorisation: Dict[int, int],
+) -> List[Tuple[int, int]]:
     """
     Given the prime factorisation of a strictly positive integer
     q_factorisation, identifies all distinct ordered pairs of
@@ -1935,7 +1917,9 @@ def reciprocalPairSumsMultipleOfReciprocal2(q_factorisation: Dict[int, int]) -> 
     #res += 1 + sum(v + 1 for v in q_factorisation.values())
     return res
 
-def countReciprocalPairSumsMultipleOfReciprocal2(q_factorisation: Dict[int, int]) -> int:
+def countReciprocalPairSumsMultipleOfReciprocal2(
+    q_factorisation: Dict[int, int],
+) -> int:
     """
     Given the prime factorisation of a strictly positive integer
     q_factorisation, finds the number of distinct ordered pairs
@@ -1980,7 +1964,9 @@ def countReciprocalPairSumsMultipleOfReciprocal2(q_factorisation: Dict[int, int]
     #res += 1 + sum(v + 1 for v in q_factorisation.values())
     return res + term + 1
 
-def factorFactorisationsGenerator(num_p_factorisation: Dict[int, int]) -> Generator[Dict[int, int], None, None]:
+def factorFactorisationsGenerator(
+    num_p_factorisation: Dict[int, int],
+) -> Generator[Dict[int, int], None, None]:
     """
     Generator yielding the prime factorisations of each
     distinct positive integer factor of the strictly positive
@@ -2355,7 +2341,11 @@ def countAllDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars: int, max_l
         res.append(sum(curr[-1]))
     return res
 
-def maximumDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars: int=26, max_len: int=26, n_smaller_left_neighbours: int=1) -> List[int]:
+def maximumDifferentLetterStringsWithNSmallerLeftNeighbours(
+    n_chars: int=26,
+    max_len: int=26,
+    n_smaller_left_neighbours: int=1,
+) -> List[int]:
     """
     Solution to Project Euler #158
 
@@ -2388,7 +2378,11 @@ def maximumDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars: int=26, max
     conditions.
     """
     #since = time.time()
-    res = max(countAllDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars, max_len, n_smaller_left_neighbours))
+    res = max(countAllDifferentLetterStringsWithNSmallerLeftNeighbours(
+        n_chars,
+        max_len,
+        n_smaller_left_neighbours,
+    ))
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
@@ -2443,7 +2437,10 @@ def digitalRoot(num: int, base: int=10) -> int:
     #print(num0, num)
     return num
 
-def maximalDigitalRootFactorisations(n_max: int, base: int=10) -> List[int]:
+def maximalDigitalRootFactorisations(
+    n_max: int,
+    base: int=10,
+) -> List[int]:
     """
     Calculates the maximal digital root sum in the chosen
     base for every non-negative integer no greater than
@@ -2566,7 +2563,11 @@ def maximalDigitalRootFactorisations(n_max: int, base: int=10) -> List[int]:
             res[m] = max(res[m], res[n] + res[n2])
     return res
 
-def maximalDigitalRootFactorisationsSum(n_min: int=2, n_max: int=10 ** 6 - 1, base: int=10) -> int:
+def maximalDigitalRootFactorisationsSum(
+    n_min: int=2,
+    n_max: int=10 ** 6 - 1,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #159
 
@@ -2658,7 +2659,11 @@ def factorialPrimeFactorCount(n: int, p: int) -> int:
         res += n
     return res
 
-def factorialFinalDigitsBeforeTrailingZeros(n: int=10 ** 12, n_digs: int=5, base: int=10) -> int:
+def factorialFinalDigitsBeforeTrailingZeros(
+    n: int=10 ** 12,
+    n_digs: int=5,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #160
 
@@ -2789,7 +2794,11 @@ def factorialFinalDigitsBeforeTrailingZeros(n: int=10 ** 12, n_digs: int=5, base
     return res
 
 # Problem 161
-def nextTriominoStates(state: List[Tuple[int, bool]], rows_remain: int=-1, nxt_insert: Optional[int]=None) -> List[Tuple[List[Tuple[int, bool]], int, int]]:
+def nextTriominoStates(
+    state: List[Tuple[int, bool]],
+    rows_remain: int=-1,
+    nxt_insert: Optional[int]=None,
+) -> List[Tuple[List[Tuple[int, bool]], int, int]]:
     """
     For filling a series of rows of fixed width with triominos
     without gaps, finds the possible states of the rows after
@@ -3121,8 +3130,14 @@ def countIntegersContainGivenDigits(max_n_dig: int, n_contained_digs: int, conta
     if n_contained_digs > base - (not contained_includes_zero):
         return 0
     memo = {}
-    def recur(n_dig: int, n_contained_digs: int, contained_includes_zero: bool, first: bool=True) -> int:
-        if n_contained_digs > n_dig or (not n_contained_digs and contained_includes_zero): return 0
+    def recur(
+        n_dig: int,
+        n_contained_digs: int,
+        contained_includes_zero: bool,
+        first: bool=True,
+    ) -> int:
+        if n_contained_digs > n_dig or (not n_contained_digs and contained_includes_zero):
+            return 0
         elif not n_dig: return 1
         args = (n_dig, n_contained_digs, contained_includes_zero, first)
         if args in memo.keys(): return memo[args]
@@ -3139,7 +3154,11 @@ def countIntegersContainGivenDigits(max_n_dig: int, n_contained_digs: int, conta
     res = sum(recur(n_dig, n_contained_digs, contained_includes_zero, first=True) for n_dig in range(n_contained_digs, max_n_dig + 1))
     return res
     
-def countHexadecimalIntegersContainGivenDigits(max_n_dig: int=16, n_contained_digs: int=3, contained_includes_zero: bool=True) -> str:
+def countHexadecimalIntegersContainGivenDigits(
+    max_n_dig: int=16,
+    n_contained_digs: int=3,
+    contained_includes_zero: bool=True,
+) -> str:
     """
     Solution to Project Euler #162
 
@@ -3174,13 +3193,19 @@ def countHexadecimalIntegersContainGivenDigits(max_n_dig: int=16, n_contained_di
     above.
     """
     #since = time.time()
-    res1 = countIntegersContainGivenDigits(max_n_dig, n_contained_digs, contained_includes_zero, base=16)
+    res1 = countIntegersContainGivenDigits(
+        max_n_dig,
+        n_contained_digs,
+        contained_includes_zero,
+        base=16,
+    )
     print(res1)
     res2 = intAsHexadecimal(res1)
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res2
 
 # Problem 163
+"""
 def countCrossHatchedTrianglesUsingBottomLayer(n_layers: int) -> int:
     # Doesn't work for n_layers >= 4- have not been able to find error.
     # Most likely a possible triangle type that has not been accounted
@@ -3310,19 +3335,49 @@ def countCrossHatchedTrianglesUsingBottomLayer(n_layers: int) -> int:
     return res
 
 def countCrossHatchedTriangles2(n_layers: int=36) -> int:
-    """
+    ""
     Alternative solution attempt for Project Euler #163. Does not
     give correct answer for n_layers >= 4 (unclear where the mistake
     is)
-    """
+    ""
     #since = time.time()
     res = sum(countCrossHatchedTrianglesUsingBottomLayer(i) for i in range(1, n_layers + 1))
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
-
+"""
 def countCrossHatchedTriangles(n_layers: int=36) -> int:
     """
     Solution to Project Euler #163
+
+    Consider an arrangement of a equilateral triangles arranged in layers
+    such that the n:th layer (starting at 1) contains 2 * n - 1 triangles,
+    arranged together to form a larger equilateral triangle with no
+    gaps. Suppose each triangle in this arrangement has a line around its
+    perimeter (with internal sides sharing that line with the adjacent
+    triangle) and straight lines from each vertex to the centre of the
+    opposite edge.
+
+    This function calculates the number of distinct sets of three
+    intersections of these lines can be selected such that any two
+    of the three intersections are connected by a continuous straight
+    line in the construction (and so the three intersections form
+    the vertices of a triangle in the arrangement).
+
+    Args:
+        Optional named:
+        n_layers (int): The number of layers of equilateral triangles
+                in the arrangement.
+            Default: 36
+    
+    Returns:
+    Integer (int) giving the number of distinct sets of three intersections
+    of the lines in the arrangement that exist such that any two of the
+    three intersections are connected by a continuous straight line in the
+    construction with n_layers layers of equilateral triangles described
+    above.
+
+    Outline of rationale:
+    TODO
     """
     #since = time.time()
     n = n_layers

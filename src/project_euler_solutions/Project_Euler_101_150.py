@@ -6581,6 +6581,8 @@ def rectanglesInCrossHatchedGrids(m: int=47, n: int=43) -> int:
     Outline of rationale:
     TODO
     """
+    # Review- consider constructing a solution not relying on a closed form
+    # solution using method similar to that of solution to problem #163
     #since = time.time()
     if n < m: m, n = n, m
     res = math.comb(m + 2, 3) * math.comb(n + 2, 3)\
