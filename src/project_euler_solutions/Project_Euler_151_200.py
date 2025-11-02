@@ -1751,7 +1751,8 @@ def reciprocalPartnerSumsEqualToMultipleOfReciprocal(
     
     res = []
     for b in range(b_min, b_max + 1, b_step):
-        if not reciprocal % addFractions((1, a), (1, b))[1]:
+        sm = CustomFraction(1, a) + CustomFraction(1, b)
+        if not reciprocal % sm.denominator:
             res.append(b)
     return res
 
@@ -1791,8 +1792,8 @@ def reciprocalPairSumsEqualToMultipleOfReciprocal(
     return res
 
 def reciprocalPairSumsEqualToFraction(
-    frac: Tuple[int],
-) -> List[Tuple[int]]:
+    frac: CustomFraction,
+) -> List[Tuple[int, int]]:
     """
     For a strictly positive rational number frac, finds all ordered
     pairs of strictly positive integers (a, b) such that b is no
@@ -1801,12 +1802,10 @@ def reciprocalPairSumsEqualToFraction(
     
     Args:
         Required positional:
-        frac (2-tuple of ints): The strictly positive rational number
-                for which the ordered pairs (a, b) satisfying the
-                above equation are to be sought, represented as a
-                fraction with the strictly positive integers at
-                indices 0 and 1 represent the numerator and denominator
-                of the fraction respectively.
+        frac (CustomFraction object): The strictly positive rational
+                number for which the ordered pairs (a, b) satisfying
+                the above equation are to be found, represented by a
+                fraction.
 
     Returns: 
     List of 2-tuples of strictly positive integers (int) giving all
@@ -1814,19 +1813,19 @@ def reciprocalPairSumsEqualToFraction(
     no less than a and the above equation holds for the given value
     of frac. The list is sorted in increasing size of a.
     """
-    g = gcd(*frac)
-    frac = tuple(x // g for x in frac)
+    #g = gcd(*frac)
+    #frac = tuple(x // g for x in frac)
 
-    if frac[0] > frac[1]:
-        return [(1, frac[1])] if frac[0] == frac[1] + 1 else []
+    if frac.numerator > frac.denominator:
+        return [(1, frac.denominator)] if frac.numerator == frac.denominator + 1 else []
     res = []
-    for q in range((frac[1] // frac[0]) + 1, (2 * frac[1] // frac[0]) + 1):
-        frac2 = addFractions(frac, (-1, q))
-        if frac2[0] == 1:
+    for q in range((frac.denominator // frac.numerator) + 1, (2 * frac.denominator // frac.numerator) + 1):
+        frac2 = frac - CustomFraction(1, q)
+        if frac2.numerator == 1:
             res.append((q, frac2[1]))
     return res
 
-def countReciprocalPairSumsEqualToFraction(frac: Tuple[int]) -> int:
+def countReciprocalPairSumsEqualToFraction(frac: CustomFraction) -> int:
     """
     For a strictly positive rational number frac, finds the number
     of distinct ordered pairs of strictly positive integers (a, b)
@@ -1835,27 +1834,25 @@ def countReciprocalPairSumsEqualToFraction(frac: Tuple[int]) -> int:
     
     Args:
         Required positional:
-        frac (2-tuple of ints): The strictly positive rational number
-                for which the number of ordered pairs (a, b) satisfying
-                the above equation is to be sought, represented as a
-                fraction with the strictly positive integers at
-                indices 0 and 1 represent the numerator and denominator
-                of the fraction respectively.
+        frac (CustomFraction object): The strictly positive rational
+                number for which the number of ordered pairs (a, b)
+                satisfying the above equation is to be found,
+                represented by a fraction.
 
     Returns: 
     Integer (int) giving the number of distinct ordered pairs of
     strictly positive integers (a, b) that exists such tha b is no less
     than a and the above equation holds for the given value of frac.
     """
-    g = gcd(*frac)
-    frac = tuple(x // g for x in frac)
+    #g = gcd(*frac)
+    #frac = tuple(x // g for x in frac)
 
-    if frac[0] > frac[1]:
-        return int(frac[0] == frac[1] + 1)
+    if frac.numerator > frac.denominator:
+        return int(frac.numerator == frac.denominator + 1)
     res = 0
-    for q in range((frac[1] // frac[0]) + 1, (2 * frac[1] // frac[0]) + 1):
-        frac2 = addFractions(frac, (-1, q))
-        res += (frac2[0] == 1)
+    for q in range((frac.denominator // frac.numerator) + 1, (2 * frac.denominator // frac.numerator) + 1):
+        frac2 = frac - CustomFraction(1, q)
+        res += (frac2.numerator == 1)
     return res
 
 def reciprocalPairSumsMultipleOfReciprocal2(
@@ -2195,8 +2192,9 @@ def countReciprocalPairSumsMultipleOfReciprocalPower2(
         if not a % 1000:
             print(f"a = {a}, b = {b}")
         g = gcd(a, b)
-        (a_, b_) = (a // g, b // g)
-        ans = countReciprocalPairSumsEqualToFraction((a_, b_))
+        #(a_, b_) = (a // g, b // g)
+        frac = CustomFraction(a, b)
+        ans = countReciprocalPairSumsEqualToFraction(frac)
         if not ans: continue
         mx = (max_power - min_power)
         
@@ -2235,7 +2233,11 @@ def countReciprocalPairSumsMultipleOfReciprocalPower2(
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-def countReciprocalPairSumsMultipleOfReciprocalPower(reciprocal_factorisation: Dict[int, int]={2: 1, 5: 1}, min_power: int=1, max_power: int=9) -> int:
+def countReciprocalPairSumsMultipleOfReciprocalPower(
+    reciprocal_factorisation: Dict[int, int]={2: 1, 5: 1},
+    min_power: int=1,
+    max_power: int=9,
+) -> int:
     """
     Solution to Project Euler #157
 
@@ -10055,5 +10057,5 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
     return
 
 if __name__ == "__main__":
-    eval_nums = {155}
+    eval_nums = {157}
     evaluateProjectEulerSolutions151to200(eval_nums)
