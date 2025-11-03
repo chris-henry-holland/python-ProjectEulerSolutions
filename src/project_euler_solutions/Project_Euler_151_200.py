@@ -18,9 +18,7 @@ import bisect
 import heapq
 import itertools
 import math
-import os
 import random
-import sys
 import time
 
 from collections import deque
@@ -5992,7 +5990,7 @@ def countConsecutiveNumberPositiveDivisorsMatch(n_max: int=10 ** 7) -> int:
     return res
 
 # Problem 180
-def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]]]:
+def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[CustomFraction, CustomFraction, CustomFraction]]]:
     """
     Consider the families of functions for integer n:
         f_(1, n)(x, y, z) = x ** (n + 1) + y ** (n + 1) - z ** (n + 1)
@@ -6017,10 +6015,8 @@ def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[Tuple[int, int], Tup
     List of 2-tuples, each of which represents values of n and (x, y, z)
     collectively satisfying the stated constraints, whose index 0 contains
     an integer (int) giving the value of n for that solution, and whose
-    index 1 contains a 3-tuple of 2-tuples, representing the values of
-    x, y and z respectively for the solution as fractions in lowest
-    form where indices 0 and 1 contains an integers giving the numerator
-    and denominator respectively.
+    index 1 contains a 3-tuple of CustomFraction, representing the rational
+    values of x, y and z respectively for the solution as fractions.
 
     Outline of rationale:
     Through algebraic manipulation, the equation f_n(x, y, z) = 0 can be
@@ -6049,20 +6045,20 @@ def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[Tuple[int, int], Tup
             for b_y in range(b_x, max_order + 1):
                 for a_y in range(1, a_x + 1 if b_y == b_x else b_y):
                     if gcd(a_y, b_y) != 1: continue
-                    a_z1, b_z1 = addFractions((a_x, b_x), (a_y, b_y))
-                    if a_z1 < b_z1 and b_z1 <= max_order:
+                    z1 = CustomFraction(a_x, b_x) + CustomFraction(a_y, b_y)
+                    if z1.numerator < z1.denominator and z1.denominator <= max_order:
                         if a_x * b_y <= a_y * b_x:
-                            res.append((1, ((a_x, b_x), (a_y, b_y), (a_z1, b_z1))))
+                            res.append((1, (CustomFraction(a_x, b_x), CustomFraction(a_y, b_y), z1)))
                         else:
-                            res.append((1, ((a_y, b_y), (a_x, b_x), (a_z1, b_z1))))
-                    b_z2, a_z2 = addFractions((b_x, a_x), (b_y, a_y))
-                    if a_z2 < b_z2 and b_z2 <= max_order:
+                            res.append((1, (CustomFraction(a_y, b_y), CustomFraction(a_x, b_x), z1)))
+                    z2 = CustomFraction(b_x, a_x) + CustomFraction(b_y, a_y)
+                    if z2.numerator < z2.denominator and z2.denominator <= max_order:
                         if a_x * b_y <= a_y * b_x:
-                            res.append((-1, ((a_x, b_x), (a_y, b_y), (a_z2, b_z2))))
+                            res.append((-1, (CustomFraction(a_x, b_x), CustomFraction(a_y, b_y), z2)))
                         else:
-                            res.append((-1, ((a_y, b_y), (a_x, b_x), (a_z2, b_z2))))
-                    a_zsq1, b_zsq1 = addFractions((a_x ** 2, b_x ** 2), (a_y ** 2, b_y ** 2))
-                    if a_zsq1 < b_zsq1 and a_zsq1 in sqrts.keys() and b_zsq1 in sqrts.keys():
+                            res.append((-1, (CustomFraction(a_y, b_y), CustomFraction(a_x, b_x), z2)))
+                    zsq1 = CustomFraction(a_x ** 2, b_x ** 2) + CustomFraction(a_y ** 2, b_y ** 2)
+                    if zsq1.numerator < zsq1.denominator and zsq1.numerator in sqrts.keys() and zsq1.denominator in sqrts.keys():
                         a_z, b_z = sqrts[a_zsq1], sqrts[b_zsq1]
                         if a_x * b_y <= a_y * b_x:
                             res.append((2,( (a_x, b_x), (a_y, b_y), (a_z, b_z))))
