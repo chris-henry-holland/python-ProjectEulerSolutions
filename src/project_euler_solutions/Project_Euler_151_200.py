@@ -5990,7 +5990,9 @@ def countConsecutiveNumberPositiveDivisorsMatch(n_max: int=10 ** 7) -> int:
     return res
 
 # Problem 180
-def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[CustomFraction, CustomFraction, CustomFraction]]]:
+def goldenTriplets(
+    max_order: int,
+) -> List[Tuple[int, Tuple[CustomFraction, CustomFraction, CustomFraction]]]:
     """
     Consider the families of functions for integer n:
         f_(1, n)(x, y, z) = x ** (n + 1) + y ** (n + 1) - z ** (n + 1)
@@ -6042,37 +6044,36 @@ def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[CustomFraction, Cust
     for b_x in range(2, max_order + 1):
         for a_x in range(1, b_x):
             if gcd(a_x, b_x) != 1: continue
+            x = CustomFraction(a_x, b_x)
+            x_inv = CustomFraction(b_x, a_x)
             for b_y in range(b_x, max_order + 1):
-                for a_y in range(1, a_x + 1 if b_y == b_x else b_y):
+                a_y_mn = 1#((a_x * b_y) // b_x)
+                #print(f"a_y_mn = {a_y_mn}")
+                for a_y in range(a_y_mn, b_y):
                     if gcd(a_y, b_y) != 1: continue
-                    z1 = CustomFraction(a_x, b_x) + CustomFraction(a_y, b_y)
-                    if z1.numerator < z1.denominator and z1.denominator <= max_order:
-                        if a_x * b_y <= a_y * b_x:
-                            res.append((1, (CustomFraction(a_x, b_x), CustomFraction(a_y, b_y), z1)))
-                        else:
-                            res.append((1, (CustomFraction(a_y, b_y), CustomFraction(a_x, b_x), z1)))
-                    z2 = CustomFraction(b_x, a_x) + CustomFraction(b_y, a_y)
-                    if z2.numerator < z2.denominator and z2.denominator <= max_order:
-                        if a_x * b_y <= a_y * b_x:
-                            res.append((-1, (CustomFraction(a_x, b_x), CustomFraction(a_y, b_y), z2)))
-                        else:
-                            res.append((-1, (CustomFraction(a_y, b_y), CustomFraction(a_x, b_x), z2)))
-                    zsq1 = CustomFraction(a_x ** 2, b_x ** 2) + CustomFraction(a_y ** 2, b_y ** 2)
-                    if zsq1.numerator < zsq1.denominator and zsq1.numerator in sqrts.keys() and zsq1.denominator in sqrts.keys():
-                        a_z, b_z = sqrts[a_zsq1], sqrts[b_zsq1]
-                        if a_x * b_y <= a_y * b_x:
-                            res.append((2,( (a_x, b_x), (a_y, b_y), (a_z, b_z))))
-                        else:
-                            res.append((2, ((a_y, b_y), (a_x, b_x), (a_z, b_z))))
-                    b_zsq2, a_zsq2 = addFractions((b_x ** 2, a_x ** 2), (b_y ** 2, a_y ** 2))
-                    if a_zsq2 < b_zsq2 and a_zsq2 in sqrts.keys() and b_zsq2 in sqrts.keys():
-                        a_z, b_z = sqrts[a_zsq2], sqrts[b_zsq2]
-                        if a_x * b_y <= a_y * b_x:
-                            res.append((-2, ((a_x, b_x), (a_y, b_y), (a_z, b_z))))
-                        else:
-                            res.append((-2, ((a_y, b_y), (a_x, b_x), (a_z, b_z))))
+                    y = CustomFraction(a_y, b_y)
+                    swap = y < x
+                    #if y < x: continue
+                    y_inv = CustomFraction(b_y, a_y)
+                    z1 = x + y
+                    if z1 < 1 and z1.denominator <= max_order:
+                        res.append((1, (y, x, z1) if swap else (x, y, z1)))
+                    z2_inv = x_inv + y_inv
+                    z2 = CustomFraction(z2_inv.denominator, z2_inv.numerator)
+                    if z2.denominator <= max_order:
+                        res.append((-1, (y, x, z2) if swap else (x, y, z2)))
+                    z3sq = CustomFraction(a_x ** 2, b_x ** 2) + CustomFraction(a_y ** 2, b_y ** 2)
+                    if z3sq.numerator < z3sq.denominator and z3sq.numerator in sqrts.keys() and z3sq.denominator in sqrts.keys():
+                        z3 = CustomFraction(sqrts[z3sq.numerator], sqrts[z3sq.denominator])
+                        if z3.denominator <= max_order:
+                            res.append((2, (y, x, z3) if swap else (x, y, z3)))
+                    z4sq_inv = CustomFraction(b_x ** 2, a_x ** 2) + CustomFraction(b_y ** 2, a_y ** 2)
+                    if z4sq_inv.denominator < z4sq_inv.numerator and z4sq_inv.numerator in sqrts.keys() and z4sq_inv.denominator in sqrts.keys():
+                        z4 = CustomFraction(sqrts[z4sq_inv.denominator], sqrts[z4sq_inv.numerator])
+                        if z4.denominator <= max_order:
+                            res.append((-2, (y, x, z4) if swap else (x, y, z4)))
     
-
+    return res
     """
     #print(len(res))
     seen = set()
@@ -6146,8 +6147,9 @@ def goldenTriplets(max_order: int) -> List[Tuple[int, Tuple[CustomFraction, Cust
                 res.append((-2, (num_b // g2, b3 // g2), (num_a // g1, a3 // g1), (num_c // g3, c3 // g3)))
     #print(res)
     print()
-    """
     return res
+    """
+    
 
 def goldenTripletsSum(max_order: int) -> Tuple[int]:
     """
@@ -6186,7 +6188,7 @@ def goldenTripletsSum(max_order: int) -> Tuple[int]:
     """
 
     triplets = goldenTriplets(max_order)
-    res = (0, 1)
+    res = CustomFraction(0, 1)
     tot1 = 0
     tot2 = 0
     tots = {}
@@ -6197,15 +6199,14 @@ def goldenTripletsSum(max_order: int) -> Tuple[int]:
         tot1 += mult
         tot2 += 1
         tots[n] = tots.get(n, 0) + 1
-        
-        add = addFractions(x, addFractions(y, z))
-        add = (add[0], add[1])
+        add = x + y + z
+        #add = (add[0], add[1])
         tots_breakdown.setdefault(n, set())
         tots_breakdown[n].add((x, y, z))
         #if n == 2:
         #    print(n, (x, y, z), add)
         if add in seen: continue
-        res = addFractions(res, add)
+        res += add
         seen.add(add)
         #print(n, (x, y, z), add, res)
         #res = addFractions(res, add)
@@ -6255,7 +6256,7 @@ def goldenTripletsSumTotalNumeratorDenominator(max_order: int=35) -> int:
     """
     #since = time.time()
     frac = goldenTripletsSum(max_order)
-    res = sum(frac)
+    res = frac.numerator + frac.denominator
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
@@ -10053,5 +10054,5 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
     return
 
 if __name__ == "__main__":
-    eval_nums = {157}
+    eval_nums = {180}
     evaluateProjectEulerSolutions151to200(eval_nums)
