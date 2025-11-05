@@ -1233,7 +1233,8 @@ def multinomialCoefficientMultiplesCount2(
     res = 0
     #print(f"k1_mn = {k1_mn}")
     for k1 in range(2, n + 1):
-        print(f"k1 = {k1}")
+        if not k1 % 1000:
+            print(f"k1 = {k1}")
         for i, p in enumerate(p_lst):
             k1_ = k1
             while True:
@@ -2220,7 +2221,11 @@ def countReciprocalPairSumsMultipleOfReciprocalPower(
     return res
 
 # Problem 158
-def countAllDifferentLetterStringsWithNSmallerLeftNeighbours(n_chars: int, max_len: int, n_smaller_left_neighbours: int) -> List[int]:
+def countAllDifferentLetterStringsWithNSmallerLeftNeighbours(
+    n_chars: int,
+    max_len: int,
+    n_smaller_left_neighbours: int,
+) -> List[int]:
     """
     For strings constructed from an ordered alphabet consisting
     of n_chars characters such that no character is used more
@@ -3415,10 +3420,10 @@ def countCrossHatchedTriangles(n_layers: int=36) -> int:
 
 # Problem 164
 def countIntegersConsecutiveDigitSumCapped(
-        n_digs: int=20,
-        n_consec: int=3,
-        consec_sum_cap: int=9,
-        base: int=10,
+    n_digs: int=20,
+    n_consec: int=3,
+    consec_sum_cap: int=9,
+    base: int=10,
 ) -> int:
     """
     Solution to Project Euler #164
@@ -3595,7 +3600,12 @@ def countIntegersConsecutiveDigitSumCapped(
     """
 
 # Problem 165
-def blumBlumShubPseudoRandomGenerator(s_0: int=290797, s_mod: int=50515093, t_min: int=0, t_max: int=499) -> Generator[int, None, None]:
+def blumBlumShubPseudoRandomGenerator(
+    s_0: int=290797,
+    s_mod: int=50515093,
+    t_min: int=0,
+    t_max: int=499,
+) -> Generator[int, None, None]:
     """
     Generator iterating over the terms in a Blum Blum Shub sequence
     for a given seed value, modulus and value range.
@@ -3727,8 +3737,8 @@ def blumBlueShubPseudoRandomLineSegmentGenerator(
 
 
 def twoDimensionalLineSegmentsCountInternalCrossings(
-        line_segments: List[Tuple[Tuple[int, int], Tuple[int, int]]],
-        use_bentley_ottmann: bool=False,
+    line_segments: List[Tuple[Tuple[int, int], Tuple[int, int]]],
+    use_bentley_ottmann: bool=False,
 ) -> int:
     """
     For a given collection of line segments in two dimensional space whose
@@ -3930,12 +3940,18 @@ def blumBlumShubPseudoRandomTwoDimensionalLineSegmentsCountInternalCrossings(
         t_max=coord_max,
     ))
     line_segments = [next(it) for _ in range(n_line_segments)]
-    res = twoDimensionalLineSegmentsCountInternalCrossings(line_segments, use_bentley_ottmann=use_bentley_ottmann)
+    res = twoDimensionalLineSegmentsCountInternalCrossings(
+        line_segments,
+        use_bentley_ottmann=use_bentley_ottmann,
+    )
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 166
-def magicSquareWithRepeatsCount(square_side_length: int=4, val_max: int=9) -> int:
+def magicSquareWithRepeatsCount(
+    square_side_length: int=4,
+    val_max: int=9,
+) -> int:
     """
     Solution to Problem 166
     
@@ -4042,7 +4058,11 @@ def magicSquareWithRepeatsCount(square_side_length: int=4, val_max: int=9) -> in
     #print(idx_lines_map)
 
     res = 0
-    def updateRanges(idx_ranges: Dict[int, Tuple[int]], line_deficits: Dict[int, int], updated_inds: Set[int]) -> bool:
+    def updateRanges(
+        idx_ranges: Dict[int, Tuple[int]],
+        line_deficits: Dict[int, int],
+        updated_inds: Set[int],
+    ) -> bool:
         #, set_idx_vals: Dict[int, int],
         #print(updated_inds)
         lines_remain = {i: 0 for i in line_deficits.keys()}
@@ -4651,7 +4671,11 @@ def ulamSequenceTwoOddTermValue(a2: int, term_number: int) -> int:
     #print(res)
     return res
 
-def ulamSequenceTwoOddTermValueSum(a2_min: int=5, a2_max: int=21, term_number: int=10 ** 11) -> int:
+def ulamSequenceTwoOddTermValueSum(
+    a2_min: int=5,
+    a2_max: int=21,
+    term_number: int=10 ** 11,
+) -> int:
     """
     Finds the sum of the term_number:th term for each of the Ulam sequences
     U(2, a2) for which a2 is an odd integers strictly greater than 3 and
@@ -4698,7 +4722,12 @@ def ulamSequenceTwoOddTermValueSum(a2_min: int=5, a2_max: int=21, term_number: i
     return res
 
 # Problem 168
-def rightRotationMultiplesSum(min_n_digs: int=2, max_n_digs: int=100, n_tail_digs: Optional[int]=5, base: int=10) -> int:
+def rightRotationMultiplesSum(
+    min_n_digs: int=2,
+    max_n_digs: int=100,
+    n_tail_digs: Optional[int]=5,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #168
 
@@ -4817,7 +4846,10 @@ def rightRotationMultiplesSum(min_n_digs: int=2, max_n_digs: int=100, n_tail_dig
 
 
 # Problem 169
-def sumOfPowersOfTwoWithMaxRepeats(num: int=10 ** 25, max_rpt: int=2) -> int:
+def sumOfPowersOfTwoWithMaxRepeats(
+    num: int=10 ** 25,
+    max_rpt: int=2,
+) -> int:
     """
     For a non-negative integer, finds the number of ways that number
     can be expressed as the sum of powers of two, where each power
@@ -4953,7 +4985,11 @@ def sumOfPowersOfTwoEachMaxTwice(num: int=10 ** 25) -> int:
     """
 
 # Problem 170
-def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=True, base: int=10) -> int:
+def largestPandigitalConcatenatingProduct(
+    min_n_prods: int=2,
+    incl_zero: bool=True,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #170
 
@@ -5025,7 +5061,11 @@ def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=Tr
     num2_digs_remain = SortedList(list(range(1 - incl_zero, base)))
     tot_n_digs = base + incl_zero - 1
 
-    def orderedUniqueListGenerator(n_select: int, nums: Set[int], first_not_zero: bool=False) -> Generator[Tuple[int], None, None]:
+    def orderedUniqueListGenerator(
+        n_select: int,
+        nums: Set[int],
+        first_not_zero: bool=False,
+    ) -> Generator[Tuple[int], None, None]:
         if n_select > len(nums): return
         remain = set(nums)
         curr = []
@@ -5045,7 +5085,12 @@ def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=Tr
         yield from recur(0)
         return
 
-    def recur1(idx: int=0, num2: int=0, num2_n_digs: int=0, prec_digs_eq_best: bool=False) -> bool:
+    def recur1(
+        idx: int=0,
+        num2: int=0,
+        num2_n_digs: int=0,
+        prec_digs_eq_best: bool=False,
+    ) -> bool:
         if idx >= tot_n_digs - min_n_prods + 1: return False
         #print(idx, curr)
         #res = ()
@@ -5112,7 +5157,16 @@ def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=Tr
         return b
 
     
-    def recur2(prod_idx: int, idx: int, num2: int, num2_n_digs: int, mult: int, mult_n_dig: int, slack: int, prec_digs_eq_best: bool=False) -> bool:
+    def recur2(
+        prod_idx: int,
+        idx: int,
+        num2: int,
+        num2_n_digs: int,
+        mult: int,
+        mult_n_dig: int,
+        slack: int,
+        prec_digs_eq_best: bool=False,
+    ) -> bool:
         #if num2 == 0:
         #    print(idx, curr, res_digs[0], prec_digs_eq_best, mult, num2_digs_remain)
         if idx == tot_n_digs:
@@ -5181,7 +5235,11 @@ def largestPandigitalConcatenatingProduct(min_n_prods: int=2, incl_zero: bool=Tr
 
 
 # Problem 171
-def sumSquareOfTheDigitalSquares(max_n_dig: int=20, n_tail_digs: Optional[int]=9, base: int=10) -> int:
+def sumSquareOfTheDigitalSquares(
+    max_n_dig: int=20,
+    n_tail_digs: Optional[int]=9,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #171
 
@@ -5263,7 +5321,11 @@ def sumSquareOfTheDigitalSquares(max_n_dig: int=20, n_tail_digs: Optional[int]=9
         
 
 # Problem 172
-def countNumbersWithDigitRepeatCap(n_dig: int=18, max_dig_rpt: int=3, base: int=10) -> int:
+def countNumbersWithDigitRepeatCap(
+    n_dig: int=18,
+    max_dig_rpt: int=3,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #172
 
@@ -5459,7 +5521,9 @@ def hollowSquareLaminaCount2(max_n_squares: int=10 ** 6) -> int:
     return res
 
 # Problem 174
-def hollowSquareLaminaTypeCounts(max_n_squares: int) -> Dict[int, int]:
+def hollowSquareLaminaTypeCounts(
+    max_n_squares: int,
+) -> Dict[int, int]:
     """
     Solution to Project Euler #173
 
@@ -5534,7 +5598,11 @@ def hollowSquareLaminaTypeCounts(max_n_squares: int) -> Dict[int, int]:
     
     return res
 
-def hollowSquareLaminaTypeCountSum(max_n_squares: int=10 ** 6, min_type: int=1, max_type: int=10) -> int:
+def hollowSquareLaminaTypeCountSum(
+    max_n_squares: int=10 ** 6,
+    min_type: int=1,
+    max_type: int=10,
+) -> int:
     """
     Solution to Project Euler #174
 
@@ -5589,7 +5657,33 @@ def hollowSquareLaminaTypeCountSum(max_n_squares: int=10 ** 6, min_type: int=1, 
 
 # Problem 175
 def fractionsAndSumOfPowersOfTwo(numerator: int, denominator: int) -> int:
+    """
+    Consider the function f(n) for non-negative integer n, defined as
+    the number of distinct ways of constructing n from the sum of
+    powers of 2 where each power of 2 can appear in the sum at
+    most twice and two sums are considered distinct if and only if
+    there exists a term that appears in each sum a different number
+    of times (so two sums whose terms are permutations of each other
+    are not considered to be distinct).
+
+    This function calculates the smallest strictly positive integer
+    n for which f(n) / f(n - 1) is equal to the fraction
+    numerator / denominator.
     
+    Args:
+        Required positional:
+        numerator (int): Strictly positive integer giving the
+                numerator of the target fraction.
+        denominator (int): Strictly positive integer giving the
+                denominator of the target fraction.
+
+    Returns:
+    Integer (int) giving the smallest strictly positive integer
+    value of n for which f(n) / f(n - 1) = numerator / denominator.
+
+    Outline of rationale:
+    TODO
+    """
     def recur(p: int, q: int) -> int:
         #print(p, q)
         if not q: return 0
@@ -5607,12 +5701,52 @@ def fractionsAndSumOfPowersOfTwo(numerator: int, denominator: int) -> int:
         return res
     return recur(numerator, denominator)
 
-def fractionsAndSumOfPowersOfTwoShortenedBinary(numerator: int=123456789, denominator: int=987654321) -> List[int]:
+def fractionsAndSumOfPowersOfTwoShortenedBinary(
+    numerator: int=123456789,
+    denominator: int=987654321,
+) -> List[int]:
     """
     Solution to Project Euler #175
 
-    Calkin-Wilf Tree
+    Consider the function f(n) for non-negative integer n, defined as
+    the number of distinct ways of constructing n from the sum of
+    powers of 2 where each power of 2 can appear in the sum at
+    most twice and two sums are considered distinct if and only if
+    there exists a term that appears in each sum a different number
+    of times (so two sums whose terms are permutations of each other
+    are not considered to be distinct).
+
+    This function calculates the Shortened Binary Expansion of the
+    smallest strictly positive integer n for which f(n) / f(n - 1)
+    is equal to the fraction numerator / denominator.
+
+    The Shortened Binary Expansion of a strictly positive integer
+    expresses the binary representation of that number as a
+    list of integers, where each successive integer denotes the number
+    of consecutive occurrences of 1 or 0 alternately when the
+    binary representation without leading zeros is read from left to
+    right (with the first item on the list representing consecutive
+    occurrences of 1 at the start of the binary representation).
+    
+    Args:
+        Optional named:
+        numerator (int): Strictly positive integer giving the
+                numerator of the target fraction.
+            Default: 123456789
+        denominator (int): Strictly positive integer giving the
+                denominator of the target fraction.
+            Default: 987654321
+
+    Returns:
+    List of strictly positive integers giving the Shortened Binary
+    Expansion of the smallest strictly positive integer value of n
+    for which f(n) / f(n - 1) = numerator / denominator.
+
+    Outline of rationale:
+    TODO
     """
+
+    # Using Calkin-Wilf Tree
     #since = time.time()
     
     def recur(p: int, q: int) -> List[int]:
@@ -9749,7 +9883,7 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
 
     if 161 in eval_nums:
         since = time.time()
-        res = triominoAreaFillCombinations(n_rows=9, n_cols=12)
+        res = triominoAreaFillCombinations(grid_width=9, grid_height=12)
         print(f"Solution to Project Euler #161 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 162 in eval_nums:
@@ -9989,5 +10123,5 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
     return
 
 if __name__ == "__main__":
-    eval_nums = {180}
+    eval_nums = {175}
     evaluateProjectEulerSolutions151to200(eval_nums)
