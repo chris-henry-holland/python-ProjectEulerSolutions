@@ -5910,7 +5910,11 @@ def integerAngledQuadrilaterals(tol: float=10 ** -9):
     return res
 
 # Problem 178
-def countPandigitalStepNumbers(max_n_digs: int=40, incl_zero: bool=True, base: int=10) -> int:
+def countPandigitalStepNumbers(
+    max_n_digs: int=40,
+    incl_zero: bool=True,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #178
 
@@ -6444,7 +6448,10 @@ def groupingNDifferentColouredObjects(colour_counts: List[int]=[40, 60]) -> int:
     return res
 
 # Problem 182
-def exponentsMinimisingRSAEncryptionUnconcealed(p: int, q: int) -> List[int]:
+def exponentsMinimisingRSAEncryptionUnconcealed(
+    p: int,
+    q: int,
+) -> List[int]:
     """
     An RSA encryption based on the distinct prime numbers p and q of
     an integer m between 0 and (n - 1) inclusive can be calculated as
@@ -6547,7 +6554,10 @@ def exponentsMinimisingRSAEncryptionUnconcealed(p: int, q: int) -> List[int]:
     return res
     """
 
-def exponentsMinimisingRSAEncryptionUnconcealedSum(p: int=1009, q: int=3643) -> int:
+def exponentsMinimisingRSAEncryptionUnconcealedSum(
+    p: int=1009,
+    q: int=3643,
+) -> int:
     """
     Solution to Project Euler #182
 
@@ -6638,9 +6648,13 @@ def partsCountMaximisingProductOfParts(n: int) -> int:
         return mid
     return lft
 
-def maximumProductOfPartsTerminatingSum(n_min: int=5, n_max: int=10 ** 4, base: int=10) -> int:
+def maximumProductOfPartsTerminatingSum(
+    n_min: int=5,
+    n_max: int=10 ** 4,
+    base: int=10,
+) -> int:
     """
-    Solution to Problem 183
+    Solution to Project Euler #183
 
     For a strictly positive integers n, define the function M(n) to be the
     maximum value of r ** k where k is a strictly positive integer and
@@ -6697,7 +6711,12 @@ def maximumProductOfPartsTerminatingSum(n_min: int=5, n_max: int=10 ** 4, base: 
     return res
 
 # Problem 184
-def orderedFractionsWithMaxNumeratorDenominatorSquareSum(max_numerator_denominator_square_sum: int, reverse: bool=False, incl_zero: bool=True, incl_one: bool=True) -> Generator[Tuple[int, int], None, None]:
+def orderedFractionsWithMaxNumeratorDenominatorSquareSum(
+    max_numerator_denominator_square_sum: int,
+    reverse: bool=False,
+    incl_zero: bool=True,
+    incl_one: bool=True,
+) -> Generator[Tuple[int, int], None, None]:
     """
     Generator yielding all rational numbers between zero and one
     for which, when expressed as a fraction in lowest terms the
@@ -6768,7 +6787,10 @@ def orderedFractionsWithMaxNumeratorDenominatorSquareSum(max_numerator_denominat
             yield curr
     return
 
-def latticeTrianglesContainingOriginCount(lattice_radius: int=105, incl_edge: bool=False) -> int:
+def latticeTrianglesContainingOriginCount(
+    lattice_radius: int=105,
+    incl_edge: bool=False,
+) -> int:
     """
     Solution to Project Euler #184
 
@@ -6965,30 +6987,34 @@ def latticeTrianglesContainingOriginCount(lattice_radius: int=105, incl_edge: bo
 
 
 # Problem 185
-def numberMindSimulatedAnnealing(alphabet: str="0123456789", n_trials: int=20, guesses: List[Tuple[str, int]]=[
-    ("5616185650518293", 2),
-    ("3847439647293047", 1),
-    ("5855462940810587", 3),
-    ("9742855507068353", 3),
-    ("4296849643607543", 3),
-    ("3174248439465858", 1),
-    ("4513559094146117", 2),
-    ("7890971548908067", 3),
-    ("8157356344118483", 1),
-    ("2615250744386899", 2),
-    ("8690095851526254", 3),
-    ("6375711915077050", 1),
-    ("6913859173121360", 1),
-    ("6442889055042768", 2),
-    ("2321386104303845", 0),
-    ("2326509471271448", 2),
-    ("5251583379644322", 2),
-    ("1748270476758276", 3),
-    ("4895722652190306", 1),
-    ("3041631117224635", 3),
-    ("1841236454324589", 3),
-    ("2659862637316867", 2),
-]) -> List[str]:
+def numberMindSimulatedAnnealing(
+    alphabet: str="0123456789",
+    n_trials: int=20,
+    guesses: List[Tuple[str, int]]=[
+        ("5616185650518293", 2),
+        ("3847439647293047", 1),
+        ("5855462940810587", 3),
+        ("9742855507068353", 3),
+        ("4296849643607543", 3),
+        ("3174248439465858", 1),
+        ("4513559094146117", 2),
+        ("7890971548908067", 3),
+        ("8157356344118483", 1),
+        ("2615250744386899", 2),
+        ("8690095851526254", 3),
+        ("6375711915077050", 1),
+        ("6913859173121360", 1),
+        ("6442889055042768", 2),
+        ("2321386104303845", 0),
+        ("2326509471271448", 2),
+        ("5251583379644322", 2),
+        ("1748270476758276", 3),
+        ("4895722652190306", 1),
+        ("3041631117224635", 3),
+        ("1841236454324589", 3),
+        ("2659862637316867", 2),
+    ],
+) -> List[str]:
     """
     Solution to Project Euler #185
 
@@ -7129,30 +7155,33 @@ def numberMindSimulatedAnnealing(alphabet: str="0123456789", n_trials: int=20, g
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-def numberMindExact(alphabet: str="0123456789", guesses: List[Tuple[str, int]]=[
-    ("5616185650518293", 2),
-    ("3847439647293047", 1),
-    ("5855462940810587", 3),
-    ("9742855507068353", 3),
-    ("4296849643607543", 3),
-    ("3174248439465858", 1),
-    ("4513559094146117", 2),
-    ("7890971548908067", 3),
-    ("8157356344118483", 1),
-    ("2615250744386899", 2),
-    ("8690095851526254", 3),
-    ("6375711915077050", 1),
-    ("6913859173121360", 1),
-    ("6442889055042768", 2),
-    ("2321386104303845", 0),
-    ("2326509471271448", 2),
-    ("5251583379644322", 2),
-    ("1748270476758276", 3),
-    ("4895722652190306", 1),
-    ("3041631117224635", 3),
-    ("1841236454324589", 3),
-    ("2659862637316867", 2),
-]) -> List[str]:
+def numberMindExact(
+    alphabet: str="0123456789",
+    guesses: List[Tuple[str, int]]=[
+        ("5616185650518293", 2),
+        ("3847439647293047", 1),
+        ("5855462940810587", 3),
+        ("9742855507068353", 3),
+        ("4296849643607543", 3),
+        ("3174248439465858", 1),
+        ("4513559094146117", 2),
+        ("7890971548908067", 3),
+        ("8157356344118483", 1),
+        ("2615250744386899", 2),
+        ("8690095851526254", 3),
+        ("6375711915077050", 1),
+        ("6913859173121360", 1),
+        ("6442889055042768", 2),
+        ("2321386104303845", 0),
+        ("2326509471271448", 2),
+        ("5251583379644322", 2),
+        ("1748270476758276", 3),
+        ("4895722652190306", 1),
+        ("3041631117224635", 3),
+        ("1841236454324589", 3),
+        ("2659862637316867", 2),
+    ],
+) -> List[str]:
     """
     Alternative solution to Project Euler #185, giving all possible solutions
     rather than just one possible solution.
@@ -7390,7 +7419,12 @@ def edgeCountForVertexToConnectToProportionOfGraph(
             return i + 1 - (self_edge_count if ignore_self_edges else 0)
     return -1
 
-def generalisedLaggedFibonacciGenerator(poly_coeffs: Tuple[int]=(100003, -200003, 0, 300007), lags: Tuple[int]=(24, 55), min_val: int=0, max_val: int=10 ** 6 - 1) -> Generator[int, None, None]:
+def generalisedLaggedFibonacciGenerator(
+    poly_coeffs: Tuple[int]=(100003, -200003, 0, 300007),
+    lags: Tuple[int]=(24, 55),
+    min_val: int=0,
+    max_val: int=10 ** 6 - 1,
+) -> Generator[int, None, None]:
     """
     Generator iterating over the terms in a generalisation
     of a lagged Fibonacci generator sequence for given for a
@@ -7649,7 +7683,12 @@ def laggedFibonacciGraphEdgeCountForVertexToConnectToProportionOfGraph(
             n_vertices,
             vertex,
             target_proportion,
-            laggedFibonacciGraphEdgeGenerator(n_vertices=n_vertices, n_edges=mx_n_edges, l_fib_poly_coeffs=l_fib_poly_coeffs, l_fib_lags=l_fib_lags),
+            laggedFibonacciGraphEdgeGenerator(
+                n_vertices=n_vertices,
+                n_edges=mx_n_edges,
+                l_fib_poly_coeffs=l_fib_poly_coeffs,
+                l_fib_lags=l_fib_lags,
+            ),
             ignore_self_edges=ignore_self_edges,
         )
     #print(f"Time taken = {time.time() - since:.4f} seconds")
@@ -7777,7 +7816,12 @@ def eulerTotientFunction(n: int) -> int:
         res *= (p - 1) * (p ** (k - 1))
     return res
 
-def modPower(base: int, exp: int, md: int, e_tot_md: Optional[int]=None) -> int:
+def modPower(
+    base: int,
+    exp: int,
+    md: int,
+    e_tot_md: Optional[int]=None,
+) -> int:
     return pow(base, exp, md)
     #if gcd(base, md) != 1: return (base ** exp) % md
     #print("hi")
@@ -8034,7 +8078,10 @@ def maximisedRestrictedPowerProduct(n: int) -> Tuple[int, int]:
     #print(res, res[0] / res[1])
     return res
 
-def sumFloorMaximisedRestrictedPowerProduct(n_min: int=2, n_max: int=15) -> int:
+def sumFloorMaximisedRestrictedPowerProduct(
+    n_min: int=2,
+    n_max: int=15,
+) -> int:
     """
     Solution to Project Euler #190
 
@@ -8081,7 +8128,11 @@ def sumFloorMaximisedRestrictedPowerProduct(n_min: int=2, n_max: int=15) -> int:
     return res
 
 # Problem 191
-def attendancePrizeStringCount(n_days: int=30, n_consec_absent: int=3, n_late: int=2) -> int:
+def attendancePrizeStringCount(
+    n_days: int=30,
+    n_consec_absent: int=3,
+    n_late: int=2,
+) -> int:
     """
     Solution to Project Euler #191
 
@@ -8143,7 +8194,10 @@ def attendancePrizeStringCount(n_days: int=30, n_consec_absent: int=3, n_late: i
     return res
 
 # Problem 192
-def bestSqrtApproximationsDenominatorSum(n_max: int=10 ** 5, denom_bound: int=10 ** 12) -> int:
+def bestSqrtApproximationsDenominatorSum(
+    n_max: int=10 ** 5,
+    denom_bound: int=10 ** 12,
+) -> int:
     """
     Finds the sum of the denominators of the best rational approximations
     for the denominator bound denom_bound of the square roots of all
@@ -8264,13 +8318,19 @@ def squareFreeNumberCount(n_max: int=2 ** 50 - 1) -> int:
     return res
 
 # Problem 194
-def allowedColouredConfigurationsCount(type_a_count: int=25, type_b_count: int=75, n_colours: int=1984, md: Optional[int]=10 ** 8) -> int:
+def allowedColouredConfigurationsCount(
+    type_a_count: int=25,
+    type_b_count: int=75,
+    n_colours: int=1984,
+    md: Optional[int]=10 ** 8,
+) -> int:
     """
     Solution to Project Euler #194
     
-    Consider the two undirected unweighted graphs A and B, each consisting
-    of 7 vertices which, when labelled with the integers from 0 to 6
-    inclusive each have the edges between the vertex pairs:
+    Consider the two undirected unweighted graphs A and B, each
+    consisting of 7 vertices which, when labelled with the integers
+    from 0 to 6 inclusive each have the edges between the vertex
+    pairs:
         (0, 1)
         (0, 2)
         (0, 4)
@@ -8457,9 +8517,36 @@ def allowedColouredConfigurationsCount(type_a_count: int=25, type_b_count: int=7
     return res
 
 # Problem 195
-def integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(radius_max: int=1053779) -> int:
+def integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(
+    radius_max: int=1053779,
+) -> int:
     """
     Solution to Project Euler #195
+
+    Calculates the number of 60-degree triangles whose inscribed circle
+    has a radius no greater than radius_max.
+
+    A 60-degree triangle is a triangle that has exactly one angle
+    measuring 60 degrees (in radians pi / 3) whose side lengths are
+    all integers.
+
+    The inscribed circle of a triangle is the unique circle that is
+    tangent to all three sides of the triangle (or alternatively,
+    the circle that touches but does not cross each of the three
+    sides of the triangle).
+
+    Args:
+        Optional named:
+        radius_max (int): The largest radius of the inscribed circle
+                permitted for the counted 60-degree triangles.
+            Default: 1053779
+
+    Returns:
+    Integer (int) giving the number of 60-degree triangles whose
+    inscribed circle has a radius no greater than radius_max.
+            
+    Outline of rataionale:
+    TODO
     """
     #since = time.time()
     r_sq_mx = radius_max ** 2
@@ -8607,7 +8694,10 @@ def integerSideSixtyDegreeTrianglesWithMaxInscribedCircleRadiusCount(radius_max:
     return res
 
 # Problem 196
-def numberTrianglePrimeTripletRowSum(row_num: int, ps: Optional[SimplePrimeSieve]=None) -> int:
+def numberTrianglePrimeTripletRowSum(
+    row_num: int,
+    ps: Optional[SimplePrimeSieve]=None,
+) -> int:
     """
     Consider a sequence of lists of integers such that the first list
     is the single integer 1, and each subsequent list contains exactly
@@ -8904,7 +8994,9 @@ def numberTrianglePrimeTripletRowSum(row_num: int, ps: Optional[SimplePrimeSieve
     return res
     """
     
-def numberTrianglePrimeTripletRowsSum(row_nums: List[int]=[5678027, 7208785]) -> int:
+def numberTrianglePrimeTripletRowsSum(
+    row_nums: List[int]=[5678027, 7208785],
+) -> int:
     """
     Solution to Project Euler #196
 
@@ -8947,12 +9039,25 @@ def numberTrianglePrimeTripletRowsSum(row_nums: List[int]=[5678027, 7208785]) ->
     # more intuitive.
     #since = time.time()
     ps = SimplePrimeSieve()
-    res = sum(numberTrianglePrimeTripletRowSum(row_num=row_num, ps=ps) for row_num in set(row_nums))
+    res = sum(
+        numberTrianglePrimeTripletRowSum(
+            row_num=row_num,
+            ps=ps,
+        ) for row_num in set(row_nums)
+    )
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
 # Problem 197
-def findFloorRecursiveSequenceLoop(u0: float, max_term: int, base: int=2, a: float=-1., b: float=0., c: float=30.403243784, div: int=10 ** 9) -> Tuple[int, Tuple[float], Tuple[float]]:
+def findFloorRecursiveSequenceLoop(
+    u0: float,
+    max_term: int,
+    base: int=2,
+    a: float=-1.,
+    b: float=0.,
+    c: float=30.403243784,
+    div: int=10 ** 9,
+) -> Tuple[int, Tuple[float], Tuple[float]]:
     """
     Identifies the initial terms and cycling terms of the sequence u_n
     for strictly positive n defined by the recurrence relation:
@@ -9040,7 +9145,15 @@ def findFloorRecursiveSequenceLoop(u0: float, max_term: int, base: int=2, a: flo
     
     return (div, tuple(res[:i0]), tuple(res[i0:]))
         
-def findFloorRecursiveSequenceTermSum(term_numbers: List[int]=[10 ** 12, 10 ** 12 + 1], u0: float=-1, base: int=2, a: float=-1., b: float=0., c: float=30.403243784, div: int=10 ** 9) -> float:
+def findFloorRecursiveSequenceTermSum(
+    term_numbers: List[int]=[10 ** 12, 10 ** 12 + 1],
+    u0: float=-1,
+    base: int=2,
+    a: float=-1.,
+    b: float=0.,
+    c: float=30.403243784,
+    div: int=10 ** 9,
+) -> float:
     """
     Solution to Project Euler #197
 
@@ -9093,7 +9206,15 @@ def findFloorRecursiveSequenceTermSum(term_numbers: List[int]=[10 ** 12, 10 ** 1
     (0-indexed) from the list of cycle terms.
     """
     #since = time.time()
-    _, init_terms, loop_terms = findFloorRecursiveSequenceLoop(u0, max_term=max(term_numbers), base=base, a=a, b=b, c=c, div=div)
+    _, init_terms, loop_terms = findFloorRecursiveSequenceLoop(
+        u0,
+        max_term=max(term_numbers),
+        base=base,
+        a=a,
+        b=b,
+        c=c,
+        div=div,
+    )
     #print(init_terms, loop_terms)
     res = 0
     for i in term_numbers:
@@ -9107,7 +9228,11 @@ def findFloorRecursiveSequenceTermSum(term_numbers: List[int]=[10 ** 12, 10 ** 1
     return res
 
 # Problem 198
-def orderedFareyFractionPairsWithMaxDenominatorProductGenerator(max_denominator_product: int, max_lower: Tuple[int, int]=(1, 1), incl_zero: bool=True) -> Generator[Tuple[Tuple[int, int], Tuple[int, int]], None, None]:
+def orderedFareyFractionPairsWithMaxDenominatorProductGenerator(
+    max_denominator_product: int,
+    max_lower: Tuple[int, int]=(1, 1),
+    incl_zero: bool=True,
+) -> Generator[Tuple[Tuple[int, int], Tuple[int, int]], None, None]:
     """
     Generator yielding all of the Farey fraction pairs with the product
     of the denominators in the pair no greater than max_denominator_product
@@ -9189,7 +9314,11 @@ def orderedFareyFractionPairsWithMaxDenominatorProductGenerator(max_denominator_
         stk.append((pair[0], frac))
     return
 
-def ambiguousNumberCountUpToFraction(max_denominator: int=10 ** 8, upper_bound: Tuple[int, int]=(1, 100), incl_upper_bound: bool=False) -> int:
+def ambiguousNumberCountUpToFraction(
+    max_denominator: int=10 ** 8,
+    upper_bound: Tuple[int, int]=(1, 100),
+    incl_upper_bound: bool=False,
+) -> int:
     """
     Solution to Project Euler Problem #198
 
@@ -9318,7 +9447,11 @@ def ambiguousNumberCountUpToFraction(max_denominator: int=10 ** 8, upper_bound: 
     #print(f"Time taken = {time.time() - since:.4f} seconds")
     return res
 
-def ambiguousNumberCountUpToReciprocal(max_denominator: int=10 ** 8, upper_bound_reciprocal=100, incl_upper_bound: bool=False) -> int:
+def ambiguousNumberCountUpToReciprocal(
+    max_denominator: int=10 ** 8,
+    upper_bound_reciprocal=100,
+    incl_upper_bound: bool=False,
+) -> int:
     """
     Alternative solution to Project Euler #198
 
@@ -9531,7 +9664,10 @@ def IterativeCirclePackingUncoveredAreaProportion(n_iter: int=10) -> float:
     return res
 
 # Problem 200
-def squbeGenerator(ps: Optional[SimplePrimeSieve]=None, filter_func: Optional[Callable[[int], bool]]=None) -> Generator[int, None, None]:
+def squbeGenerator(
+    ps: Optional[SimplePrimeSieve]=None,
+    filter_func: Optional[Callable[[int], bool]]=None,
+) -> Generator[int, None, None]:
     """
     Generator yielding all sqube numbers in order that give 
     (if such a function is given) a value of True when applied
@@ -9639,7 +9775,11 @@ def squbeGenerator(ps: Optional[SimplePrimeSieve]=None, filter_func: Optional[Ca
     """
     
 
-def isPrimeFree(num: int, primeChecker: Callable[[int], bool], base: int=10) -> bool:
+def isPrimeFree(
+    num: int,
+    primeChecker: Callable[[int], bool],
+    base: int=10,
+) -> bool:
     """
     Assesses whether a strictly positive integer num is prime free
     when expressed in the chosen base, checking for prime status
@@ -9688,7 +9828,11 @@ def isPrimeFree(num: int, primeChecker: Callable[[int], bool], base: int=10) -> 
         mult *= base
     return True
 
-def intContainsSubstring(num: int, substr_rightleft_kmp: KnuthMorrisPratt, base: int=10) -> bool:
+def intContainsSubstring(
+    num: int,
+    substr_rightleft_kmp: KnuthMorrisPratt,
+    base: int=10,
+) -> bool:
     """
     Assesses whether a strictly positive integer num when expressed
     in the chosen base without leading zeros contains as a contiguous
@@ -9732,7 +9876,12 @@ def intContainsSubstring(num: int, substr_rightleft_kmp: KnuthMorrisPratt, base:
         return True
     else: return False
 
-def findNthPrimeProofSqubeWithSubstring(substr_num: int=200, substr_num_lead_zeros_count: int=0, n: int=200, base: int=10) -> int:
+def findNthPrimeProofSqubeWithSubstring(
+    substr_num: int=200,
+    substr_num_lead_zeros_count: int=0,
+    n: int=200,
+    base: int=10,
+) -> int:
     """
     Solution to Project Euler #200
 
@@ -10123,5 +10272,5 @@ def evaluateProjectEulerSolutions151to200(eval_nums: Optional[Set[int]]=None) ->
     return
 
 if __name__ == "__main__":
-    eval_nums = {175}
+    eval_nums = {195}
     evaluateProjectEulerSolutions151to200(eval_nums)
