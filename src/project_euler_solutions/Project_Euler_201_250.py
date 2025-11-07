@@ -24,9 +24,16 @@ from sortedcontainers import SortedList, SortedSet
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 
-from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot
-from algorithms.pseudorandom_number_generators import generalisedLaggedFibonacciGenerator, blumBlumShubPseudoRandomGenerator
-from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
+from algorithms.number_theory_algorithms import (
+    gcd,
+    lcm,
+    isqrt,
+    integerNthRoot,
+)
+from algorithms.pseudorandom_number_generators import (
+    generalisedLaggedFibonacciGenerator,
+    blumBlumShubPseudoRandomGenerator,
+)
 from algorithms.geometry_algorithms import grahamScan
 
 # Problem 201
@@ -125,12 +132,57 @@ def subsetsOfSquaresWithUniqueSumTotal(n_max: int=100, k: int=50) -> int:
     return res
 
 # Problem 202
-def equilateralTriangleReflectionCountNumberOfWays(n_reflect: int=12017639147) -> int:
+def equilateralTriangleReflectionCountNumberOfWays(
+    n_reflect: int=12017639147,
+) -> int:
     """
     Solution to Project Euler #202
 
+    Calculates the number of ways that for a reflective
+    equilateral triangle boundary, a beam can be emitted
+    from one of its vertices to the interior of the triangle,
+    reflect exactly n_reflect times without encountering a
+    vertex of the triangle before returning to that same vertex.
+
+    Reflections of the beam from the boundary are occur in the
+    standard fashion in which the angle of incidence is equal
+    to the angle of reflection (i.e. when reflecting, the
+    component parallel to the boundary is unchanged but the
+    component normal to the boundary is reversed, becoming
+    its additive inverse).
+
+    Args:
+        Optional named:
+        n_reflect (int): Strictly positive integer giving the
+                exact number of reflections from the boundary
+                that should occur without encountering any
+                vertex before the beam returns to the original
+                vertex for beam paths considered in the count.
+            Default: 12017639147
+    
+    Returns:
+    Integer (int) giving the number of ways that for a reflective
+    equilateral triangle boundary, a beam can be emitted
+    from one of its vertices to the interior of the triangle,
+    reflect exactly n_reflect times without encountering a
+    vertex of the triangle before returning to that same vertex.
+
+    Outline of rationale:
+    Given that equilateral triangles tile the plane, this problem
+    can be shown to be equivalent to counting the number of
+    lines on a plane tiled by equilateral triangles that for
+    one of the triangles and one of its vertices passes through
+    the vertex and the opposite edge of the triangle and
+    in that direction intersects exactly n_reflect edges before
+    next intersecting with a vertex that can be reached by
+    repeated reflections of the original vertex in the lines
+    defined by the edges of the triangles, without intersecting
+    with any other vertices first.
+
     TODO
     """
+    # Review documentation for clarity
+
     if not n_reflect & 1: return 0
     md3 = n_reflect % 3
     if not md3: return 0
