@@ -356,9 +356,40 @@ def generalisedHammingNumberCount(typ: int=100, n_max: int=10 ** 9) -> int:
     return res
 
 # Problem 205
-def probabilityDieOneSumWinsFraction(die1_face_values: Tuple[int], n_die1: int, die2_face_values: Tuple[int], n_die2: int) -> CustomFraction:
+def probabilityDieOneSumWinsFraction(
+    die1_face_values: List[int],
+    n_die1: int,
+    die2_face_values: List[int],
+    n_die2: int
+) -> CustomFraction:
     """
+    For two players, player 1 with n_die1 dice each with face values
+    die1_face_values and player 2 with n_die2 dice each face values
+    die2_face_values, where for each die the probability of each
+    face value occurring on a given roll is equal, each player rolls
+    all of their dice and adds the total. The player with the highest
+    total wins, with equal totals resulting in a draw. This function
+    calculates the probability on a given round that player 1 will
+    win as a rational number.
+
+    Args:
+        Required positional:
+        die1_face_values (list of ints): List of integers giving the
+                face values of the dice rolled by player 1, whose
+                elements each have an equal probability of being
+                rolled. Note that repeated values are allowed.
+        n_die1 (int): Strictly positive integer giving the number
+                of dice that player 1 rolls.
+        die2_face_values (list of ints): List of integers giving the
+                face values of the dice rolled by player 2, whose
+                elements each have an equal probability of being
+                rolled. Note that repeated values are allowed.
+        n_die2 (int): Strictly positive integer giving the number
+                of dice that player 2 rolls.
     
+    Returns:
+    CustomFraction object giving the probability that for a given
+    roll player 1 wins, represented as a fraction.
     """
     d1 = {}
     for num in die1_face_values:
@@ -414,11 +445,53 @@ def probabilityDieOneSumWinsFraction(die1_face_values: Tuple[int], n_die1: int, 
         res += cnt2 * f1
     return CustomFraction(res, n1 ** n_die1 * n2 ** n_die2)
 
-def probabilityDieOneSumWinsFloat(die1_face_values: Tuple[int]=(1, 2, 3, 4), n_die1: int=9, die2_face_values: Tuple[int]=(1, 2, 3, 4, 5, 6), n_die2: int=6) -> float:
+def probabilityDieOneSumWinsFloat(
+    die1_face_values: List[int]=[1, 2, 3, 4],
+    n_die1: int=9,
+    die2_face_values: List[int]=[1, 2, 3, 4, 5, 6],
+    n_die2: int=6
+) -> float:
     """
     Solution to Project Euler #205
+    
+    For two players, player 1 with n_die1 dice each with face values
+    die1_face_values and player 2 with n_die2 dice each face values
+    die2_face_values, where for each die the probability of each
+    face value occurring on a given roll is equal, each player rolls
+    all of their dice and adds the total. The player with the highest
+    total wins, with equal totals resulting in a draw. This function
+    calculates the probability on a given round that player 1 will
+    win as a float.
+
+    Args:
+        Optional name:
+        die1_face_values (list of ints): List of integers giving the
+                face values of the dice rolled by player 1, whose
+                elements each have an equal probability of being
+                rolled. Note that repeated values are allowed.
+            Default: [1, 2, 3, 4]
+        n_die1 (int): Strictly positive integer giving the number
+                of dice that player 1 rolls.
+            Default: 9
+        die2_face_values (list of ints): List of integers giving the
+                face values of the dice rolled by player 2, whose
+                elements each have an equal probability of being
+                rolled. Note that repeated values are allowed.
+            Default: [1, 2, 3, 4, 5, 6]
+        n_die2 (int): Strictly positive integer giving the number
+                of dice that player 2 rolls.
+            Default: 6
+    
+    Returns:
+    Float giving the probability that for a given roll player 1 wins,
+    represented as a float.
     """
-    res = probabilityDieOneSumWinsFraction(die1_face_values, n_die1, die2_face_values, n_die2)
+    res = probabilityDieOneSumWinsFraction(
+        die1_face_values,
+        n_die1,
+        die2_face_values,
+        n_die2,
+    )
     #print(res)
     return res.numerator / res.denominator
 
@@ -4370,67 +4443,70 @@ def numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max: int=250250, div: int=
     if md is not None: res %= md
     return res
 
-if __name__ == "__main__":
-    to_evaluate = {250}
-    since0 = time.time()
+##############
+project_euler_num_range = (201, 250)
 
-    if not to_evaluate or 201 in to_evaluate:
+def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) -> None:
+    if not eval_nums:
+        eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
+
+    if 201 in eval_nums:
         since = time.time()
         res = subsetsOfSquaresWithUniqueSumTotal(n_max=100, k=50)
         #res = subsetsWithUniqueSumTotal({1, 3, 6, 8, 10, 11}, 3)
         print(f"Solution to Project Euler #201 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 202 in to_evaluate:
+    if 202 in eval_nums:
         since = time.time()
         res = equilateralTriangleReflectionCountNumberOfWays(n_reflect=12017639147)
         print(f"Solution to Project Euler #202 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 203 in to_evaluate:
+    if 203 in eval_nums:
         since = time.time()
         res = distinctSquareFreeBinomialCoefficientSum(n_max=51)
         print(f"Solution to Project Euler #203 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 204 in to_evaluate:
+    if 204 in eval_nums:
         since = time.time()
         res = generalisedHammingNumberCount(typ=100, n_max=10 ** 9)
         print(f"Solution to Project Euler #204 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 205 in to_evaluate:
+    if 205 in eval_nums:
         since = time.time()
         res = probabilityDieOneSumWinsFloat(die1_face_values=(1, 2, 3, 4), n_die1=9, die2_face_values=(1, 2, 3, 4, 5, 6), n_die2=6)
         print(f"Solution to Project Euler #205 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 206 in to_evaluate:
+    if 206 in eval_nums:
         since = time.time()
         res = concealedSquare(pattern=[1, None, 2, None, 3, None, 4, None, 5, None, 6, None, 7, None, 8, None, 9, None, 0], base=10)
         print(f"Solution to Project Euler #206 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 207 in to_evaluate:
+    if 207 in eval_nums:
         since = time.time()
         res = findSmallestPartitionBelowGivenProportion(proportion=CustomFraction(1, 12345))
         print(f"Solution to Project Euler #207 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 208 in to_evaluate:
+    if 208 in eval_nums:
         since = time.time()
         res = robotWalks(reciprocal=5, n_steps=70)
         print(f"Solution to Project Euler #208 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 209 in to_evaluate:
+    if 209 in eval_nums:
         since = time.time()
         res = countZeroMappings(n_inputs=6)
         print(f"Solution to Project Euler #209 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 210 in to_evaluate:
+    if 210 in eval_nums:
         since = time.time()
         res = countObtuseTriangles(r=10 ** 9, div=4)
         print(f"Solution to Project Euler #210 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 211 in to_evaluate:
+    if 211 in eval_nums:
         since = time.time()
         res = divisorSquareSumIsSquareTotal(n_max=64 * 10 ** 6 - 1)
         print(f"Solution to Project Euler #211 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 212 in to_evaluate:
+    if 212 in eval_nums:
         since = time.time()
         res = laggedFibonacciCuboidUnionVolume(
             n_cuboids=50000,
@@ -4442,93 +4518,100 @@ if __name__ == "__main__":
         )
         print(f"Solution to Project Euler #212 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 213 in to_evaluate:
+    if 213 in eval_nums:
         since = time.time()
         res = fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(dims=(30, 30), n_steps=50)
         print(f"Solution to Project Euler #213 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 214 in to_evaluate:
+    if 214 in eval_nums:
         since = time.time()
         res = primesOfTotientChainLengthSum(p_max=4 * 10 ** 7 - 1, chain_len=25)
         print(f"Solution to Project Euler #214 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 215 in to_evaluate:
+    if 215 in eval_nums:
         since = time.time()
         res = crackFreeWalls(n_rows=10, n_cols=32)
         print(f"Solution to Project Euler #215 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 216 in to_evaluate:
+    if 216 in eval_nums:
         since = time.time()
         res = countPrimesOneLessThanTwiceASquare(n_max=5 * 10 ** 7)
         print(f"Solution to Project Euler #216 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 217 in to_evaluate:
+    if 217 in eval_nums:
         since = time.time()
         res = balancedNumberCount(max_n_dig=47, base=10, md=3 ** 15)
         print(f"Solution to Project Euler #217 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 218 in to_evaluate:
+    if 218 in eval_nums:
         since = time.time() 
         res = nonSuperPerfectPerfectRightAngledTriangleCount(max_hypotenuse=10 ** 16)
         print(f"Solution to Project Euler #218 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 219 in to_evaluate:
+    if 219 in eval_nums:
         since = time.time() 
         res = prefixFreeCodeMinimumTotalSkewCost(n_words=10 ** 9, cost1=1, cost2=4)
         print(f"Solution to Project Euler #219 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 220 in to_evaluate:
+    if 220 in eval_nums:
         since = time.time() 
-        res = heighwayDragon(order=50, n_steps=10 ** 12, init_pos=(0, 0), init_direct=(0, 1), initial_str="Fa", recursive_strs={"a": "aRbFR", "b": "LFaLb"})
+        res = heighwayDragon(
+            order=50,
+            n_steps=10 ** 12,
+            init_pos=(0, 0),
+            init_direct=(0, 1),
+            initial_str="Fa",
+            recursive_strs={"a": "aRbFR", "b": "LFaLb"},
+        )
         print(f"Solution to Project Euler #220 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 221 in to_evaluate:
+    if 221 in eval_nums:
         since = time.time() 
         res = nthAlexandrianInteger(n=15 * 10 ** 4)
         print(f"Solution to Project Euler #221 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 222 in to_evaluate:
+    if 222 in eval_nums:
         since = time.time() 
         res = shortestSpherePackingInTube(tube_radius=50, radii=list(range(30, 51)))
         print(f"Solution to Project Euler #222 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 223 in to_evaluate:
+    if 223 in eval_nums:
         since = time.time() 
         res = countBarelyAcuteIntegerSidedTrianglesUpToMaxPerimeter(max_perimeter=25 * 10 ** 6)
         print(f"Solution to Project Euler #223 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 224 in to_evaluate:
+    if 224 in eval_nums:
         since = time.time() 
         res = countBarelyObtuseIntegerSidedTrianglesUpToMaxPerimeter(max_perimeter=75 * 10 ** 6)
         print(f"Solution to Project Euler #224 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 225 in to_evaluate:
+    if 225 in eval_nums:
         since = time.time() 
         res = nthSmallestTribonacciOddNonDivisors(odd_non_divisor_number=124, init_terms=(1, 1, 1)) 
         print(f"Solution to Project Euler #225 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 226 in to_evaluate:
+    if 226 in eval_nums:
         since = time.time() 
         res = blacmangeCircleIntersectionArea(eps=10 ** -9)
         print(f"Solution to Project Euler #226 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 227 in to_evaluate:
+    if 227 in eval_nums:
         since = time.time() 
         res = chaseGameExpectedNumberOfTurns(die_n_faces=6, n_opts_left=1, n_opts_right=1, n_players=100, separation_init=50)
         print(f"Solution to Project Euler #227 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 228 in to_evaluate:
+    if 228 in eval_nums:
         since = time.time() 
         res = regularPolygonMinkowskiSumSideCount(vertex_counts=list(range(1864, 1910)))
         print(f"Solution to Project Euler #228 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 229 in to_evaluate:
+    if 229 in eval_nums:
         since = time.time() 
         #res = fourRepresentationsUsingSquaresCount(mults=(1, 2, 3, 7), num_max=2 * 10 ** 6)
         res = fourSquaresRepresentationCountSpecialised(num_max=2 * 10 ** 9) 
         print(f"Solution to Project Euler #229 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 230 in to_evaluate:
+    if 230 in eval_nums:
         since = time.time() 
         res = fibonacciWordsSum(
             A=1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679,
@@ -4540,74 +4623,74 @@ if __name__ == "__main__":
         )
         print(f"Solution to Project Euler #230 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 231 in to_evaluate:
+    if 231 in eval_nums:
         since = time.time() 
         res = binomialCoefficientPrimeFactorisationSum(n=20 * 10 ** 6, k=15 * 10 ** 6)
         print(f"Solution to Project Euler #231 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 232 in to_evaluate:
+    if 232 in eval_nums:
         since = time.time() 
         res = probabilityPlayer2WinsFloat(points_required=100)
         print(f"Solution to Project Euler #232 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 233 in to_evaluate:
+    if 233 in eval_nums:
         since = time.time() 
         res = circleInscribedSquareSideLengthWithLatticePointCount(n_lattice_points=420, max_inscribed_square_side_length=10 ** 11)
         print(f"Solution to Project Euler #233 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 234 in to_evaluate:
+    if 234 in eval_nums:
         since = time.time()
         res = semiDivisibleNumberCount(n_max=999966663333)
         print(f"Solution to Project Euler #234 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 235 in to_evaluate:
+    if 235 in eval_nums:
         since = time.time() 
         res = arithmeticGeometricSeries(a=900, b=-3, n=5000, val=-6 * 10 ** 11, eps=10 ** -13)
         print(f"Solution to Project Euler #235 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 236 in to_evaluate:
+    if 236 in eval_nums:
         since = time.time() 
         res = largestLuxuryHamperPossibleMValue(
             pairs=[(5248, 640), (1312, 1888), (2624, 3776), (5760, 3776), (3936, 5664)],
         )
         print(f"Solution to Project Euler #236 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 237 in to_evaluate:
+    if 237 in eval_nums:
         since = time.time() 
         res = playingBoardTourCount(n_rows=4, n_cols=10 ** 12, start_row=0, end_row=3, md=10 ** 8)
         print(f"Solution to Project Euler #237 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 238 in to_evaluate:
+    if 238 in eval_nums:
         since = time.time() 
         res = infiniteStringTourDigitSumStartSum(n_max=2 * 10 ** 15, s_0=14025256, s_mod=20300713, base=10)
         print(f"Solution to Project Euler #238 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 239 in to_evaluate:
+    if 239 in eval_nums:
         since = time.time() 
         res = partialPrimeDerangementProbabilityFloat(n_max=100, n_primes_deranged=22)
         print(f"Solution to Project Euler #239 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 240 in to_evaluate:
+    if 240 in eval_nums:
         since = time.time() 
         res = topDiceSumCombinations(n_sides=12, n_dice=20, n_top_dice=10, top_sum=70)
         print(f"Solution to Project Euler #240 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 241 in to_evaluate:
+    if 241 in eval_nums:
         since = time.time() 
         res = halfIntegerPerfectionQuotientsSum(n_max=10 ** 18)
         print(f"Solution to Project Euler #241 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 242 in to_evaluate:
+    if 242 in eval_nums:
         since = time.time() 
         res = oddTripletsCount(n_max=10 ** 12)
         print(f"Solution to Project Euler #242 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 243 in to_evaluate:
+    if 243 in eval_nums:
         since = time.time() 
         res = smallestDenominatorWithSmallerResilience(resilience_upper_bound=CustomFraction(15499, 94744))
         print(f"Solution to Project Euler #243 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 244 in to_evaluate:
+    if 244 in eval_nums:
         since = time.time() 
         res = sliderPuzzleShortestPathsChecksumValue(
             init_state=[[0, 1, 2, 2], [1, 1, 2, 2], [1, 1, 2, 2], [1, 1, 2, 2]],
@@ -4617,86 +4700,45 @@ if __name__ == "__main__":
         )
         print(f"Solution to Project Euler #244 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 245 in to_evaluate:
+    if 245 in eval_nums:
         since = time.time() 
         res = compositeCoresilienceAReciprocalSum(n_max=2 * 10 ** 11)
         print(f"Solution to Project Euler #245 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 246 in to_evaluate:
+    if 246 in eval_nums:
         since = time.time() 
-        res = latticePointsAtTangentsToEllipseLatticePoints(upper_bound_angle_deg=45, m_x=-2000, g_x=8000, circle_radius=15000, incl_upper_bound_angle=False, incl_ellipse_border=False)
+        res = latticePointsAtTangentsToEllipseLatticePoints(
+            upper_bound_angle_deg=45,
+            m_x=-2000,
+            g_x=8000,
+            circle_radius=15000,
+            incl_upper_bound_angle=False,
+            incl_ellipse_border=False
+        )
         print(f"Solution to Project Euler #246 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 247 in to_evaluate:
+    if 247 in eval_nums:
         since = time.time()
         res = squaresUnderHyperbola(target_index=(3, 3))
         print(f"Solution to Project Euler #247 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 248 in to_evaluate:
+    if 248 in eval_nums:
         since = time.time() 
         res = mthSmallestNumbersWithEulerTotientFunctionNFactorial(n=13, m=15 * 10 ** 4)
         print(f"Solution to Project Euler #248 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 249 in to_evaluate:
+    if 249 in eval_nums:
         since = time.time() 
         res = primeSumsetSums(p_max=5000, md=10 ** 16)
         print(f"Solution to Project Euler #249 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    if not to_evaluate or 250 in to_evaluate:
+    if 250 in eval_nums:
         since = time.time() 
         res = numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max=250250, div=250, md=10 ** 16)
         print(f"Solution to Project Euler #250 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-    print(f"Total time taken = {time.time() - since0:.4f} seconds")
+    #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
-"""
-mx = 10 ** 3
-cnt = 0
-for b in range(2, mx + 1):
-    b_sq = b * b
-    for a in range(2, b + 1):
-        c_sq = a * a + b_sq - 1
-        c = isqrt(c_sq)
-        if c * c == c_sq:
-            cnt += 1
-            #print(a, b, c)
-print(cnt)
-"""
-
-#for frac in (CustomFraction(1, 1), CustomFraction(1, 2), CustomFraction(1, 3), CustomFraction(1, 4), CustomFraction(1, 5), CustomFraction(2, 5), CustomFraction(1, 6), CustomFraction(1, 7), CustomFraction(1, 8), CustomFraction(3, 8)):
-#    print(frac, findBlacmangeValue(frac), findBlacmangeIntegralValue(frac))
-
-def func(n: int) -> int:
-    res = 0
-    for x in range(1, (n >> 1) + 1):
-        y_sq = 2 * n ** 2 - (2 * x - n) ** 2
-        res += (isqrt(y_sq) ** 2 == y_sq)
-    return res
-
-def func2(n: int) -> int:
-    pf = calculatePrimeFactorisation(n)
-    res = 1
-    for p, f in pf.items():
-        if p & 3 != 1: continue
-        #res1 += (f << 1) + 1
-        res *= (f << 1) + 1
-    return res >> 1
-
-#print(func2(10000))
-
-"""
-n_max = 1000
-for n in range(1, n_max + 1):
-    res = func(n)
-    res2 = func2(n)
-    if res != res2:
-        print(n, res, res2)
-"""
-"""
-for k in range(1, 101):
-    #num = 8 * a ** 3 + 15 * a ** 2 + 6 * a - 1
-    #if not num % 27:
-    #    print(a, num // 27)
-    num = 8 * k - 3
-    print(k, 3 * k - 1, num, k ** 2 * num)
-"""
+if __name__ == "__main__":
+    eval_nums = {205}
+    evaluateProjectEulerSolutions201to250(eval_nums)
