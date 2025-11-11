@@ -585,10 +585,39 @@ def concealedSquare(pattern: List[Optional[int]]=[1, None, 2, None, 3, None, 4, 
     """
 
 # Problem 207
-def findSmallestPartitionBelowGivenProportion(proportion: CustomFraction=CustomFraction(1, 12345)) -> int:
+def findSmallestPartitionBelowGivenProportion(
+    proportion: CustomFraction=CustomFraction(1, 12345),
+) -> int:
     """
     Solution to Project Euler #207
+
+    Consider the equation:
+        4 ** t = 2 ** t + k
+    where k is a strictly positive integer and t is a real
+    number. This function calculates the smallest strictly
+    positive integer m for which the proportion of solutions
+    to this equation with k <= m for which t is an integer
+    is strictly less than the number proportion.
+
+    Args:
+        Optional named:
+        proportion (CustomFraction object): Rational number
+                represented as a fraction giving the exclusive
+                upper bound for the proportion of solutions
+                to the equation with k no greater than the
+                returned value for which t is an integer.
+            Default: CustomFraction(1, 12345) (1 / 12345)
+    
+    Returns:
+    Integer (int) giving the smallest strictly positive integer
+    m for which the proportion of solutions to the equation
+    above with k <= m for which t is an integer is strictly
+    less than the number proportion.
+
+    Outline of rationale:
+    TODO
     """
+    # Review- try to find a better name for the function
     def findExponent(proportion: CustomFraction) -> int:
         comp = lambda m: m * proportion.denominator < 2 * (2 ** m - 1) * proportion.numerator
         if comp(0): return 0
@@ -4740,5 +4769,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {205}
+    eval_nums = {207}
     evaluateProjectEulerSolutions201to250(eval_nums)
