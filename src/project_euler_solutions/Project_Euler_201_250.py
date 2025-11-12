@@ -644,6 +644,32 @@ def findSmallestPartitionBelowGivenProportion(
 def robotWalks(reciprocal: int=5, n_steps: int=70) -> int:
     """
     Solution to Project Euler #208
+
+    Calculates the number of closed paths from a given point
+    and initial direction in the 2D plane consisting of circular
+    arcs of 1 / reciprocal of a unit radius circle containing
+    exactly n_steps such arcs where there are no sharp corners
+    between arcs, where reciprocal is prime.
+
+    Args:
+        Optional named:
+        reciprocal (int): Strictly positive integer giving the
+                size of the arc in terms of the
+                number of arcs that collectively would make up
+                a unit circle.
+                This must be prime.
+            Default: 5
+        n_steps (int): Strictly positive integer giving the number
+                of circular arcs that comprise the closed paths
+                counted.
+            Default: 70
+    
+    Returns:
+    Integer (int) giving the number of closed paths satisfying the
+    constraints outlined above.
+    
+    Outline of rationale:
+    TODO
     """
     # Review- attempt more efficient solution with either binary lifting
     # or double ended approach
