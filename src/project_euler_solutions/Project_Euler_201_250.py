@@ -703,6 +703,25 @@ def robotWalks(reciprocal: int=5, n_steps: int=70) -> int:
 def countZeroMappings(n_inputs: int=6) -> int:
     """
     Solution to Project Euler #209
+
+    Calculates the number of binary truth tables T on a list of length
+    n_inputs of boolean variables x for which:
+        T(x[0], x[1], ..., x[n_inputs - 1]) & T(x[1], x[2], ..., x[n_inputs - 1], x[0] ^ (x[1] & x[2]))
+    evaluates as false for all x, where & and ^ represent logical and
+    and xor respectively.
+
+    Args:
+        Optional named:
+        n_inputs (int): The length of the boolean variable lists used
+                by the binary truth tables in question.
+            Default: 6
+    
+    Returns:
+    Integer (int) giving the number of binary truth tables satisfying
+    the conditions outlined above.
+
+    Outline of rationale:
+    TODO
     """
     def bitmaskFunction(bm: int) -> int:
         res = (bm & ((1 << (n_inputs - 1)) - 1)) << 1
@@ -4795,5 +4814,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {207}
+    eval_nums = {208}
     evaluateProjectEulerSolutions201to250(eval_nums)
