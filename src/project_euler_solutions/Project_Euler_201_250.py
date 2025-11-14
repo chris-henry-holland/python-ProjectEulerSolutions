@@ -754,9 +754,47 @@ def countZeroMappings(n_inputs: int=6) -> int:
     return res
 
 # Problem 210
-def countObtuseTriangles(r: Union[int, float]=10 ** 9, div: Union[int, float]=4) -> int:
+def countObtuseTriangles(
+    r: Union[int, float]=10 ** 9,
+    div: Union[int, float]=4,
+) -> int:
     """
     Solution to Project Euler #210
+
+    Calculates the number of distinct points in the Cartesian
+    plane with integer coordinates and Manhattan distance of
+    at most r from the origin for which the triangle whose
+    vertices are that point, the origin and the point with
+    Cartesian coordinates (r / div, r / div) is an obtuse
+    triangle.
+
+    An obtuse triangle is a triangle where one of the angles
+    is strictly greater than pi / 2 (90 degrees).
+
+    In the Cartesian plane, the Manhattan distance between two
+    points is the sum of the absolute difference of their
+    x-coordinates and their y-coordinates.
+
+    Args:
+        Optional named:
+        r (real numeric): A strictly positive real number
+                specifying the value of r, the inclusive
+                upper bound on the Manhattan distance from
+                the origin of the points considered for the
+                count.
+            Default: 10 ** 9
+        div (real numeric): Strictly positive real number
+                specifying the value of div, which for a
+                given value of r determines the position of
+                the final triangle vertex.
+            Default: 4
+    
+    Returns:
+    Integer (int) giving the number of distinct points in the
+    Cartesian plane that satisfy the described constraints.
+
+    Outline of rationale:
+    TODO
     """
     r2 = math.floor(r)
     d = math.floor(2 * r / div)
@@ -4814,5 +4852,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {208}
+    eval_nums = {210}
     evaluateProjectEulerSolutions201to250(eval_nums)
