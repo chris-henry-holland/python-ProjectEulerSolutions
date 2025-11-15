@@ -812,7 +812,10 @@ def countObtuseTriangles(
     d2 = r / div
     c = d2 / 2
     small_cnt = 0
-    for x in range(math.floor((1 - math.sqrt(2)) * c) + 1, math.ceil((1 + math.sqrt(2)) * c)):
+    x_rng = [math.floor((1 - math.sqrt(2)) * c) + 1, math.ceil((1 + math.sqrt(2)) * c) - 1]
+    print(f"x range = {x_rng}")
+    for x in range(x_rng[0], x_rng[1] + 1):
+        if not x % 10 ** 6: print(f"x = {x}, x range = {x_rng}")
         discr = c ** 2 - x ** 2 + 2 * c * x
         discr_sqrt = math.sqrt(discr)
         y_mn = math.floor(c - discr_sqrt) + 1
@@ -827,6 +830,33 @@ def countObtuseTriangles(
 def divisorSquareSumIsSquareTotal(n_max: int=64 * 10 ** 6 - 1) -> int:
     """
     Solution to Project Euler #211
+
+    Calculates the number of strictly positive integers no greater
+    than n_max for which the sum of the squares of its divisors
+    is a perfect square.
+
+    Args:
+        Optional named:
+        n_max (int): Integer giving the inclusive upper bound for
+                the numbers considered for inclusion in the count.
+            Default: 64 * 10 ** 6 - 1 (63,999,999)
+    
+    Returns:
+    Integer (int) giving the number of strictly positive integers
+    no greatr than n_max for which the sum of the squares of its
+    divisors is a perfect square.
+
+    Brief outline of rationale:
+    A sieve approach is used, storing the sum of squares of
+    divisors for each integer up to n_max in an array. This is
+    populated by iterating over the strictly positive integers,
+    adding the square of that integer to the indices of the
+    array that are multiples of the integer. By iterating in
+    increasing order (given that divisors are no greater than
+    the number they divide), this allows for the assessment of
+    whether the sum of squares of the divisors is itself a
+    square alongside this process, adding the number to the
+    total if it is indeed a square.
     """
     # Review- try to speed up
     def isSquare(num: int) -> bool:
@@ -836,6 +866,7 @@ def divisorSquareSumIsSquareTotal(n_max: int=64 * 10 ** 6 - 1) -> int:
     arr = [1] * (n_max + 1)
     res = 1
     for num in range(2, n_max + 1):
+        #print(num)
         if not num % 500: print(num)
         num_sq = num ** 2
         for num2 in range(num, n_max + 1, num):
@@ -4852,5 +4883,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {210}
+    eval_nums = {211}
     evaluateProjectEulerSolutions201to250(eval_nums)
