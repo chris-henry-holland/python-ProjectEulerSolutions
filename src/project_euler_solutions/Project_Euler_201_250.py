@@ -877,8 +877,39 @@ def divisorSquareSumIsSquareTotal(n_max: int=64 * 10 ** 6 - 1) -> int:
     return res
 
 # Problem 212
-def cuboidUnionVolume(cuboids: List[Tuple[Tuple[int, int, int], Tuple[int, int, int]]]) -> int:
+def cuboidUnionVolume(
+    cuboids: List[Tuple[Tuple[int, int, int], Tuple[int, int, int]]],
+) -> int:
+    """
+    Calculates the volume of the union of axis-aligned cuboids in
+    3D Cartesian space, with every corner of every cuboid having
+    integer Cartesian coordinates.
 
+    An axis-aligned cuboid in 3D Cartesian space is a cuboid whose
+    edges are each parallel to one of the Cartesian axes.
+
+    The union of volumes in Cartesian space is the total volume
+    of the space that is covered by at least one of the constituent
+    volumes (with regions of overlapping volumes counted exactly
+    once).
+
+    Args:
+        Required positional:
+        cuboids (list of 2-tuples of 3-tuples of ints): Specifications
+                of the constituent cuboids, with each represented by
+                two 3-tuples of ints, the first of which specifies
+                the position of the corner with minimum x, y and z
+                coordinates and the second of which specifies the
+                extent of the cuboid in the x, y and z directions
+                in that order.
+    
+    Returns:
+    Integer (int) giving the volume of the union of the axis-aligned
+    cuboids in 3D Cartesian space given by cuboids.
+
+    Outline of rationale:
+    TODO
+    """
     # Review- try to speed up
     # TODO- investigate why repeats occur for triple or more intersections
     # where the two cuboids with the largest x0-value have the same x0-value.
