@@ -967,6 +967,7 @@ def cuboidUnionVolume(
     return res
 
 def laggedFibonacciNDimensionalHyperCuboidGenerator(
+    n_dim: int=3,
     hypercuboid_smallest_coord_ranges: Tuple[Tuple[int, int]]=((0, 9999), (0, 9999), (0, 9999)),
     hypercuboid_dim_ranges: Tuple[Tuple[int, int]]=((1, 399), (1, 399), (1, 399)),
     n_hypercuboids: Optional[int]=None,
@@ -975,7 +976,22 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     l_fib_lags: Tuple[int]=(24, 55),
 ) -> Generator[Tuple[Tuple[int, int, int], Tuple[int, int, int]], None, None]:
     """
-    Generator yielding TODO
+    Generator yielding positions and dimensions (referred to as spatial
+    properties) of n_dim-dimensional axis-aligned hypercuboids in the
+    n_dim-dimensional Cartesian space where every corner of every
+    hypercuboid is has integer Cartesian coordinates, based on the
+    terms of a generalisation of a lagged Fibonacci generator sequence
+    for given polynomial coefficients and lags. If n_hypercuboids is
+    specified as a non-negative integer, this gives the number of
+    hypercuboid spatial properties, otherwise the iterator does not of
+    itself terminate.
+
+    Each (2 * n_dim) of consecutive values in the generalisation of a lagged
+    Fibonacci generator sequence with the specified parameters represents a
+    hypercuboid, with the first n_dim of these terms specifying the
+    Cartesian coordinates of the corner for which these coordinates are all
+    minimal and the final n_dim of these terms specifying the size of
+    the cuboid in the corresponding Cartesian coordinate direction.
 
     The generalisation of the lagged Fibonacci generator sequence for the
     given tuple of integers l_fib_poly_coeffs, tuple of strictly positive integers
