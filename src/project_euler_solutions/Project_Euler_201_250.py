@@ -967,14 +967,14 @@ def cuboidUnionVolume(
     return res
 
 def laggedFibonacciNDimensionalHyperCuboidGenerator(
-    n_dim: int=3,
-    hypercuboid_smallest_coord_ranges: Tuple[Tuple[int, int]]=((0, 9999), (0, 9999), (0, 9999)),
-    hypercuboid_dim_ranges: Tuple[Tuple[int, int]]=((1, 399), (1, 399), (1, 399)),
+    n_dim: int,
+    hypercuboid_smallest_coord_ranges: List[Tuple[int, int]],
+    hypercuboid_dim_ranges: List[Tuple[int, int]],
     n_hypercuboids: Optional[int]=None,
     l_fib_modulus: int=10 ** 6,
-    l_fib_poly_coeffs: Tuple[int]=(100003, -200003, 0, 300007),
-    l_fib_lags: Tuple[int]=(24, 55),
-) -> Generator[Tuple[Tuple[int, int, int], Tuple[int, int, int]], None, None]:
+    l_fib_poly_coeffs: List[int]=[100003, -200003, 0, 300007],
+    l_fib_lags: List[int]=[24, 55],
+) -> Generator[Tuple[List[int], List[int]], None, None]:
     """
     Generator yielding positions and dimensions (referred to as spatial
     properties) of n_dim-dimensional axis-aligned hypercuboids in the
@@ -985,6 +985,9 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     specified as a non-negative integer, this gives the number of
     hypercuboid spatial properties, otherwise the iterator does not of
     itself terminate.
+
+    An axis-aligned cuboid in n_dim-dimensional Cartesian space is a cuboid
+    whose edges are each parallel to one of the Cartesian axes.
 
     Each (2 * n_dim) of consecutive values in the generalisation of a lagged
     Fibonacci generator sequence with the specified parameters represents a
@@ -997,13 +1000,14 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     given tuple of integers l_fib_poly_coeffs, tuple of strictly positive integers
     l_fib_lags, and the integers min_val and max_val is the sequence such that
     for integer i >= 1, the i:th term in the sequence is:
-        t_i = (sum j from 0 to len(l_fib_poly_coeffs) - 1) (l_fib_poly_coeffs[j] * i ** j) % n_vertices
+        t_i = (sum j from 0 to len(l_fib_poly_coeffs) - 1) (l_fib_poly_coeffs[j] * i ** j) % l_fib_modulus
                 for i <= max(l_fib_lags)
-              ((sum j fro 0 to len(l_fib_lags) - 1) (t_(i - l_fib_lags[i]))) % n_vertices
+              ((sum j from 0 to len(l_fib_lags) - 1) (t_(i - l_fib_lags[i]))) % l_fib_modulus
                 otherwise
     where % signifies modular division (i.e. the remainder of the integer
-    preceding that symbol by the integer succeeding it). This sequence contains
-    integer values between 0 and (n_vertices - 1) inclusive.
+    preceding that symbol by the integer succeeding it). For a given range,
+    [mn, mx], the corresponding final value is then equal to:
+        mn + (t_i % (mx - mn + 1))
 
     The terms where i <= max(l_fib_lags) are referred as the polynomial
     terms and the terms where i > max(l_fib_lags) are referred to as the
@@ -1015,15 +1019,31 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     loop.
 
     Args:
+        Required positional:
+        n_dim (int): The number of dimensions of the axis-aligned
+                hypercuboids
+        hypercuboid_smallest_coord_ranges (list of 2-tuples of ints): a list
+                of 2-tuples of integers with length n_dim, each giving the
+                inclusive range of the corresponding Cartesian coordinate
+                value for the location of the corner of the hypercuboid
+                that minimises every Cartesian coordinate.
+        hypercuboid_dim_ranges (list of 2-tuples of ints): a list
+                of 2-tuples of integers with length n_dim, each giving the
+                inclusive range of the extent of the hypercuboids in the
+                corresponding Cartesian axis.
+
         Optional named:
-        TODO
-        l_fib_poly_coeffs (tuple of ints): Tuple of integers giving the
+        n_hypercuboids (int or None): If specified as a non-negative integer
+                specifies the number of hypercuboids to be yielded before
+                terminating, otherwise the generator does not of itself
+                terminate
+        l_fib_poly_coeffs (list of ints): List of integers giving the
                 coefficients of the polynomial used to calculate the
                 polynomial terms of the generalisation of the lagged
                 Fibonacci generator sequence used to generate the
                 edges.
-            Default: (100003, -200003, 0, 300007)
-        l_fib_lags (tuple of ints): Tuple of strictly positive integers,
+            Default: [100003, -200003, 0, 300007]
+        l_fib_lags (list of ints): List of strictly positive integers,
                 which when calculating the recursive terms of the
                 generlisation of the lagged Fibonacci generator sequence
                 used to generate the edges, indicates how many steps back
@@ -1032,15 +1052,27 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
                 the maximum value determines at which term the transition
                 from the polynomial terms to the recursive terms will occur
                 in this sequence.
-            Default: (24, 55)
+            Default: [24, 55]
     
     Yields:
-    TODO
+    2-tuple of lists of ints, each with length n_dim representing an
+    axis-aligned n_dim-dimensional hypercuboid, with the list in index
+    0 giving the Cartesian coordinates of the corner of the hypercuboid
+    that minimises all Cartesian coordinate values and the list in index
+    1 giving the extent of the hypercuboid in the direction of the
+    corresponding Cartesian axis, based on the generalisation of the
+    given generalisation of the lagged Fibonacci generator sequence as
+    specified above.
     If n_hypercuboids is specified as a non-negative integer then (unless
     externally terminated first) exactly n_edges such values are yielded,
     otherwise the generator never of itself terminates.
     """
-    n_dim = len(hypercuboid_smallest_coord_ranges)
+    if len(hypercuboid_smallest_coord_ranges) != n_dim:
+        raise ValueError("The length of input argument "
+                        "hypercuboid_smallest_coord_ranges must equal n_dim")
+    if len(hypercuboid_dim_ranges) != n_dim:
+        raise ValueError("The length of input argument "
+                        "hypercuboid_dim_ranges must equal n_dim")
     it = generalisedLaggedFibonacciGenerator(poly_coeffs=l_fib_poly_coeffs, lags=l_fib_lags, min_val=0, max_val=l_fib_modulus - 1)
     it2 = range(n_hypercuboids) if isinstance(n_hypercuboids, int) and n_hypercuboids >= 0 else itertools.count(0)
     for _ in it2:
@@ -1054,16 +1086,17 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
 
 def laggedFibonacciCuboidUnionVolume(
     n_cuboids: int=50000,
-    cuboid_smallest_coord_ranges: Tuple[Tuple[int, int]]=((0, 9999), (0, 9999), (0, 9999)),
-    cuboid_dim_ranges: Tuple[Tuple[int, int]]=((1, 399), (1, 399), (1, 399)),
+    cuboid_smallest_coord_ranges: List[Tuple[int, int]]=[(0, 9999), (0, 9999), (0, 9999)],
+    cuboid_dim_ranges: List[Tuple[int, int]]=[(1, 399), (1, 399), (1, 399)],
     l_fib_modulus: int=10 ** 6,
-    l_fib_poly_coeffs: Tuple[int]=(100003, -200003, 0, 300007),
-    l_fib_lags: Tuple[int]=(24, 55),
+    l_fib_poly_coeffs: List[int]=[100003, -200003, 0, 300007],
+    l_fib_lags: List[int]=[24, 55],
 ) -> int:
     """
     Solution to Project Euler #212
     """
     cuboids = [c for c in laggedFibonacciNDimensionalHyperCuboidGenerator(
+        n_dim=3,
         hypercuboid_smallest_coord_ranges=cuboid_smallest_coord_ranges,
         hypercuboid_dim_ranges=cuboid_dim_ranges,
         n_hypercuboids=n_cuboids,
@@ -4930,5 +4963,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {211}
+    eval_nums = {212}
     evaluateProjectEulerSolutions201to250(eval_nums)
