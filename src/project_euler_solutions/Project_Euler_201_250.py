@@ -989,7 +989,7 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     An axis-aligned cuboid in n_dim-dimensional Cartesian space is a cuboid
     whose edges are each parallel to one of the Cartesian axes.
 
-    Each (2 * n_dim) of consecutive values in the generalisation of a lagged
+    Each (2 * n_dim) consecutive values in the generalisation of a lagged
     Fibonacci generator sequence with the specified parameters represents a
     hypercuboid, with the first n_dim of these terms specifying the
     Cartesian coordinates of the corner for which these coordinates are all
@@ -1041,12 +1041,12 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
                 coefficients of the polynomial used to calculate the
                 polynomial terms of the generalisation of the lagged
                 Fibonacci generator sequence used to generate the
-                edges.
+                hypercuboids.
             Default: [100003, -200003, 0, 300007]
         l_fib_lags (list of ints): List of strictly positive integers,
                 which when calculating the recursive terms of the
                 generlisation of the lagged Fibonacci generator sequence
-                used to generate the edges, indicates how many steps back
+                used to generate the hypercuboids, indicates how many steps back
                 in the sequence the previous terms summed should each be
                 from the position of the term being generated. Additionally,
                 the maximum value determines at which term the transition
@@ -1064,8 +1064,8 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     given generalisation of the lagged Fibonacci generator sequence as
     specified above.
     If n_hypercuboids is specified as a non-negative integer then (unless
-    externally terminated first) exactly n_edges such values are yielded,
-    otherwise the generator never of itself terminates.
+    externally terminated first) exactly n_hypercuboids such values are
+    yielded, otherwise the generator never of itself terminates.
     """
     if len(hypercuboid_smallest_coord_ranges) != n_dim:
         raise ValueError("The length of input argument "
@@ -1094,6 +1094,82 @@ def laggedFibonacciCuboidUnionVolume(
 ) -> int:
     """
     Solution to Project Euler #212
+
+    Calculates the volume of the union of axis-aligned cuboids in
+    3D Cartesian space, with every corner of every cuboid having
+    integer Cartesian coordinates, with the position and dimensions
+    (referred to as the spatial properties) of the cuboids
+    derived from a generalised lagged Fibonacci generator sequence.
+
+    An axis-aligned cuboid in 3D Cartesian space is a cuboid whose
+    edges are each parallel to one of the Cartesian axes.
+
+    The union of volumes in Cartesian space is the total volume
+    of the space that is covered by at least one of the constituent
+    volumes (with regions of overlapping volumes counted exactly
+    once).
+
+    Each 6 consecutive values in the generalisation of a lagged
+    Fibonacci generator sequence with the specified parameters represents a
+    hypercuboid, with the first 3 of these terms specifying the
+    Cartesian coordinates of the corner for which these coordinates are all
+    minimal and the final 3 of these terms specifying the size of
+    the cuboid in the corresponding Cartesian coordinate direction.
+
+    The generalisation of the lagged Fibonacci generator sequence for the
+    given tuple of integers l_fib_poly_coeffs, tuple of strictly positive integers
+    l_fib_lags, and the integers min_val and max_val is the sequence such that
+    for integer i >= 1, the i:th term in the sequence is:
+        t_i = (sum j from 0 to len(l_fib_poly_coeffs) - 1) (l_fib_poly_coeffs[j] * i ** j) % l_fib_modulus
+                for i <= max(l_fib_lags)
+              ((sum j from 0 to len(l_fib_lags) - 1) (t_(i - l_fib_lags[i]))) % l_fib_modulus
+                otherwise
+    where % signifies modular division (i.e. the remainder of the integer
+    preceding that symbol by the integer succeeding it). For a given range,
+    [mn, mx], the corresponding final value is then equal to:
+        mn + (t_i % (mx - mn + 1))
+    
+    Args:
+        Optional named:
+        n_cuboids (int): Non-negative integer giving the number of cuboids
+                to be generated.
+            Default: 50000
+        cuboid_smallest_coord_ranges (list of 2-tuples of ints): a list
+                of 2-tuples of integers with length 3, each giving the
+                inclusive range of the corresponding Cartesian coordinate
+                value for the location of the corner of the hypercuboid
+                that minimises every Cartesian coordinate.
+            Default: [(0, 9999), (0, 9999), (0, 9999)]
+        cuboid_dim_ranges (list of 2-tuples of ints): a list
+                of 2-tuples of integers with length 3, each giving the
+                inclusive range of the extent of the hypercuboids in the
+                corresponding Cartesian axis.
+            Default: [(1, 399), (1, 399), (1, 399)]
+        l_fib_poly_coeffs (list of ints): List of integers giving the
+                coefficients of the polynomial used to calculate the
+                polynomial terms of the generalisation of the lagged
+                Fibonacci generator sequence used to generate the
+                cuboids.
+            Default: [100003, -200003, 0, 300007]
+        l_fib_lags (list of ints): List of strictly positive integers,
+                which when calculating the recursive terms of the
+                generlisation of the lagged Fibonacci generator sequence
+                used to generate the cuboids, indicates how many steps back
+                in the sequence the previous terms summed should each be
+                from the position of the term being generated. Additionally,
+                the maximum value determines at which term the transition
+                from the polynomial terms to the recursive terms will occur
+                in this sequence.
+            Default: [24, 55]
+    
+    Returns:
+    Integer (int) giving the volume of the union of the n_cuboids axis-aligned
+    cuboids in 3D Cartesian space generated by the generalised lagged
+    Fibonacci generator sequence as outlined above for the given parameters.
+
+    Outline of rationale:
+    See outline of rationale in the documentation of the function
+    cuboidUnionVolume().
     """
     cuboids = [c for c in laggedFibonacciNDimensionalHyperCuboidGenerator(
         n_dim=3,
