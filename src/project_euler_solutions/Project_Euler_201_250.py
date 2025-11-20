@@ -1184,7 +1184,39 @@ def laggedFibonacciCuboidUnionVolume(
     return res
 
 # Problem 213
-def fleaCircusExpectedNumberOfUnoccupiedSquaresFraction(dims: Tuple[int, int], n_steps: int) -> CustomFraction:
+def fleaCircusExpectedNumberOfUnoccupiedSquaresFraction(
+    dims: Tuple[int, int],
+    n_steps: int,
+) -> CustomFraction:
+    """
+    Starting with a rectangular grid of equally sized squares
+    with dimensions dims, each containing one flea, calculates
+    the expected number of unoccupied squares in the grid after
+    n_steps time steps if during every time steps each flea
+    jumps to a horizontally or vertically adjacent square (with
+    no wrapping), where each possible destination having equal
+    probability. The expected value is calculated as a fraction.
+
+    Args:
+        Required positional:
+        dims (2-tuple of ints): The dimensions of the rectangular
+                grid as an ordered pair of strictly positive
+                integers, with the integers representing the
+                number of square lengths of the corresponding
+                dimensions.
+        n_steps (int): Non-negative integer giving the number
+                of time steps after which the expected number
+                of unoccupied squares in the grid is to be
+                calculated.
+    
+    Returns:
+    CustomFraction object representing the expected value of
+    the number of unoccupied squares in the grid after n_steps
+    time steps as a rational number.
+
+    Outline of rationale:
+    TODO
+    """
 
     def transferFunction(pos: Tuple[int, int]) -> Tuple[Set[Tuple[int, int]], CustomFraction]:
         denom = 4
@@ -1243,9 +1275,41 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFraction(dims: Tuple[int, int], n
     res = sum(sum(row) for row in p_arr)
     return res
 
-def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(dims: Tuple[int, int], n_steps: int) -> float:
+def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(
+    dims: Tuple[int, int],
+    n_steps: int,
+) -> float:
     """
     Solution to Project Euler #213
+
+    Starting with a rectangular grid of equally sized squares
+    with dimensions dims, each containing one flea, calculates
+    the expected number of unoccupied squares in the grid after
+    n_steps time steps if during every time steps each flea
+    jumps to a horizontally or vertically adjacent square (with
+    no wrapping), where each possible destination having equal
+    probability. The expected value is calculated as a float
+    with intermediate results calculated to float precision.
+
+    Args:
+        Required positional:
+        dims (2-tuple of ints): The dimensions of the rectangular
+                grid as an ordered pair of strictly positive
+                integers, with the integers representing the
+                number of square lengths of the corresponding
+                dimensions.
+        n_steps (int): Non-negative integer giving the number
+                of time steps after which the expected number
+                of unoccupied squares in the grid is to be
+                calculated.
+    
+    Returns:
+    Float representing the expected value of the number of
+    unoccupied squares in the grid after n_steps time steps.
+    
+    Outline of rationale:
+    See outline of rationale in the documentation of the function
+    fleaCircusExpectedNumberOfUnoccupiedSquaresFraction().
     """
 
     def transferFunction(pos: Tuple[int, int]) -> Tuple[Set[Tuple[int, int]], float]:
@@ -1308,6 +1372,34 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(dims: Tuple[int, int]
 def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatFromFraction(dims: Tuple[int, int]=(30, 30), n_steps: int=50) -> float:
     """
     Alternative (more precise) solution to Project Euler #213
+    Starting with a rectangular grid of equally sized squares
+    with dimensions dims, each containing one flea, calculates
+    the expected number of unoccupied squares in the grid after
+    n_steps time steps if during every time steps each flea
+    jumps to a horizontally or vertically adjacent square (with
+    no wrapping), where each possible destination having equal
+    probability. The expected value is calculated as a float
+    with intermediate results calculated exactly.
+
+    Args:
+        Required positional:
+        dims (2-tuple of ints): The dimensions of the rectangular
+                grid as an ordered pair of strictly positive
+                integers, with the integers representing the
+                number of square lengths of the corresponding
+                dimensions.
+        n_steps (int): Non-negative integer giving the number
+                of time steps after which the expected number
+                of unoccupied squares in the grid is to be
+                calculated.
+    
+    Returns:
+    Float representing the expected value of the number of
+    unoccupied squares in the grid after n_steps time steps.
+
+    Outline of rationale:
+    See outline of rationale in the documentation of the function
+    fleaCircusExpectedNumberOfUnoccupiedSquaresFraction().
     """
     res = fleaCircusExpectedNumberOfUnoccupiedSquaresFraction(dims, n_steps)
     print(res)
