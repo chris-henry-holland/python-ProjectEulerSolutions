@@ -1276,8 +1276,8 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFraction(
     return res
 
 def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(
-    dims: Tuple[int, int],
-    n_steps: int,
+    dims: Tuple[int, int]=(30, 30),
+    n_steps: int=50,
 ) -> float:
     """
     Solution to Project Euler #213
@@ -1292,16 +1292,18 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(
     with intermediate results calculated to float precision.
 
     Args:
-        Required positional:
+        Optional named:
         dims (2-tuple of ints): The dimensions of the rectangular
                 grid as an ordered pair of strictly positive
                 integers, with the integers representing the
                 number of square lengths of the corresponding
                 dimensions.
+            Default: (30, 30)
         n_steps (int): Non-negative integer giving the number
                 of time steps after which the expected number
                 of unoccupied squares in the grid is to be
                 calculated.
+            Default: 50
     
     Returns:
     Float representing the expected value of the number of
@@ -1369,9 +1371,13 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatDirect(
     res = sum(sum(row) for row in p_arr)
     return res
 
-def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatFromFraction(dims: Tuple[int, int]=(30, 30), n_steps: int=50) -> float:
+def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatFromFraction(
+    dims: Tuple[int, int]=(30, 30),
+    n_steps: int=50,
+) -> float:
     """
     Alternative (more precise) solution to Project Euler #213
+
     Starting with a rectangular grid of equally sized squares
     with dimensions dims, each containing one flea, calculates
     the expected number of unoccupied squares in the grid after
@@ -1382,16 +1388,18 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatFromFraction(dims: Tuple[int
     with intermediate results calculated exactly.
 
     Args:
-        Required positional:
+        Optional named:
         dims (2-tuple of ints): The dimensions of the rectangular
                 grid as an ordered pair of strictly positive
                 integers, with the integers representing the
                 number of square lengths of the corresponding
                 dimensions.
+            Default: (30, 30)
         n_steps (int): Non-negative integer giving the number
                 of time steps after which the expected number
                 of unoccupied squares in the grid is to be
                 calculated.
+            Default: 50
     
     Returns:
     Float representing the expected value of the number of
@@ -1406,11 +1414,57 @@ def fleaCircusExpectedNumberOfUnoccupiedSquaresFloatFromFraction(dims: Tuple[int
     return res.numerator / res.denominator
 
 # Problem 214
-def primesOfTotientChainLengthSum(p_max: int=4 * 10 ** 7 - 1, chain_len: int=25) -> int:
+def primesOfTotientChainLengthSum(
+    p_max: int=4 * 10 ** 7 - 1,
+    chain_len: int=25,
+) -> int:
     """
     Solution to Project Euler #214
+
+    Calculates the sum of primes no grater than p_max that
+    have a totient chain of with length exactly chain_len.
+
+    For a strictly positive integer, its totient chain is the
+    finite sequence of integers whose first term is the integer
+    in question and every subsequent integer is equal to the
+    Euler totient function value of its predecessor, with the
+    sequence terminating after the first occurrence of the
+    sequence value 1. The totient chain length is the number
+    of terms in this sequence.
+
+    For a strictly positive integer, the Euler totient function
+    value is defined to be the number of strictly positive
+    integers no greater than and are coprime with that integer
+    (where two strictly positive integers are coprime if and
+    only if their greatest common divisor is 1).
+
+    Note that it is guaranteed that the totient chain will
+    encounter 1 for any strictly positive integer (and so
+    has finite length) given that for any integer strictly
+    greater than 1, its Euler totient function value is
+    strictly positive and is strictly less than the value
+    of the integer itself (these conditions ruling out a
+    non-terminating sequence by infinite descent, or
+    alternatively by strong induction).
+
+    Args:
+        Optional named:
+        p_max (int): The inclusive upper bound on primes
+                considered for inclusion in the sum.
+            Default: 4 * 10 ** 7 - 1
+        chain_len (int): Integer giving the exact totient
+                chain length that primes included in the
+                sum should have.
+            Default: 25
+    
+    Returns:
+    Integer (int) giving the sum of primes no grater than p_max
+    that have a totient chain of with length exactly chain_len.
+
+    Outline of rationale:
+    TODO
     """
-    # It appear that for chain lengths len no less than 2, the last integer
+    # It appear that for chain lengths len no less than 2, the largest integer
     # with that chain length is 2 * 3 ** (len - 2). Can this be proved?
     ps = PrimeSPFsieve(p_max)
     print("calculated prime sieve")
@@ -5131,5 +5185,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {212}
+    eval_nums = {214}
     evaluateProjectEulerSolutions201to250(eval_nums)
