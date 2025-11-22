@@ -1500,6 +1500,30 @@ def primesOfTotientChainLengthSum(
 def crackFreeWalls(n_rows: int=32, n_cols: int=10) -> int:
     """
     Solution to Project Euler #215
+
+    Calculates the number of distinct ways it is possible to
+    completely fill a rectangular grid with n_rows rows and n_cols
+    columns with non-overlapping 2 x 1 and 3 x 1 blocks where for
+    each block the non-unit dimension is orientated along a row
+    such that for any two consecutive rows there is no position
+    where two blocks meet at that position for both rows (without
+    wrapping for either the rows or columns).
+
+    Args:
+        Optional named:
+        n_rows (int): The number of rows in the rectangular grid
+                that is to be filled
+            Default: 32
+        n_cols (int): The number of columns in the rectangular grid
+                that is to be filled
+            Default: 10
+
+    Returns:
+    Integer (int) giving the number of distinct ways a rectangular
+    grid can be filled subject to the conditions outlined above.
+
+    Outline of rationale:
+    TODO
     """
     if not n_rows or not n_cols: return 1
     row_opts = []
@@ -5185,5 +5209,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {214}
+    eval_nums = {215}
     evaluateProjectEulerSolutions201to250(eval_nums)
