@@ -1594,9 +1594,30 @@ def crackFreeWalls(n_rows: int=32, n_cols: int=10) -> int:
     return sum(curr)
 
 # Problem 216
-def countPrimesOneLessThanTwiceASquare(n_max: int=5 * 10 ** 7) -> int:
+def countPrimesOneLessThanTwiceASquare(
+    n_max: int=5 * 10 ** 7,
+) -> int:
     """
     Solution to Project Euler #216
+
+    Calculates the number of integers between 2 and n_max inclusive
+    for which twice that integer squared minus one is prime.
+
+    Args:
+        Optional named:
+        n_max (int): The largest integer considered for inclusion
+                in the count.
+            Default: 5 * 10 ** 7
+    
+    Returns:
+    Integer (int) representing the number of integers between 2
+    and n_max inclusive for which twice that integer squared minus
+    one is prime.
+
+    Brief outline of rationale:
+    For every integer in the range, we simply check whether twice
+    that integer squared minus one is prime using the Miller Rabin
+    primality check.
     """
     # Review- look into the more efficient methods as outlined in
     # the PDF document accompanying the problem.
