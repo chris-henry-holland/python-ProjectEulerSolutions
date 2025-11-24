@@ -1594,7 +1594,7 @@ def crackFreeWalls(n_rows: int=32, n_cols: int=10) -> int:
     return sum(curr)
 
 # Problem 216
-def countPrimesOneLessThanTwiceASquare(
+def countPrimesOneLessThanTwiceASquareBruteForce(
     n_max: int=5 * 10 ** 7,
 ) -> int:
     """
@@ -1633,9 +1633,47 @@ def countPrimesOneLessThanTwiceASquare(
     return res
 
 # Problem 217
-def balancedNumberCount(max_n_dig: int=47, base: int=10, md: Optional[int]=3 ** 15) -> int:
+def balancedNumberCount(
+    max_n_dig: int=47,
+    base: int=10,
+    res_md: Optional[int]=3 ** 15,
+) -> int:
     """
     Solution to Project Euler #217
+
+    Calculates the sum of strictly positive integers which, when
+    expressed in the chosen base with no leading zeros contain at
+    most max_n_dig digits and, if the number of digits in the
+    integer is k, the sum of the first ceil(k / 2) digits equals
+    the sum of the final ceil(k / 2) digits (where ceil() is the
+    ceiling function).
+
+    If res_md is given as a strictly positive integer then this sum
+    is returned modulo res_md.
+
+    Args:
+        Optional named:
+        max_n_dig (int): Strictly positive integer specifying the
+                largest number of digits an integer may contain
+                when expressed in the chosen base without leading
+                zeros for consideration for inclusion in the sum.
+            Default: 47
+        base (int): Integer strictly greater than 1 giving the base in
+                which the integers should be expressed when assessing
+                whether they satisfy the specified requirements.
+            Defualt: 10
+        res_md (int or None): If given as a strictly positive integer,
+                gives the modulus to which the returned sum is to be
+                taken, otherwise the sum itself is returned.
+    
+    Returns:
+    Integer (int) giving the sum of all strictly positive integers
+    satisfying the conditions specified above for the chosen base,
+    where if res_md is a strictly positive integer, this sum is
+    given modulo res_md.
+
+    Outline of rationale:
+    TODO
     """
     # Review- see if it can be made more efficient using cumulative totals
     if max_n_dig < 1: return 0
@@ -1663,13 +1701,13 @@ def balancedNumberCount(max_n_dig: int=47, base: int=10, md: Optional[int]=3 ** 
         res = res_init
         if (i << 1) + 1 > max_n_dig:
             for j in range(1, len(row_lft)):
-                res = (res + row_lft[j][1] * pow(base, i, md) * row_rgt[j][0] + row_rgt[j][1] * row_lft[j][0]) % md
+                res = (res + row_lft[j][1] * pow(base, i, res_md) * row_rgt[j][0] + row_rgt[j][1] * row_lft[j][0]) % res_md
             return res
         for j in range(1, len(row_lft)):
-            res = (res + (row_lft[j][1] * (base ** 2 + 1) + dig_sum * row_lft[j][0])* pow(base, i, md) * row_rgt[j][0] + (base + 1) * row_rgt[j][1] * row_lft[j][0]) % md
+            res = (res + (row_lft[j][1] * (base ** 2 + 1) + dig_sum * row_lft[j][0])* pow(base, i, res_md) * row_rgt[j][0] + (base + 1) * row_rgt[j][1] * row_lft[j][0]) % res_md
         return res
     
-    calculateRunningTotal = calculateRunningTotalWithoutMod if md is None else calculateRunningTotalWithMod
+    calculateRunningTotal = calculateRunningTotalWithoutMod if res_md is None else calculateRunningTotalWithMod
     
     m = max_n_dig >> 1
     #print(f"m = {m}")
@@ -5025,12 +5063,12 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
 
     if 216 in eval_nums:
         since = time.time()
-        res = countPrimesOneLessThanTwiceASquare(n_max=5 * 10 ** 7)
+        res = countPrimesOneLessThanTwiceASquareBruteForce(n_max=5 * 10 ** 7)
         print(f"Solution to Project Euler #216 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 217 in eval_nums:
         since = time.time()
-        res = balancedNumberCount(max_n_dig=47, base=10, md=3 ** 15)
+        res = balancedNumberCount(max_n_dig=47, base=10, res_md=3 ** 15)
         print(f"Solution to Project Euler #217 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 218 in eval_nums:
@@ -5230,5 +5268,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {215}
+    eval_nums = {217}
     evaluateProjectEulerSolutions201to250(eval_nums)
