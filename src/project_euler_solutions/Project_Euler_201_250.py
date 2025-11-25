@@ -1761,8 +1761,22 @@ def balancedNumberCount(
 
 
 # Problem 218
-def perfectRightAngledTriangleGenerator(max_hypotenuse: Optional[int]=None) -> Generator[Tuple[Tuple[int, int, int], bool], None, None]:
+def perfectRightAngledTriangleGenerator(
+    max_hypotenuse: Optional[int]=None
+) -> Generator[Tuple[Tuple[int, int, int], bool], None, None]:
+    """
+    Generator iterating over all perfect right-angled triangles
+    in order of increasing hypotenuse length.
 
+    A perfect right-angled triangle is a right-angled triangle
+    whose sides are all integer length, whose collective greatest
+    common denominator is one and whose hypotenuse is a square.
+
+    Args:
+        Optional named:
+        max_hypotenuse (into or None): If specified as an
+                integer, gives a 
+    """
     #m = 1
     heap = []
     if max_hypotenuse is None: max_hypotenuse = float("inf")
