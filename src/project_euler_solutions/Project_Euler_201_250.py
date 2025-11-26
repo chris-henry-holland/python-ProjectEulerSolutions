@@ -1013,9 +1013,10 @@ def laggedFibonacciNDimensionalHyperCuboidGenerator(
     terms and the terms where i > max(l_fib_lags) are referred to as the
     recursive terms.
 
-    Note that if n_hypercuboids is not specified, the generator never terminates and
-    thus any iterator over this generator must include provision to terminate
-    (e.g. a break or return statement), otherwise it would result in an infinite
+    Note that if n_hypercuboids is not specified, the generator never
+    terminates and thus any in such a case an iterator over this
+    generator must include provision to terminate (e.g. a break or
+    return statement), otherwise it would result in an infinite
     loop.
 
     Args:
@@ -1772,14 +1773,43 @@ def perfectRightAngledTriangleGenerator(
     whose sides are all integer length, whose collective greatest
     common denominator is one and whose hypotenuse is a square.
 
+    If max_hypotenuse is specified as an integer, this gives an
+    inclusive upper bound on the length of the hypotenuse of
+    triangles yielded, so guaranteeing that the generator will
+    terminate after yielding a finite number of triangles
+    otherwise the iterator is not guaranteed to of itself terminate.
+    Thus any iterator over this generator where max_hypotenuse
+    is not given or given as Nonemust include provision to terminate
+    (e.g. a break or return statement), otherwise it may result
+    in an infinite loop.
+
     Args:
         Optional named:
-        max_hypotenuse (into or None): If specified as an
-                integer, gives a 
+        max_hypotenuse (int or None): If specified as an
+                integer, gives an inclusive upper bound on the
+                length of the hypotenuse for triangles yielded.
+                Note that if this is not specified or given as
+                None, then the generator will not of itself
+                terminate.
+            Default: None
+    
+    Yields:
+    3-tuple of integers (int), representing the side lengths of
+    a perfect right-angled triangle with the side lengths
+    given in increasing order (so the hypotenuse is the final
+    entry). These are yielded in increasing order of hypotenuse
+    with triangles with equal hypotenuse being given in increasing
+    order of their next largest side length.
+    This generator is guaranteed to terminate if and only if
+    max_hypotenuse is specified as an integer.
+
+    Outline of rationale:
+    TODO
     """
     #m = 1
     heap = []
     if max_hypotenuse is None: max_hypotenuse = float("inf")
+    mx_hyp_sqrt = isqrt(max_hypotenuse)
     perfect_cnt = 0
     for m in itertools.count(1):
         m += 1
@@ -1794,7 +1824,7 @@ def perfectRightAngledTriangleGenerator(
             yield tuple(ans[::-1])
             perfect_cnt += 1
         if min_hyp > max_hypotenuse: break
-        n_mx = min(m - 1, isqrt(isqrt(max_hypotenuse) - m_sq)) if max_hypotenuse != float("inf") else m - 1
+        n_mx = min(m - 1, isqrt(mx_hyp_sqrt - m_sq)) if max_hypotenuse != float("inf") else m - 1
         # Note that since m and n are coprime and not both can be odd,
         # m and n must have different parity (as if they were both
         # even then they would not be coprime)
@@ -1806,7 +1836,7 @@ def perfectRightAngledTriangleGenerator(
             m2, n2 = m_sq - n ** 2, 2 * m * n
             if m2 ** 2 + n2 ** 2 > max_hypotenuse: break
             # Note that since m and n are of different parity and coprime, m2 and n2
-            # are also guaranteed to be of different parit and coprime
+            # are also guaranteed to be of different parity and coprime
             #if m2 & 1 == n2 & 1: continue
             if m2 < n2: m2, n2 = n2, m2
             m2_sq, n2_sq = m2 * m2, n2 * n2
@@ -1841,6 +1871,38 @@ def perfectRightAngledTriangleGenerator(
 def nonSuperPerfectPerfectRightAngledTriangleCount(max_hypotenuse: int=10 ** 16) -> int:
     """
     Solution to Project Euler #218
+    
+    Calculates the number of perfect right-angled triangles that
+    are perfect but not super-perfect whose hypotenuse does not
+    exceed max_hypotenuse.
+
+    A perfect right-angled triangle is a right-angled triangle
+    whose sides are all integer length, whose collective greatest
+    common denominator is one and whose hypotenuse is a square.
+
+    A super-perfect right-angled triangle is a perfect right-angled
+    triangle whose area is a multiple of both of the perfect numbers
+    6 and 2.
+
+    Args:
+        Optional named:
+        max_hypotenuse (int or None): Integer giving an inclusive
+                upper bound on the length of the hypotenuse for
+                triangles that may be included in the total.
+
+    Returns:
+    Integer (int) giving the number of perfect right-angled triangles
+    that are perfect but not super-perfect whose hypotenuse does not
+    exceed max_hypotenuse.
+
+    Outline of rationale:
+    See outline of ratinale section of the documentation of
+    perfectRightAngledTriangleGenerator(). This generator iterates
+    over the perfect right-angled triangles with hypotenuse no
+    greater than max_hypotenuse, and this function checks each
+    triangle to see whether its area is divisible by the lowest
+    common multiple of 6 and 28, including it in the total if and
+    only if that is not the case.
     """
     # Note that it can be proved that there are no perfect right angled triangles
     # that are not also super-perfect, and therefore for any max_hypotenuse the
@@ -1852,7 +1914,7 @@ def nonSuperPerfectPerfectRightAngledTriangleCount(max_hypotenuse: int=10 ** 16)
     m <<= 1
 
     res = 0
-    perfect_cnt = 0
+    #perfect_cnt = 0
     for tri in perfectRightAngledTriangleGenerator(max_hypotenuse=max_hypotenuse):
         #print(tri)
         res += ((tri[0] * tri[1]) % m)
