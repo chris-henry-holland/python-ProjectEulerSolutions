@@ -1921,21 +1921,66 @@ def nonSuperPerfectPerfectRightAngledTriangleCount(max_hypotenuse: int=10 ** 16)
     return res
 
 # Problem 219
-def prefixFreeCodeMinimumTotalSkewCost(n_words: int=10 ** 9, cost1: int=1, cost2: int=4) -> int:
+def prefixFreeCodeMinimumTotalSkewCost(
+    n_words: int=10 ** 9,
+    cost0: int=1,
+    cost1: int=4,
+) -> int:
     """
     Solution to Project Euler #219
+
+    Calculates the total cost the binary prefix-free code with
+    n_words code words with minimum such cost among all such
+    codes, where each occurrence of the digit 0 or 1 in any of
+    the binary strings in the code contributes cost0 or cost1
+    respectively to the total cost, for non-negative integers
+    cost0 and cost1.
+
+    A binary code with a given number of code words is a
+    distinct collection of that number of strings consisting
+    only of 0s and 1s. Note that leading zeros are permitted.
+    The strings are referred to as code words.
+
+    A binary prefix-free code with a given number of code words
+    is a binary code with that number of code words for which
+    no code word is a prefix of any other code word.
+
+    Args:
+        Optional named:
+        n_words (int): Strictly positive integer giving the
+                number of words in the binary prefix-free codes
+                under consideration.
+            Default: 10 ** 9
+        cost0 (int): Non-negative integer giving the cost
+                associated with each occurrence of the digit
+                0 in the code words.
+            Default: 1
+        cost1 (int): Non-negative integer giving the cost
+                associated with each occurrence of the digit
+                1 in the code words.
+            Default: 4
+
+    Returns:
+    Integer (int) giving the total cost the binary prefix-free
+    code with n_words code words with minimum such cost among
+    all such codes, where each occurrence of the digit 0 or 1 in
+    any of the code words in the code contributes cost0 or cost1
+    respectively to the total cost.
+
+    Outline of rationale:
+    TODO (Huffman encoding)
     """
     # Using Huffman enconding
     if n_words < 1: return 0
-    elif n_words == 1: return min(cost1, cost2)
+    elif n_words == 1: return min(cost0, cost1)
 
     remain = n_words - 2
-    cost_sm = cost1 + cost2
-    g = gcd(cost1, cost2)
-    curr = {cost1: 1}
-    curr[cost2] = curr.get(cost2, 0) + 1
+    cost_sm = cost0 + cost1
+    g = gcd(cost0, cost1)
+    curr = {cost0: 1}
+    curr[cost1] = curr.get(cost1, 0) + 1
     res = cost_sm
-    for c in itertools.count(min(cost1, cost2), step=g):
+    for c in itertools.count(min(cost0, cost1), step=g):
         f = curr.pop(c, 0)
         if not f: continue
         if remain < f:
@@ -1943,7 +1988,7 @@ def prefixFreeCodeMinimumTotalSkewCost(n_words: int=10 ** 9, cost1: int=1, cost2
             break
         res += (cost_sm + c) * f
         remain -= f
-        for add in (cost1, cost2):
+        for add in (cost0, cost1):
             c2 = c + add
             curr[c2] = curr.get(c2, 0) + f
     return res
@@ -5154,7 +5199,7 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
 
     if 219 in eval_nums:
         since = time.time() 
-        res = prefixFreeCodeMinimumTotalSkewCost(n_words=10 ** 9, cost1=1, cost2=4)
+        res = prefixFreeCodeMinimumTotalSkewCost(n_words=10 ** 9, cost0=1, cost2=1)
         print(f"Solution to Project Euler #219 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 220 in eval_nums:
