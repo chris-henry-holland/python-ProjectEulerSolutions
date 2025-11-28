@@ -1994,9 +1994,62 @@ def prefixFreeCodeMinimumTotalSkewCost(
     return res
 
 # Problem 220
-def heighwayDragon(order: int=50, n_steps: int=10 ** 12, init_pos: Tuple[int, int]=(0, 0), init_direct: Tuple[int, int]=(0, 1), initial_str: str="Fa", recursive_strs: Dict[str, str]={"a": "aRbFR", "b": "LFaLb"}) -> Optional[Tuple[int, int]]:
+def heighwayDragon(
+    order: int=50,
+    n_steps: int=10 ** 12,
+    init_pos: Tuple[int, int]=(0, 0),
+    init_direct: Tuple[int, int]=(0, 1),
+    recursive_strs: Dict[str, str]={"a": "aRbFR", "b": "LFaLb"},
+    initial_str: str="Fa",
+) -> Optional[Tuple[int, int]]:
     """
     Solution to Project Euler #220
+
+    Calculates the position reached in the 2D Cartesian plane
+    after starting at init_pos, facing in the direction init_direct
+    parallel or anti-parallel to a coordinate axis and from that
+    state following the path given by the instructions in the
+    string D_(order) after n_steps forward steps (if as many
+    as that number of steps are taken).
+
+    D_(order) is a string of lowercase letters in the keys of
+    recursive_strs and the uppercase letters "F", "L" and "R",
+    representing instructions for a path, where D_0 is equal to
+    initial_str and for strictly positive integers n, D_(n) is
+    D_(n - 1) where the occurrences of lowercase letters are
+    replaced by the corresponding value in recursive_strs.
+
+    The instructions for a path in D_(order) are to be followed
+    from left to right, with lowercase letters ignored and:
+     - "F" corresponding to moving one unit in the direction
+         currently facing (referred to as a forward step)
+     - "L" corresponding to turning 90 degrees anti-clockwise
+     - "R" corresponding to turning 90 degrees clockwise
+    
+    Args:
+        Optional named:
+        order (int):
+            Default: 50
+        n_steps (int):
+            Default: 10 ** 12
+        init_pos (2-tuple of ints):
+            Default: (0, 0)
+        init_direct (2-tuple of ints):
+            Default: (0, 1)
+        recursive_strs (dict with key str and value str):
+            Default: {"a": "aRbFR", "b": "LFaLb"}
+        initial_str (str):
+            Default: "Fa"
+    
+    Returns:
+    2-tuple of integers (int) giving the position in the
+    Cartesian plane reached by following the path D_(order)
+    for n_steps forward steps from the initial position init_pos
+    facing in the direction init_direct if the path D_(order)
+    contains at least that many forward steps, otherwise None.
+
+    Outline of rationale:
+    TODO
     """
     if n_steps <= 0: return init_pos
     direct_dict = {(1, 0): 0, (0, 1): 1, (-1, 0): 2, (0, -1): 3}
@@ -5209,8 +5262,8 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
             n_steps=10 ** 12,
             init_pos=(0, 0),
             init_direct=(0, 1),
-            initial_str="Fa",
             recursive_strs={"a": "aRbFR", "b": "LFaLb"},
+            initial_str="Fa",
         )
         print(f"Solution to Project Euler #220 = {res}, calculated in {time.time() - since:.4f} seconds")
 
