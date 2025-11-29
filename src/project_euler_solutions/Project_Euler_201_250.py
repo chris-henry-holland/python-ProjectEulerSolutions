@@ -2018,6 +2018,8 @@ def heighwayDragon(
     initial_str and for strictly positive integers n, D_(n) is
     D_(n - 1) where the occurrences of lowercase letters are
     replaced by the corresponding value in recursive_strs.
+    For D_(n), n is referred to as the order of the instruction
+    string.
 
     The instructions for a path in D_(order) are to be followed
     from left to right, with lowercase letters ignored and:
@@ -2028,17 +2030,35 @@ def heighwayDragon(
     
     Args:
         Optional named:
-        order (int):
+        order (int): The order of the instruction string, D_(order)
             Default: 50
-        n_steps (int):
+        n_steps (int): The number of forward steps taken to reach
+                the position that is to be returned.
             Default: 10 ** 12
-        init_pos (2-tuple of ints):
+        init_pos (2-tuple of ints): 2-tuple of integers specifying
+                the Cartesian coordinates of the position from which
+                the path should start.
             Default: (0, 0)
-        init_direct (2-tuple of ints):
+        init_direct (2-tuple of ints): 2-tuple of integers specifying
+                initial forward direction as a normalised vector
+                in terms of its Cartesian components, parallel or
+                anti-parallel to one of the Cartesian axes (i.e. one
+                of (1, 0), (-1, 0), (0, 1) or (0, -1)).
             Default: (0, 1)
-        recursive_strs (dict with key str and value str):
+        recursive_strs (dict with key str and value str): Dictionary
+                whose keys are single lowercase letters and whose
+                values are strings consisting of the uppercase
+                characters "F", "L" and "R" and the lowercase letters
+                that are keys of this dictionary. These specify
+                the strings that should replace the lowercase letters
+                when incrementing the order of the instruction string
+                from D_(n - 1) to D_(n) for some strictly positive
+                integer n.
             Default: {"a": "aRbFR", "b": "LFaLb"}
-        initial_str (str):
+        initial_str (str): String consisting of the uppercase letters
+                "F", "L" and "R" and the lowercase letters that are
+                keys of the dictionary recursive_strs, representing
+                the order 0 instruction string D_0
             Default: "Fa"
     
     Returns:
