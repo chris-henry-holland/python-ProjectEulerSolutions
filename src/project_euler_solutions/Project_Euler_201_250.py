@@ -2169,8 +2169,41 @@ def calculatePrimeFactorisation(num: int) -> Dict[int, int]:
         res[num] = 1
     return res
 
-def calculateFactorsInRange(num: int, fact_min: Optional[int]=None, fact_max: Optional[int]=None) -> Set[int]:
-    if fact_min > num: return set()
+def calculateFactorsInRange(
+    num: int,
+    fact_min: Optional[int]=None,
+    fact_max: Optional[int]=None,
+) -> Set[int]:
+    """
+    Calculates the positive integer factors of the integer num
+    that are no less than fact_min (if given, otherwise 1) and
+    are no greater than fact_max (if given, otherwise num).
+
+    Args:
+        Required positional:
+        num (int): The strictly positive integer whose factors
+                between fact_min and fact_max inclusive are
+                to be found.
+        
+        Optional named:
+        fact_min (int or None): Strictly positive integer giving
+                the inclusive lower bound on the factors to be
+                calculated, or if not given or given as None,
+                there exists no such lower bound.
+            Default: None
+        fact_max (int or None): Strictly positive integer giving
+                the inclusive upper bound on the factors to be
+                calculated, or if not given or given as None,
+                there exists no such upper bound.
+            Default: None
+    
+    Returns:
+    Set of integers (int) giving the positive integer factors of
+    num between fact_min and fact_max inclusive.
+    """
+    if fact_min is None: fact_min = 1
+    if fact_max is None: fact_max = num
+    if fact_min > fact_max: return set()
     pf = calculatePrimeFactorisation(num)
     #print(num, pf)
     if fact_max is None: fact_max = num
@@ -2191,6 +2224,29 @@ def calculateFactorsInRange(num: int, fact_min: Optional[int]=None, fact_max: Op
 
 
 def alexandrianIntegerGenerator() -> Generator[int, None, None]:
+    """
+    Generator iterating over the Alexandrian integers in
+    order of increasing size.
+
+    The Alexandrian integers are the strictly positive
+    integers such that there exist integers p, q and r
+    for which the integer is equal to p * q * r and
+    the reciprocal of the integer is equal to the sum
+    of the reciprocals of p, q and r.
+    
+    Args:
+        None
+
+    Yields:
+    The Alexandrian integers in order of increasing size.
+    Note that this generator does not of itself terminate,
+    so when using this as an iterator it must include a
+    mechanism to terminate the loop (for example a break
+    or return statement inside a conditional statement).
+
+    Outline of rationale:
+    TODO
+    """
     h = []
     cnt = 0
     for m in itertools.count(1):
@@ -2214,6 +2270,29 @@ def alexandrianIntegerGenerator() -> Generator[int, None, None]:
 def nthAlexandrianInteger(n: int=15 * 10 ** 4) -> int:
     """
     Solution to Project Euler #221
+
+    Calculates the n:th smallest Alexandrian integer.
+
+    The Alexandrian integers are the strictly positive
+    integers such that there exist integers p, q and r
+    for which the integer is equal to p * q * r and
+    the reciprocal of the integer is equal to the sum
+    of the reciprocals of p, q and r.
+
+    Args:
+        Optional named:
+        n (int): Strictly positive integer specifying
+                which Alexandrian integer to calculate
+                (the n:th smallest).
+            Default: 15 * 10 ** 4
+        
+    Returns:
+    Integer (int) giving the n:th smallest Alexandrian
+    integer.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of
+    the generator alexandrianIntegerGenerator().
     """
     it = iter(alexandrianIntegerGenerator())
     for _ in range(n):
@@ -5462,5 +5541,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {217}
+    eval_nums = {221}
     evaluateProjectEulerSolutions201to250(eval_nums)
