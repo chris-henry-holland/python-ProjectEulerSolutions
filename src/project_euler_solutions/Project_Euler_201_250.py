@@ -2300,29 +2300,52 @@ def nthAlexandrianInteger(n: int=15 * 10 ** 4) -> int:
     return num
 
 # Problem 222
-def shortestSpherePackingInTube(tube_radius: int=50, radii: List[int]=list(range(30, 51))) -> float:
+def shortestSpherePackingInTube(
+    tube_radius: int=50,
+    ball_radii: List[int]=list(range(30, 51))
+) -> float:
     """
     Solution to Project Euler #222
+
+    Calculates the shortest length of a tube with internal
+    radius tube_radius lenght units that can fully contain
+    balls with radii given by ball_radii (in length units).
+
+    Args:
+        Optional named:
+        tube_radius (int): The internal radius of the tube
+                that should fully contain the balls.
+            Default: 50
+        ball_radii (list of ints): The radii of the balls that
+                should be fully contained in the tube.
+    
+    Returns:
+    Float giving the shortest possible tube length for a tube
+    with internal radius tube_radius to be able to fully
+    contain the balls with radii ball_radii.
+
+    Outline of rationale:
+    TODO
     """
-    n = len(radii)
+    n = len(ball_radii)
     if not n: return 0.
 
-    radii.sort()
-    if radii[0] * 2 < tube_radius or (n > 1 and radii[1] * 2 <= tube_radius) or radii[-1] > tube_radius:
-        raise ValueError("Radii must be no less than half of tube_diameter and "
-            "no more than tube_diameter")
+    ball_radii.sort()
+    if ball_radii[0] * 2 < tube_radius or (n > 1 and ball_radii[1] * 2 <= tube_radius) or ball_radii[-1] > tube_radius:
+        raise ValueError("Radii in ball_radii must be no less than half of tube_radius and "
+            "no more than tube_radius")
     d = tube_radius * 2
     
-    if n == 1: return 2 * radii[0]
+    if n == 1: return 2 * ball_radii[0]
 
     def packingAddDistance(r1: int, r2: int) -> float:
         return math.sqrt(d * (2 * (r1 + r2) - d))
 
-    res = packingAddDistance(radii[0], radii[1])
+    res = packingAddDistance(ball_radii[0], ball_radii[1])
 
     for i in range(2, n):
-        res += packingAddDistance(radii[i], radii[i - 2])
-    return res + radii[-1] + radii[-2]
+        res += packingAddDistance(ball_radii[i], ball_radii[i - 2])
+    return res + ball_radii[-1] + ball_radii[-2]
 
 # Problem 223
 def barelyAcuteIntegerSidedTrianglesAscendingPerimeterGenerator(max_perim: Optional[int]=None) -> Generator[Tuple[int, int, int], None, None]:
@@ -5373,7 +5396,7 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
 
     if 222 in eval_nums:
         since = time.time() 
-        res = shortestSpherePackingInTube(tube_radius=50, radii=list(range(30, 51)))
+        res = shortestSpherePackingInTube(tube_radius=50, ball_radii=list(range(30, 51)))
         print(f"Solution to Project Euler #222 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 223 in eval_nums:
@@ -5541,5 +5564,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {221}
+    eval_nums = {222}
     evaluateProjectEulerSolutions201to250(eval_nums)
