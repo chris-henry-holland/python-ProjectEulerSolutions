@@ -2506,8 +2506,52 @@ def countBarelyAcuteIntegerSidedTrianglesUpToMaxPerimeter(
     return res
 
 # Problem 224
-def barelyObtuseIntegerSidedTrianglesAscendingPerimeterGenerator(max_perim: Optional[int]=None) -> Generator[Tuple[int, int, int], None, None]:
+def barelyObtuseIntegerSidedTrianglesAscendingPerimeterGenerator(
+    max_perim: Optional[int]=None,
+) -> Generator[Tuple[int, int, int], None, None]:
+    """
+    Generator iterating over all barely obtuse integer sided triangles
+    in increasing order of perimeter, for which (if specified) the
+    perimeter does not exceed max_perim.
 
+    A barely obtuse integer sided triangle is a triangle whose side
+    lengths a <= b <= c are all integers and:
+        a ** 2 + b ** 2 = c ** 2 - 1
+    
+    Note that if max_perim is not specified, the generator never
+    of itself terminates and thus any in such a case for loops over
+    this generator must include provision to terminate (e.g. a
+    break or return statement inside a conditional, or be zipped
+    with a generator that does terminate), otherwise it would result
+    in an infinite loop.
+        
+    Args:
+        Optional named:
+        max_perim (int or None): If specified as an integer, the
+                inclusive upper bound on the perimeter of barely
+                obtuse integer sided triangles yielded, otherwise
+                there is no such upper bound.
+                Note that if this is not given or given as None,
+                the generator does not of itself terminate.
+            Default: None
+    
+    Yields:
+    3-tuple of integers (int) representing a barely obtuse integer
+    sided triangle, where the integers in the 3-tuple represent
+    the three side lengths of the triangle in non-decreasing order.
+    The 3-tuples are yielded in order of increasing perimeter (i.e.
+    increasing value of the sum of the three integers) with ties
+    resolved by the lexicographical ordering of the 3-tuples.
+    Note that if this is not given or given as None, the generator
+    does not of itself terminate so in any in such a case for loops
+    over this generator must include provision to terminate (e.g. a
+    break or return statement inside a conditional, or be zipped
+    with a generator that does terminate), otherwise it would result
+    in an infinite loop.
+
+    Outline of rationale:
+    TODO
+    """
     
     if max_perim is None: max_perim = float("inf")
     if max_perim < 3: return
@@ -2548,9 +2592,32 @@ def barelyObtuseIntegerSidedTrianglesAscendingPerimeterGenerator(max_perim: Opti
             """
     return
 
-def countBarelyObtuseIntegerSidedTrianglesUpToMaxPerimeter(max_perimeter: int=75 * 10 ** 6) -> int:
+def countBarelyObtuseIntegerSidedTrianglesUpToMaxPerimeter(
+    max_perimeter: int=75 * 10 ** 6,
+) -> int:
     """
     Solution to Project Euler #224
+
+    Calculates the number of barely obtuse integer sided triangles
+    for which the perimeter does not exceed max_perim.
+
+    A barely obtuse integer sided triangle is a triangle whose side
+    lengths a <= b <= c are all integers and:
+        a ** 2 + b ** 2 = c ** 2 - 1
+        
+    Args:
+        Optional named:
+        max_perim (int): Integer giving the inclusive upper bound
+                on the perimeter of barely obtuse integer sided
+                triangles yielded included in the total.
+            Default: 25 * 10 ** 6
+    
+    Returns:
+    Integer (int) giving the number of barely obtuse integer sided
+    triangles for which the perimeter does not exceed max_perim.
+
+    Outline of rationale:
+    TODO
     """
     # Review- give proof that this approach works including justification
     # of the initial values
