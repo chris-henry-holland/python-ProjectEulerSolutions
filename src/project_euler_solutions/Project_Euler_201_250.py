@@ -2384,7 +2384,7 @@ def barelyAcuteIntegerSidedTrianglesAscendingPerimeterGenerator(
     The 3-tuples are yielded in order of increasing perimeter (i.e.
     increasing value of the sum of the three integers) with ties
     resolved by the lexicographical ordering of the 3-tuples.
-    Note that if this is not given or given as None, the generator
+    Note that if max_perim is not given or given as None, the generator
     does not of itself terminate so in any in such a case for loops
     over this generator must include provision to terminate (e.g. a
     break or return statement inside a conditional, or be zipped
@@ -2542,7 +2542,7 @@ def barelyObtuseIntegerSidedTrianglesAscendingPerimeterGenerator(
     The 3-tuples are yielded in order of increasing perimeter (i.e.
     increasing value of the sum of the three integers) with ties
     resolved by the lexicographical ordering of the 3-tuples.
-    Note that if this is not given or given as None, the generator
+    Note that if max_perim is not given or given as None, the generator
     does not of itself terminate so in any in such a case for loops
     over this generator must include provision to terminate (e.g. a
     break or return statement inside a conditional, or be zipped
@@ -2663,7 +2663,47 @@ def countBarelyObtuseIntegerSidedTrianglesUpToMaxPerimeter(
     return res    
 
 # Problem 225
-def tribonacciOddNonDivisorGenerator(init_terms: Tuple[int, int, int]=(1, 1, 1)) -> Generator[int, None, None]:
+def tribonacciOddNonDivisorGenerator(
+    init_terms: Tuple[int, int, int]=(1, 1, 1),
+) -> Generator[int, None, None]:
+    """
+    Generator iterating over the strictly positive odd integers
+    that do not divide any terms in the Tribonacci-like sequence
+    with initial terms init_terms in increasing order.
+
+    A Tribonacci-like sequence for given three initial terms is the
+    sequence whose first three terms are equal to those initial
+    terms (in that order) and any subsequent term is equal to the
+    sum of the three terms immediately preceding that term.
+
+    Note that this generator never of itself terminates and thus
+    any in such a case for loops over this generator must include
+    provision to terminate (e.g. a break or return statement inside
+    a conditional, or be zipped with a generator that does terminate),
+    otherwise it would result in an infinite loop.
+
+    Args:
+        Optional named:
+        init_terms (3-tuple of ints): The initial terms of the
+                Tribonacci-like sequence in question, which when read
+                in order correspond to terms 1, 2 and 3 respectively
+                of the Tribonacci-like sequence.
+            Default: (1, 1, 1)
+    
+    Yields:
+    Integer (int) giving an odd integer that does not divide any
+    terms in the Tribonacci-like sequence with initial terms init_terms.
+    These are yielded in increasing order without missing any such
+    odd integer.
+    Note that the generator does not of itself terminate so in any
+    in such a case for loops over this generator must include provision
+    to terminate (e.g. a break or return statement inside a conditional,
+    or be zipped with a generator that does terminate), otherwise it
+    would result in an infinite loop.
+
+    Outline of rationale:
+    TODO
+    """
 
     #Trie = lambda: defaultdict(Trie)
     ref = list(init_terms)
@@ -2693,6 +2733,36 @@ def tribonacciOddNonDivisorGenerator(init_terms: Tuple[int, int, int]=(1, 1, 1))
 def nthSmallestTribonacciOddNonDivisors(odd_non_divisor_number: int=124, init_terms: Tuple[int, int, int]=(1, 1, 1)) -> int:
     """
     Solution to Project Euler #225
+
+    Calculates the odd_non_divisor_number:th smallest strictly
+    positive odd integer that does not divide any terms in the
+    Tribonacci-like sequence with initial terms init_terms.
+
+    A Tribonacci-like sequence for given three initial terms is the
+    sequence whose first three terms are equal to those initial
+    terms (in that order) and any subsequent term is equal to the
+    sum of the three terms immediately preceding that term.
+
+    Args:
+        Optional named:
+        odd_non_divisor_number (int): Strictly positive integer
+                specifying which odd non-divsor of the Tribonacci-like
+                sequence to return.
+            Default: 124
+        init_terms (3-tuple of ints): The initial terms of the
+                Tribonacci-like sequence in question, which when read
+                in order correspond to terms 1, 2 and 3 respectively
+                of the Tribonacci-like sequence.
+            Default: (1, 1, 1)
+    
+    Returns:
+    Integer (int) giving the odd_non_divisor_number:th smallest strictly
+    positive odd integer that does not divide any terms in the
+    Tribonacci-like sequence with initial terms init_terms.
+
+    Outline of rationale:
+    See outline of rationale section of the documentation for the
+    generator tribonacciOddNonDivisorGenerator().
     """
     it = iter(tribonacciOddNonDivisorGenerator(init_terms=init_terms))
     num = -1
@@ -5699,5 +5769,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {223}
+    eval_nums = {225}
     evaluateProjectEulerSolutions201to250(eval_nums)
