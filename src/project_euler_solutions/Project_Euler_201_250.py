@@ -2773,6 +2773,27 @@ def nthSmallestTribonacciOddNonDivisors(odd_non_divisor_number: int=124, init_te
 
 # Problem 226
 def findBlacmangeValue(x: CustomFraction) -> CustomFraction:
+    """
+    Calculates the value of the Blacmange curve function for
+    a rational input.
+
+    The Blacmange curve function is defined on the real numbers
+    to such that for a real input x its value is equal to:
+        (sum n = 0 to inf) s(2 ** n * x) / 2 ** n
+    where s(x) is the distance from x to the nearest integer.
+
+    Args:
+        Required positional:
+        x (CustomFraction object): The rational number whose
+                Blacmange curve function value is to be found.
+    
+    Returns:
+    CustomFraction object giving the value of the Blacmange
+    curve function for the input x.
+
+    Outline of rationale:
+    TODO
+    """
     x -= x.numerator // x.denominator
     if x.denominator < 2 * x.numerator:
         x = 1 - x
@@ -2802,6 +2823,28 @@ def findBlacmangeValue(x: CustomFraction) -> CustomFraction:
     #return res
 
 def findBlacmangeIntegralValue(x: CustomFraction) -> CustomFraction:
+    """
+    Calculates the integral of the Blacmange curve function
+    (i.e. the signed area under the Blacmange curve) from zero to
+    the rational number x.
+
+    The Blacmange curve function is defined on the real numbers
+    to such that for a real input x its value is equal to:
+        (sum n = 0 to inf) s(2 ** n * x) / 2 ** n
+    where s(x) is the distance from x to the nearest integer.
+
+    Args:
+        Required positional:
+        x (CustomFraction object): The rational number giving
+                the upper bound of the integral.
+    
+    Returns:
+    CustomFraction object giving the value of the integral of
+    the Blacmange curve function from zero to x.
+
+    Outline of rationale:
+    TODO
+    """
     q = CustomFraction(x.numerator // x.denominator, 1)
     x -= q
     a0, b0 = 0, CustomFraction(1, 1)
@@ -2840,7 +2883,8 @@ def findBlacmangeIntegralValue(x: CustomFraction) -> CustomFraction:
     return a0 + b0 * res + q / 2
 
 def blacmangeCircleIntersectionArea(eps: float=10 ** -9) -> float:
-
+    """
+    """
     # Review- try to generalise to any circle
 
     # Rightmost intersection point is at (1 / 2, 1 / 2)
