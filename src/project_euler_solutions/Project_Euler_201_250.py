@@ -2884,6 +2884,35 @@ def findBlacmangeIntegralValue(x: CustomFraction) -> CustomFraction:
 
 def blacmangeCircleIntersectionArea(eps: float=10 ** -9) -> float:
     """
+    Solution to Project Euler #226
+
+    Calculates the area in the Cartesian plane that is both
+    inside the circle with centre (1 / 4, 1 / 2) and radius
+    1 / 4 and is in the set of points that have a smaller
+    y-coordinate value than the Blacmange curve function for
+    the same x-coordinate.
+
+    The Blacmange curve function is defined on the real numbers
+    to such that for a real input x its value is equal to:
+        (sum n = 0 to inf) s(2 ** n * x) / 2 ** n
+    where s(x) is the distance from x to the nearest integer.
+
+    Args:
+        Optional named:
+        eps (float): The tolerance in finding the x-coordinate
+                of the points where the circle and Blacmange
+                curve function intersect.
+            Default: 10 ** -9
+    
+    Returns:
+    Float giving the area in the Cartesian plane that is both
+    inside the circle with centre (1 / 4, 1 / 2) and radius
+    1 / 4 and is in the set of points that have a smaller
+    y-coordinate value than the Blacmange curve function for
+    the same x-coordinate.
+
+    Outline of rationale:
+    TODO
     """
     # Review- try to generalise to any circle
 
