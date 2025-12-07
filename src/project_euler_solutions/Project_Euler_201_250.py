@@ -2956,7 +2956,69 @@ def blacmangeCircleIntersectionArea(eps: float=10 ** -9) -> float:
 
 
 # Problem 227
-def chaseGameExpectedNumberOfTurns(die_n_faces: int=6, n_opts_left: int=1, n_opts_right: int=1, n_players: int=100, separation_init: int=50) -> float:
+def chaseGameExpectedNumberOfTurns(
+    die_n_faces: int=6,
+    n_opts_left: int=1,
+    n_opts_right: int=1,
+    n_players: int=100,
+    separation_init: int=50,
+) -> float:
+    """
+    Solution to Project Euler #227
+
+    Calculates the expected number of turns the following game will
+    last before any of the players loses.
+
+    At the start of the game there are n_players arranged in a circle.
+    Two players separated by separation_init - 1 other players are
+    arbitrarily selected to each start with a die with die_n_faces
+    faces, which when rolled are equally likely to result in any of
+    the faces, each of which has a different number.
+
+    Each turn consists of the two players who currently have the
+    dice rolling their die. For each of these two players, if
+    their die value is among the n_opts_left smallest possible
+    values then the die is passed to the player on their left,
+    if their die value is among the n_opts_right largest possible
+    values then the die is passed to the player on their right,
+    otherwise the player keeps the die.
+
+    The game ends when the same player has both dice at the same
+    time after the completion of a turn. This player loses the
+    game.
+
+    Args:
+        Optional named:
+        die_n_faces (int): The number of faces on the two dice,
+                each of which has a different numerical value
+                and has an equal probability to be rolled.
+            Default: 6
+        n_opts_left (int): The number of the smallest values
+                of a die which, when rolled, results in the die
+                being passed to the player on the left.
+            Default: 1
+        n_opts_right (int): The number of the largest values
+                of a die which, when rolled, results in the die
+                being passed to the player on the right.
+            Default: 1
+        n_players (int): The number of players in the game, arranged
+                in a circle.
+            Default: 100
+        separation_init (int): The number of passes to the left or
+                right the players initially with the dice would
+                have to make for the die to reach the player who
+                initially had the other die (for one of the players
+                this would be passing left, the other it would be
+                passing right).
+            Default: 50
+
+    Returns:
+    Float giving the expected number of turns the game described
+    with the given parameters would last before a player loses.
+
+    Outline of rationale:
+    TODO
+    """
     m = n_players >> 1
     n_opts_still = die_n_faces - n_opts_left - n_opts_right
     n_unchanged = (n_opts_still ** 2 + n_opts_left ** 2 + n_opts_right ** 2)
@@ -5842,5 +5904,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {225}
+    eval_nums = {228}
     evaluateProjectEulerSolutions201to250(eval_nums)
