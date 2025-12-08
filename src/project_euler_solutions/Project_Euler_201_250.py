@@ -3075,7 +3075,14 @@ def chaseGameExpectedNumberOfTurns(
     return res
 
 # Problem 228
-def convexPolygonsAroundOriginMinkowskiSum(poly1: List[Tuple[float, Tuple[float, float]]], poly2: List[Tuple[float, Tuple[float, float]]]) -> List[Tuple[float, float]]:
+def convexPolygonsAroundOriginMinkowskiSum(
+    poly1: List[Tuple[float, Tuple[float, float]]],
+    poly2: List[Tuple[float, Tuple[float, float]]],
+) -> List[Tuple[float, float]]:
+    """
+    TODO
+    """
+    
     poly1.sort()
     poly2.sort()
     if poly1[0][0] > poly2[0][0]: poly1, poly2 = poly2, poly1
@@ -3096,7 +3103,9 @@ def convexPolygonsAroundOriginMinkowskiSum(poly1: List[Tuple[float, Tuple[float,
     return grahamScan(v_lst, include_border_points=True)
 
 def regularPolygonMinkowskiSum(vertex_counts: List[int]) -> List[Tuple[float, float]]:
-
+    """
+    TODO
+    """
     poly_lst = []
     for cnt in vertex_counts:
         lst = []
@@ -3136,8 +3145,43 @@ def regularPolygonMinkowskiSum(vertex_counts: List[int]) -> List[Tuple[float, fl
     return [x[1] for x in poly_lst[0]]
     """
 
-def regularPolygonMinkowskiSumSideCount(vertex_counts: List[int]=list(range(1864, 1910))) -> int:
+def regularPolygonMinkowskiSumSideCount(
+    vertex_counts: List[int]=list(range(1864, 1910)),
+) -> int:
+    """
+    Solution to Project Euler #228
 
+    Calculates the number of sides of the Minkowski sum of
+    the regular polygons with side counts in vertex_counts,
+    where for a polygon with side count n (where n is an
+    integer no less than 3) the k:th vertex (where k is
+    an integer between 1 and n inclusive) is at the Cartesian
+    coordinate:
+        (cos((2 * k - 1) * pi / n), sin((2 * k - 1) * pi / n))
+    
+    The Minkowski sum of two sets of points on the Cartesian
+    plane is the set of points that can be expressed as
+        (u + x, v + y)
+    where (u, v) is a point in the first set and (x, y) is
+    a point in the second set.
+
+    Args:
+        Optional named:
+        vertex_counts (list of ints): list of integers giving
+                the number of sides of the regular polygon
+                making up the Minkowski sum whose number of
+                sides is to be found.
+            Default: range(1864, 1910) (i.e. the integer range [1864, 1909])
+    
+    Returns:
+    Integer (int) giving the number of sides of the Minkowski
+    sum of the regular polygons with side counts in vertex_counts
+    where the coordinates of the vertices of the regular polygons
+    are given by the equation above.
+
+    Outline of rationale:
+    TODO
+    """
     #res = regularPolygonMinkowskiSum(vertex_counts)
     #for v in res:
     #    print(v[0], v[1])
