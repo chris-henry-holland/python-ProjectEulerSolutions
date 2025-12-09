@@ -3076,15 +3076,52 @@ def chaseGameExpectedNumberOfTurns(
 
 # Problem 228
 def convexPolygonsAroundOriginMinkowskiSum(
-    poly1: List[Tuple[float, Tuple[float, float]]],
-    poly2: List[Tuple[float, Tuple[float, float]]],
+    poly1: List[Tuple[float, float]],
+    poly2: List[Tuple[float, float]],
 ) -> List[Tuple[float, float]]:
     """
+    Calculates the polygon representing the Minkowski sum of
+    the convex polygons that enclose the origin poly1 and
+    poly2.
+    
+    The Minkowski sum of two sets of points on the Cartesian
+    plane is the set of points that can be expressed as
+        (u + x, v + y)
+    where (u, v) is a point in the first set and (x, y) is
+    a point in the second set.
+
+    Args:
+        Required positional:
+        poly1 (list of 2-tuples of floats): List of 2-tuples
+                representing the Cartesian coordinates of the
+                vertices of the first convex polygon in the
+                order they connect, with the last and first
+                entries also connecting to each other.
+        poly2 (list of 2-tuples of floats): List of 2-tuples
+                representing the Cartesian coordinates of the
+                vertices of the second convex polygon in the
+                order they connect, with the last and first
+                entries also connecting to each other.
+    
+    Returns:
+    List of 2-tuples of floats representing the Cartesian
+    coordinates of the vertices of the Minkowski sum of the
+    two convex polygons in the order they connect, with the
+    first and last entries also connecting to each other.
+
+    Outline of rationale:
     TODO
     """
-    
-    poly1.sort()
-    poly2.sort()
+    poly1 = [(math.atan2(y, x), (x, y) )for x, y in poly1]
+    poly2 = [(math.atan2(y, x), (x, y)) for x, y in poly2]
+    mn1 = (float("inf"), -1)
+    for i, tup in enumerate(poly1):
+        mn1 = min(mn1, (tup[0], i))
+    poly1 = [*poly1[mn1[1]:], *poly1[:mn1[1]]]
+    mn2 = (float("inf"), -1)
+    for i, tup in enumerate(poly2):
+        mn2 = min(mn2, (tup[0], i))
+    poly2 = [*poly2[mn2[1]:], *poly2[:mn2[1]]]
     if poly1[0][0] > poly2[0][0]: poly1, poly2 = poly2, poly1
     n1, n2 = len(poly1), len(poly2)
     i1 = 0
@@ -3101,11 +3138,8 @@ def convexPolygonsAroundOriginMinkowskiSum(
         v_lst.append(tuple(x + y for x, y in zip(poly1[0][1], poly2[i2][1])))
     
     return grahamScan(v_lst, include_border_points=True)
-
+"""
 def regularPolygonMinkowskiSum(vertex_counts: List[int]) -> List[Tuple[float, float]]:
-    """
-    TODO
-    """
     poly_lst = []
     for cnt in vertex_counts:
         lst = []
@@ -3125,25 +3159,25 @@ def regularPolygonMinkowskiSum(vertex_counts: List[int]) -> List[Tuple[float, fl
             curr.append((angle, v))
     return [x[1] for x in curr]
 
-    """
-    while len(poly_lst) > 1:
-        print(len(poly_lst))
-        print([len(x) for x in poly_lst])
-        prev = poly_lst
-        poly_lst = []
-        for i in range(0, len(prev) - 1, 2):
-            lst = convexPolygonsAroundOriginMinkowskiSum(prev[i], prev[i + 1])
-            #print(lst)
-            lst2 = []
-            for v in lst:
-                angle = math.atan2(v[1], v[0])
-                if angle < 0: angle += 2 * math.pi
-                lst2.append((angle, v))
-            poly_lst.append(lst2)
-        if len(prev) & 1:
-            poly_lst.append(prev[-1])
-    return [x[1] for x in poly_lst[0]]
-    """
+    
+    # while len(poly_lst) > 1:
+    #     print(len(poly_lst))
+    #     print([len(x) for x in poly_lst])
+    #     prev = poly_lst
+    #     poly_lst = []
+    #     for i in range(0, len(prev) - 1, 2):
+    #         lst = convexPolygonsAroundOriginMinkowskiSum(prev[i], prev[i + 1])
+    #         #print(lst)
+    #         lst2 = []
+    #         for v in lst:
+    #             angle = math.atan2(v[1], v[0])
+    #             if angle < 0: angle += 2 * math.pi
+    #             lst2.append((angle, v))
+    #         poly_lst.append(lst2)
+    #     if len(prev) & 1:
+    #         poly_lst.append(prev[-1])
+    # return [x[1] for x in poly_lst[0]]
+"""
 
 def regularPolygonMinkowskiSumSideCount(
     vertex_counts: List[int]=list(range(1864, 1910)),
