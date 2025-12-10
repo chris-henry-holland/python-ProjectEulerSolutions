@@ -3236,7 +3236,41 @@ def regularPolygonMinkowskiSumSideCount(
     return res
 
 # Problem 229
-def fourRepresentationsUsingSquaresCount(mults: Tuple[int]=(1, 2, 3, 7), num_max: int=2 * 10 ** 9) -> int:
+def fourRepresentationsUsingSquaresCount(
+    mults: List[int]=[1, 2, 3, 7],
+    num_max: int=2 * 10 ** 9,
+) -> int:
+    """
+    Calculates the number of strictly positive integers no
+    greater than num_max such that for each integer in
+    mults m there exists an ordered pair of strictly positive
+    integers (a, b) for which:
+        a ** 2 + m * b ** 2
+    is equal to that strictly positive integer.
+
+    Args:
+        Optional named:
+        mults (list of ints): List of strictly positive integers
+                giving the values of m for which there must exist
+                an ordered pair (a, b) such that the above
+                expression is equal to the integer for each
+                integer included in the count.
+            Default: [1, 2, 3, 7]
+        num_max (int): Integer giving the inclusive upper bound
+                on the integers considered for inclusion in the
+                count.
+    
+    Returns:
+    Integer (int) giving the number of strictly positive integers
+    no greater than num_max such that for each integer in
+    mults m there exists an ordered pair of strictly positive
+    integers (a, b) for which:
+        a ** 2 + m * b ** 2
+    is equal to that strictly positive integer.
+
+    Outline of rationale:
+    TODO
+    """
     part_size = 10 ** 8
     n_mults = len(mults)
     mults = sorted(set(mults))
@@ -3285,8 +3319,36 @@ def fourRepresentationsUsingSquaresCount(mults: Tuple[int]=(1, 2, 3, 7), num_max
     print(f"square count = {sq_cnt}")
     return res
 
-def fourSquaresRepresentationCountSpecialised(num_max: int=2 * 10 ** 9) -> int:
+def fourSquaresRepresentationCountSpecialised(
+    num_max: int=2 * 10 ** 9,
+) -> int:
+    """
+    Solution to Project Euler #229
 
+    Calculates the number of strictly positive integers no
+    greater than num_max such that for each integer in
+    the set {1, 2, 3, 7} m there exists an ordered pair of
+    strictly positive integers (a, b) for which:
+        a ** 2 + m * b ** 2
+    is equal to that strictly positive integer.
+
+    Args:
+        Optional named:
+        num_max (int): Integer giving the inclusive upper bound
+                on the integers considered for inclusion in the
+                count.
+    
+    Returns:
+    Integer (int) giving the number of strictly positive integers
+    no greater than num_max such that for each integer in
+    the set {1, 2, 3, 7} m there exists an ordered pair of
+    strictly positive integers (a, b) for which:
+        a ** 2 + m * b ** 2
+    is equal to that strictly positive integer.
+
+    Outline of rationale:
+    TODO
+    """
     # Try to generalise to arbitrary k using the Legendre/Jacobi symbol
     # and quadratic reciprocity. Possibly in first instance, restricting
     # to either prime or unit values of k allowed.
@@ -5982,5 +6044,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {228}
+    eval_nums = {229}
     evaluateProjectEulerSolutions201to250(eval_nums)
