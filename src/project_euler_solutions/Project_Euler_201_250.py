@@ -3411,7 +3411,9 @@ def fibonacciWordsSum(
     n_max: int=17,
     base: int=10
 ) -> int:
-    
+    """
+    Solution to Project Euler #230
+    """
     def evaluateTermNumber(n: int) -> int:
         res = 0
         for c in reversed(poly_coeffs):
@@ -3468,8 +3470,30 @@ def fibonacciWordsSum(
 
 
 # Problem 231
-def binomialCoefficientPrimeFactorisation(n: int, k: int) -> Dict[int, int]:
+def binomialCoefficientPrimeFactorisation(
+    n: int,
+    k: int,
+) -> Dict[int, int]:
+    """
+    Calculates the prime factorisation of the binomial
+    coefficient n choose k.
 
+    Args:
+        Required positional:
+        n (int): Non-negative integer giving the set size from
+                which k items are to be selected.
+        k (int): Integer between 0 and n inclusive giving the
+                number of items that are to be selected.
+
+    Returns:
+    Dictionary whose keys are prime numbers that divide n
+    choose k with corresponding value being the power of that
+    prime in the prime factorisation of the binomial coefficient
+    n choose k.
+
+    Outline of rationale:
+    TODO
+    """
     ps = SimplePrimeSieve(n)
     k2 = n - k
     res = {}
@@ -3488,9 +3512,36 @@ def binomialCoefficientPrimeFactorisation(n: int, k: int) -> Dict[int, int]:
         res[p] = cnt
     return res
 
-def binomialCoefficientPrimeFactorisationSum(n: int=20 * 10 ** 6, k: int=15 * 10 ** 6) -> int:
+def binomialCoefficientPrimeFactorisationSum(
+    n: int=20 * 10 ** 6,
+    k: int=15 * 10 ** 6,
+) -> int:
     """
     Solution to Project Euler #231
+
+    Calculates the sum of the terms in the prime factorisation
+    of the binomial coefficient n choose k.
+
+    The terms in a prime factorisation are the primes in the
+    factorisation, with each prime being included in the terms
+    the same number as its power in the prime factorisation.
+
+    Args:
+        Optional named:
+        n (int): Non-negative integer giving the set size from
+                which k items are to be selected.
+            Default: 20 * 10 ** 6
+        k (int): Integer between 0 and n inclusive giving the
+                number of items that are to be selected.
+            Default: 15 * 10 ** 6
+
+    Returns:
+    Integer giving the sum of the terms in the prime factorisation
+    of the binomial coefficient n choose k.
+
+    Outline of rationale:
+    See outline of rationale section of documentation for function
+    binomialCoefficientPrimeFactorisation().
     """
 
     res = sum(p * f for p, f in binomialCoefficientPrimeFactorisation(n, k).items())
