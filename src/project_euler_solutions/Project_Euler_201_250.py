@@ -3555,6 +3555,60 @@ def probabilityPlayer2WinsFractionGivenSuccessProbabilitiesAndScores(
     player2_success_prob: CustomFraction=CustomFraction(1, 2),
     player2_success_points: int=1,
 ) -> CustomFraction:
+    """
+    Calculates the probability that player 2 wins the following
+    game.
+
+    The game consists of two players, player 1 and player 2 who
+    alternate in taking turns starting with player 1, each of
+    whom have a points total which starts at zero. On the
+    turn of player 1, there is a player1_success_prob probability
+    of scoring player1_success_points points, which are added to
+    their total, otherwise there is no change to their total.
+    Similarly on the turn of player 2, there is a player2_success_prob
+    probability of scoring player2_success_points points, which
+    are added to their total, otherwise there is no change to their
+    total. The winner is the player whose total first reaches or
+    exceeds points_required.
+
+    Args:
+        Required positional:
+        points_required (int): Strictly positive integer giving the
+                number of points which the first player whose total
+                reaches or exceeds this number wins the game.
+        
+        Optional named:
+        player1_success_prob (CustomFraction object): Strictly
+                positive rational number no greater that one
+                representing the probability on each turn that
+                player1_success_points is added to the total of
+                player 1.
+            Default: CustomFraction(1, 2) (representing 1 / 2)
+        player1_success_points (int): Strictly positive integer
+                giving the number of points added to the total
+                of player 1 on their turn in the event of a
+                success.
+            Default: 1
+        player2_success_prob (CustomFraction object): Strictly
+                positive rational number no greater that one
+                representing the probability on each turn that
+                player1_success_points is added to the total of
+                player 1.
+            Default: CustomFraction(1, 2) (representing 1 / 2)
+        player2_success_points (int): Strictly positive integer
+                giving the number of points added to the total
+                of player 1 on their turn in the event of a
+                success.
+            Default: 1
+    
+    Returns:
+    CustomFraction object representing a rational number between
+    0 and 1 inclusive giving the probability that player 2 wins
+    the game described above.
+
+    Outline of rationale:
+    TODO
+    """
     # Used in related problem where the value of T for Player 2 cannot be
     # changed
     memo = {}  
@@ -3582,7 +3636,44 @@ def probabilityPlayer2WinsFractionGivenSuccessProbabilitiesAndScores(
     print(player2_success_points, memo)
     return res
 
-def probabilityPlayer2WinsFraction(points_required: int=100) -> CustomFraction:
+def probabilityPlayer2WinsFraction(
+    points_required: int=100,
+) -> CustomFraction:
+    """
+    Calculates the probability that player 2 wins the following
+    game where player 2 plays perfectly (i.e. any decision made
+    maximises the probability of winning).
+
+    The game consists of two players, player 1 and player 2 who
+    alternate in taking turns starting with player 1, each of
+    whom have a points total which starts at zero. On the
+    turn of player 1, there is a 1 / 2 probability of scoring
+    1 point, which is added to their total, otherwise there is
+    no change to their total.
+    On the turn of player 2, player 2 chooses a strictly positive
+    integer T (which for the purposes of this function is chosen
+    to maximise the probability of winning). There is then a
+    (1 / 2) ** T probability of scoring 2 ** (T - 1) points,
+    otherwise there is no change to their total.
+    The winner is the player whose total first reaches or
+    exceeds points_required.
+
+    Args:
+        Required positional:
+        points_required (int): Strictly positive integer giving the
+                number of points which the first player whose total
+                reaches or exceeds this number wins the game.
+            Default: 100
+    
+    Returns:
+    CustomFraction object representing a rational number between
+    0 and 1 inclusive giving the probability that player 2 wins
+    the game described above.
+
+    Outline of rationale:
+    TODO
+    """
+
     res = 0
     player1_success_prob = CustomFraction(1, 2)
     player1_success_points = 1
@@ -3643,6 +3734,40 @@ def probabilityPlayer2WinsFraction(points_required: int=100) -> CustomFraction:
 def probabilityPlayer2WinsFloat(points_required: int=100) -> CustomFraction:
     """
     Solution to Project Euler #132
+
+    Calculates the probability that player 2 wins the following
+    game where player 2 plays perfectly (i.e. any decision made
+    maximises the probability of winning).
+
+    The game consists of two players, player 1 and player 2 who
+    alternate in taking turns starting with player 1, each of
+    whom have a points total which starts at zero. On the
+    turn of player 1, there is a 1 / 2 probability of scoring
+    1 point, which is added to their total, otherwise there is
+    no change to their total.
+    On the turn of player 2, player 2 chooses a strictly positive
+    integer T (which for the purposes of this function is chosen
+    to maximise the probability of winning). There is then a
+    (1 / 2) ** T probability of scoring 2 ** (T - 1) points,
+    otherwise there is no change to their total.
+    The winner is the player whose total first reaches or
+    exceeds points_required.
+
+    Args:
+        Required positional:
+        points_required (int): Strictly positive integer giving the
+                number of points which the first player whose total
+                reaches or exceeds this number wins the game.
+            Default: 100
+    
+    Returns:
+    Float representing a real number between 0 and 1 inclusive
+    giving the probability that player 2 wins the game described
+    above.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of function
+    probabilityPlayer2WinsFraction().
     """
     res = probabilityPlayer2WinsFraction(points_required=points_required)
     #print(res)
