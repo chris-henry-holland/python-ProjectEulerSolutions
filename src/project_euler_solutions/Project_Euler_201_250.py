@@ -3733,7 +3733,7 @@ def probabilityPlayer2WinsFraction(
 
 def probabilityPlayer2WinsFloat(points_required: int=100) -> CustomFraction:
     """
-    Solution to Project Euler #132
+    Solution to Project Euler #232
 
     Calculates the probability that player 2 wins the following
     game where player 2 plays perfectly (i.e. any decision made
@@ -3775,12 +3775,30 @@ def probabilityPlayer2WinsFloat(points_required: int=100) -> CustomFraction:
 
 
 # Problem 233
-def factorisationsGenerator(num: int) -> Generator[Dict[int, int], None, None]:
-    pf = calculatePrimeFactorisation(num)
-    yield from factorisationsFromPrimeFactorisationGenerator(pf)
-    return
+def factorisationsFromPrimeFactorisationGenerator(
+    prime_factorisation: Dict[int, int],
+) -> Generator[Dict[int, int], None, None]:
+    """
+    Generator iterating over the prime factorisations
+    of the strictly positive integer factors of the
+    strictly positive integer with the prime
+    factorisation given by prime_factorisation.
 
-def factorisationsFromPrimeFactorisationGenerator(prime_factorisation: Dict[int, int]) -> Generator[Dict[int, int], None, None]:
+    Args:
+        Required positional:
+        prime_factorisation (dict): Dictionary whose keys
+                are the prime factors of the integer in
+                question with corresponding value the
+                power of that prime in the factorisation.
+
+    Yields:
+    Dictionary (dict) whose keys are the prime factors of
+    the strictly positive integer factor in question with
+    corresponding value the power of that prime in the
+    factorisation.
+    There is no particular significance to the order in
+    which the yielded prime factorisations are yielded.
+    """
     pf = prime_factorisation
     #print(pf)
     p_lst = sorted(pf.keys())
@@ -3829,9 +3847,71 @@ def factorisationsFromPrimeFactorisationGenerator(prime_factorisation: Dict[int,
     yield from recur(0, 1, prev=2)
     return
 
-def circleInscribedSquareSideLengthWithLatticePointCount(n_lattice_points: int=420, max_inscribed_square_side_length: int=10 ** 11) -> int:
+def factorisationsGenerator(
+    num: int,
+) -> Generator[Dict[int, int], None, None]:
+    """
+    Generator iterating over the prime factorisations
+    of the strictly positive integer factors of the
+    strictly positive integer num.
+
+    Args:
+        Required positional:
+        num (int): The strictly positive integer whose
+                factors' prime factorisations are to be
+                iterated over.
+
+    Yields:
+    Dictionary (dict) whose keys are the prime factors of
+    the strictly positive integer factor in question with
+    corresponding value the power of that prime in the
+    factorisation.
+    There is no particular significance to the order in
+    which the yielded prime factorisations are yielded.
+    """
+    pf = calculatePrimeFactorisation(num)
+    yield from factorisationsFromPrimeFactorisationGenerator(pf)
+    return
+
+def circleInscribedSquareSideLengthWithLatticePointCount(
+    n_lattice_points: int=420,
+    max_inscribed_square_side_length: int=10 ** 11,
+) -> int:
     """
     Solution to Project Euler #233
+
+    Calculates the sum of all strictly positive values of N
+    not exceeding max_inscribed_square_side_length such that
+    the unique circle that passes through the points with
+    Cartesian coordinates (0, 0), (0, N), (N, 0) and (N, N)
+    passes through exactly n_lattice_points points whose
+    Cartesian coordinates are both integers (including the
+    required four points).
+
+    Args:
+        Optional named:
+        n_lattice_points (int): Integer giving the exact
+                number of points with integer Cartesian
+                coordinates that the circle corresponding
+                to a given value of N must pass through in
+                order to be included in the sum.
+            Default: 420
+        max_inscribed_square_side_length (int): The inclusive
+                upper bound on the values of N that may be
+                included in the sum.
+            Default: 10 ** 11
+    
+    Returns:
+    Integer (int) giving the sum of all strictly positive values
+    of N not exceeding max_inscribed_square_side_length such
+    that the unique circle that passes through the points with
+    Cartesian coordinates (0, 0), (0, N), (N, 0) and (N, N)
+    passes through exactly n_lattice_points points whose
+    Cartesian coordinates are both integers (including the
+    required four points).
+
+    Outline of rationale:
+    TODO
     """
     q, r = divmod(n_lattice_points, 8)
     if r != 4: return 0
@@ -6220,5 +6300,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {229}
+    eval_nums = {233}
     evaluateProjectEulerSolutions201to250(eval_nums)
