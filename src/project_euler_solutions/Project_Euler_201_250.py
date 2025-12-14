@@ -4066,6 +4066,32 @@ def circleInscribedSquareSideLengthWithLatticePointCount(
 def semiDivisibleNumberCount(n_max: int=999966663333) -> int:
     """
     Solution to Project Euler #234
+
+    Calculates the sum of all semidivisible numbers not exceeding
+    n_max.
+
+    A semidivisible number is an integer no less than 4 for which
+    exactly one of its lower prime square root and its upper prime
+    square root divides the integer exactly.
+
+    For an integer no less than 4, the lower prime square root is
+    the largest prime that divides the integer whose square does
+    not exceed the integer, and the upper prime square root is the
+    smallest prime that divides the integer whose square is no less
+    than the integer.
+
+    Args:
+        Optional named:
+        n_max (int): Integer giving the inclusive upper bound on
+                integers that may be included in the sum.
+            Default: 999966663333
+
+    Returns:
+    Integer (int) giving the sum of all semidivisible numbers not
+    exceeding n_max.
+
+    Outline of rationale:
+    TODO
     """
     if n_max < 4: return 0
 
@@ -6300,5 +6326,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {233}
+    eval_nums = {234}
     evaluateProjectEulerSolutions201to250(eval_nums)
