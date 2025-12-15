@@ -4132,8 +4132,57 @@ def semiDivisibleNumberCount(n_max: int=999966663333) -> int:
 
 
 # Problem 235
-def arithmeticGeometricSeries(a: float=900, b: int=-3, n: int=5000, val: float=-6 * 10 ** 11, eps: float=10 ** -13) -> float:
+def arithmeticGeometricSeries(
+    a: Union[float, int]=900,
+    b: Union[float, int]=-3,
+    n: int=5000,
+    val: Union[float, int]=-6 * 10 ** 11,
+    eps: float=10 ** -13,
+) -> Optional[float]:
+    """
+    Solution to Project Euler #235
 
+    Calculates the real value of r, within eps, for which the
+    sum of the first n terms of the following sequence (i.e.
+    the sum over integer valued terms k from 1 to n inclusive)
+    is equal to val, where for a chosen value of r the k:th
+    term of the sequence is:
+        (a + b * k) * r ** (k - 1)
+    for the given real numbers a and b. If no such real value
+    or r exists, then returns None.
+
+    Args:
+        Optional named:
+        a (float or int): Real number giving the value of a
+                in the above formula for the sequence terms.
+            Default: 900
+        b (float or int): Real number giving the value of b
+                in the above formula for the sequence terms.
+            Default: -3
+        n (int): Non-negative integer giving the number of
+                terms of initial terms of the sequence are
+                to be summed. 
+            Default: 5000
+        val (float or int): Real number giving the value the
+                sum over the initial n terms of the sequence
+                should equal for the returned value of r.
+            Default: -6 * 10 ** 11
+        eps (float): Small strictly positive real number giving
+                the tolerance of the returned value of r (i.e.
+                the returned value should have an absolute
+                difference from the true value no greater than
+                this number).
+            Default: 10 ** -13
+
+    Returns:
+    Float giving the value of r, within eps, for which the sum of
+    the first n terms of the given sequence is equal to val. If
+    no such real value of r exists, then returns None.
+
+    Brief outline of rationale:
+    Uses a basic binary search
+    """
+    # Review- handle the possibility that there is no solution
     if b < 0:
         a, b, val = -a, -b, -val
     #r0 = -a / b
