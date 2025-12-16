@@ -4180,7 +4180,7 @@ def arithmeticGeometricSeries(
     no such real value of r exists, then returns None.
 
     Brief outline of rationale:
-    Uses a basic binary search
+    Uses a basic binary search.
     """
     # Review- handle the possibility that there is no solution
     if b < 0:
@@ -4225,7 +4225,48 @@ def arithmeticGeometricSeries(
 def luxuryHamperPossibleMValues(
     pairs: List[Tuple[int, int]]=[(5248, 640), (1312, 1888), (2624, 3776), (5760, 3776), (3936, 5664)],
 ) -> List[CustomFraction]:
+    """
+    For the numbers of the different products supplied by
+    the two suppliers A and B given by pairs, calculates
+    the possible values of m strictly greater than one
+    such that the spoilage rate for each product individually
+    is m times larger for supplier A than B but the overall
+    spoilage rate is m times larger for supplier B than
+    A.
 
+    The spoilage rate is defined as follows. For each product
+    and supplier, a certain number of the supplied items is
+    bad. The number of bad items divided by the total number
+    of items for that product and supplier is the spoilage
+    rate for that item and supplier. The overall spoilage rate
+    for a supplier is the total number of bad items supplied
+    divided by the total number of items supplied across all
+    products.
+
+    This is a demonstration of Simpson's paradox.
+
+    Args:
+        Optional named:
+        pairs (list of 2-tuples of ints): List where each entry
+                represents the number of items supplied by each
+                supplier of a different product, with each entry
+                being a 2-tuple where index 0 contains the total
+                number of items of that product supplied by
+                supplier A and index 1 contains the total number of
+                items of that product supplied by supplier B.
+            Default: [(5248, 640), (1312, 1888), (2624, 3776), (5760, 3776), (3936, 5664)]
+
+    Returns:
+    List of CustomFraction objects representing the possible values
+    of m strictly greater than one such that the spoilage rate for
+    each product in pairs individually is m times larger for
+    supplier A than B but the overall spoilage rate is m times larger
+    for supplier B than A. These are given in order of increasing
+    size.
+
+    Outline of rationale:
+    TODO
+    """
     # Review- try to make faster
     n_pairs = len(pairs)
     pairs2 = [(x * y, (x, y)) for x, y in pairs]
@@ -4487,14 +4528,57 @@ def luxuryHamperPossibleMValues(
     #print(poss_m_vals.keys())
     #print(poss_m_vals.get(CustomFraction(1476, 1475), None))
     print(f"number of solutions = {len(res)}")
-    return res
+    return sorted(res)
 
 def largestLuxuryHamperPossibleMValue(
     pairs: List[Tuple[int, int]]=[(5248, 640), (1312, 1888), (2624, 3776), (5760, 3776), (3936, 5664)],
-) -> List[CustomFraction]:
+) -> Optional[CustomFraction]:
+    """
+    Solution to Project Euler #236
 
+    For the numbers of the different products supplied by
+    the two suppliers A and B given by pairs, calculates
+    the largest possible value of m strictly greater than one
+    (if such a value exists) such that the spoilage rate for
+    each product individually is m times larger for supplier
+    A than B but the overall spoilage rate is m times larger
+    for supplier B than A.
+
+    The spoilage rate is defined as follows. For each product
+    and supplier, a certain number of the supplied items is
+    bad. The number of bad items divided by the total number
+    of items for that product and supplier is the spoilage
+    rate for that item and supplier. The overall spoilage rate
+    for a supplier is the total number of bad items supplied
+    divided by the total number of items supplied across all
+    products.
+
+    This is a demonstration of Simpson's paradox.
+
+    Args:
+        Optional named:
+        pairs (list of 2-tuples of ints): List where each entry
+                represents the number of items supplied by each
+                supplier of a different product, with each entry
+                being a 2-tuple where index 0 contains the total
+                number of items of that product supplied by
+                supplier A and index 1 contains the total number of
+                items of that product supplied by supplier B.
+            Default: [(5248, 640), (1312, 1888), (2624, 3776), (5760, 3776), (3936, 5664)]
+
+    Returns:
+    CustomFraction object representing the largest possible value
+    of m strictly greater than one such that the spoilage rate for
+    each product in pairs individually is m times larger for
+    supplier A than B but the overall spoilage rate is m times larger
+    for supplier B than A, if such a value exists, otherwise None.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of function
+    luxuryHamperPossibleMValues().
+    """
     m_vals = luxuryHamperPossibleMValues(pairs)
-    return max(m_vals)
+    return m_vals[-1] if m_vals else None
 
 # Problem 237
 def playingBoardTourCount(n_rows: int=4, n_cols: int=10 ** 12, start_row: int=0, end_row: int=3, md: Optional[int]=10 ** 8) -> int:
@@ -6375,5 +6459,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {234}
+    eval_nums = {236}
     evaluateProjectEulerSolutions201to250(eval_nums)
