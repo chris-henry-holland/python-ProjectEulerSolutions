@@ -4581,10 +4581,61 @@ def largestLuxuryHamperPossibleMValue(
     return m_vals[-1] if m_vals else None
 
 # Problem 237
-def playingBoardTourCount(n_rows: int=4, n_cols: int=10 ** 12, start_row: int=0, end_row: int=3, md: Optional[int]=10 ** 8) -> int:
+def playingBoardTourCount(
+    n_rows: int=4,
+    n_cols: int=10 ** 12,
+    start_row: int=0,
+    end_row: int=3,
+    res_md: Optional[int]=10 ** 8,
+) -> int:
+    """
+    Solution to Project Euler #237
 
+    For an n_rows x n_cols rectangular grid of unit squares,
+    calculates the number of paths that start and end at the
+    first column on rows start_row and end_row respectively
+    and pass through every square in the grid, where each
+    step on the path is from one square to another that is
+    directly horizontally or vertically adjacent. If res_md
+    is given as a strictly positive integer, this result is
+    returned modulo res_md.
 
-    if start_row == end_row: raise ValueError("start_row and end_row must be different")
+    Args:
+        Optional named:
+        n_rows (int): Strictly positive integer giving the number
+                of rows of unit squares are in the rectangular
+                grid.
+            Default: 4
+        n_cols (int): Strictly positive integer giving the number
+                of columns of unit squares are in the rectangular
+                grid.
+            Default: 10 ** 12
+        start_row (int): Integer between 0 and (n_rows - 1) giving
+                the 0-indexed row in the first column at which the
+                paths considered start.
+            Default: 0
+        end_row (int): Integer between 0 and (n_rows - 1) giving
+                the 0-indexed row in the first column at which the
+                paths considered end.
+            Default: 3
+        res_md (int or None): If given as a strictly positive
+                integer, specifies the modulus to which the
+                returned result is to be taken. Otherwise, the
+                number of possible paths itself is returned.
+            Default: 10 ** 8
+
+    Returns:
+    Integer (int) giving the number of possible paths around
+    the grid as described, taken (if res_md is not None) modulo
+    res_md.
+
+    Outline of rationale:
+    TODO
+    """
+    # Review- try to generalise to any start and end positions,
+    # not just on the first column
+    if start_row == end_row:
+        raise ValueError("start_row and end_row must be different")
     init_state = [0] * n_rows
     init_state[start_row] = 1
     init_state[end_row] = 1
@@ -4787,7 +4838,7 @@ def playingBoardTourCount(n_rows: int=4, n_cols: int=10 ** 12, start_row: int=0,
             for idx2, f2 in state_adj1[idx1].items():
                 for idx3, f3 in state_adj2[idx2].items():
                     res[idx1][idx3] = (res[idx1].get(idx3, 0) + f2 * f3)
-                    if md is not None: res[idx1][idx3] %= md
+                    if res_md is not None: res[idx1][idx3] %= res_md
         return res
     
     def applyStateAdj(state_adj: List[Dict[int, int]], state_f_dict: Dict[int, int]) -> Dict[int, int]:
@@ -4795,7 +4846,7 @@ def playingBoardTourCount(n_rows: int=4, n_cols: int=10 ** 12, start_row: int=0,
         for idx, f in state_f_dict.items():
             for idx2, f2 in state_adj[idx].items():
                 res[idx2] = (res.get(idx2, 0) + f * f2)
-                if md is not None: res[idx2] %= md
+                if res_md is not None: res[idx2] %= res_md
         return res
 
     # binary lift
@@ -4865,7 +4916,7 @@ def playingBoardTourCount(n_rows: int=4, n_cols: int=10 ** 12, start_row: int=0,
             if cycle_len != n_nums: continue
             #print(state)
             res += f
-            if md is not None: res %= md
+            if res_md is not None: res %= res_md
     return res
 
 # Problem 238
@@ -6376,7 +6427,7 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
 
     if 237 in eval_nums:
         since = time.time() 
-        res = playingBoardTourCount(n_rows=4, n_cols=10 ** 12, start_row=0, end_row=3, md=10 ** 8)
+        res = playingBoardTourCount(n_rows=4, n_cols=10 ** 12, start_row=0, end_row=3, res_md=10 ** 8)
         print(f"Solution to Project Euler #237 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 238 in eval_nums:
