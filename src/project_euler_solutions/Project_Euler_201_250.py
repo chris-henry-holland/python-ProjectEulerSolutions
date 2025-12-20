@@ -5237,8 +5237,42 @@ def infiniteStringTourDigitSumStartSum(
     """
 
 # Problem 239
-def partialDerangementCount(n_tot: int, n_subset: int, n_subset_deranged: int) -> int:
+def partialDerangementCount(
+    n_tot: int,
+    n_subset: int,
+    n_subset_deranged: int,
+) -> int:
+    """
+    Calculates the number of permutations of n_tot distinguishable
+    objects such that for a given subset of those objects with
+    n_subset of those objects, exactly n_subset_deranged are moved
+    to a different position by the permutation.
 
+    Args:
+        Required positional:
+        n_tot (int): Non-negative integer giving the total number
+                of objects being permuted.
+        n_subset (int): Non-negative integer no greater than
+                n_tot giving the size of the subset of the n_tot
+                objects of which any permutation included in the
+                sum should have exactly n_subset_deranged moved
+                to a different position.
+        n_subset_deranged (int): Non-negative integer no greater
+                than n_subset giving the number of the chosen
+                n_subset objects that should be moved to a
+                different location by the permutation of the
+                n_tot objects included in the count.
+    
+    Returns:
+    Integer (int) giving the number of permutations of n_tot
+    distinguishable objects such that for a given subset of
+    those objects with n_subset of those objects, exactly
+    n_subset_deranged are moved to a different position by the
+    permutation.
+
+    Outline of rationale:
+    TODO
+    """
     if n_subset > n_tot or n_subset_deranged > n_subset: return 0
     neg = False
     n_subset_fixed = n_subset - n_subset_deranged
