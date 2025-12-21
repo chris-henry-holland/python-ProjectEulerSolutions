@@ -5243,32 +5243,33 @@ def partialDerangementCount(
     n_subset_deranged: int,
 ) -> int:
     """
-    Calculates the number of permutations of n_tot distinguishable
-    objects such that for a given subset of those objects with
-    n_subset of those objects, exactly n_subset_deranged are moved
-    to a different position by the permutation.
+    Calculates the number of permutations of a list of n_tot
+    distinguishable objects such that for a given subset of those
+    objects containing exactly n_subset of those objects, exactly
+    n_subset_deranged are moved to a different position in the
+    list by the permutation.
 
     Args:
         Required positional:
         n_tot (int): Non-negative integer giving the total number
-                of objects being permuted.
+                of distinguishable objects in the list.
         n_subset (int): Non-negative integer no greater than
                 n_tot giving the size of the subset of the n_tot
                 objects of which any permutation included in the
                 sum should have exactly n_subset_deranged moved
-                to a different position.
-        n_subset_deranged (int): Non-negative integer no greater
-                than n_subset giving the number of the chosen
-                n_subset objects that should be moved to a
-                different location by the permutation of the
-                n_tot objects included in the count.
+                to a different position in the list.
+        n_subset_deranged (int): Non-negative integer giving the
+                number of the chosen n_subset objects that should
+                be moved to a different location in the list by
+                the permutation of the n_tot objects included in
+                the count.
     
     Returns:
-    Integer (int) giving the number of permutations of n_tot
-    distinguishable objects such that for a given subset of
-    those objects with n_subset of those objects, exactly
-    n_subset_deranged are moved to a different position by the
-    permutation.
+    Integer (int) giving the number of permutations of a list of
+    n_tot distinguishable objects such that for a given subset of
+    those objects containing exactly n_subset of those objects,
+    exactly n_subset_deranged are moved to a different position in
+    the list by the permutation.
 
     Outline of rationale:
     TODO
@@ -5285,19 +5286,142 @@ def partialDerangementCount(
     #print(res)
     return res * math.comb(n_subset, n_subset_deranged)
 
-def partialDerangementProbability(n_tot: int, n_subset: int, n_subset_deranged: int) -> CustomFraction:
+def partialDerangementProbability(
+    n_tot: int,
+    n_subset: int,
+    n_subset_deranged: int,
+) -> CustomFraction:
+    """
+    Calculates the probability that a randomly selected permutation
+    of a list of n_tot distinguishable objects results in a given
+    subset of those objects containing exactly n_subset of those
+    objects having exactly n_subset_deranged of its elements moved
+    to a different position in the list by the permutation, where
+    each permutation of the list being equally likely to be
+    selected.
+
+    Args:
+        Required positional:
+        n_tot (int): Non-negative integer giving the total number
+                of distinguishable objects in the list.
+        n_subset (int): Non-negative integer no greater than
+                n_tot giving the size of the subset of the n_tot
+                objects of which the probability of a permutation
+                has exactly n_subset_deranged moved to a different
+                position in the list is to be calculated.
+        n_subset_deranged (int): Non-negative integer giving the
+                exact number of the chosen n_subset objects moved
+                to a different location in the list by the selected
+                permutation whose probability is to be calculated.
+    
+    Returns:
+    CustomFraction object representing the rational number giving
+    the probability that a randomly selected permutation
+    of a list of n_tot distinguishable objects results in a given
+    subset of those objects containing exactly n_subset of those
+    objects having exactly n_subset_deranged of its elements moved
+    to a different position in the list by the permutation, where
+    each permutation of the list being equally likely to be
+    selected.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation for function
+    partialDerangementCount(). The result of this count is simply
+    divided by the total number of permutations (which is n_tot!).
+    """
     return CustomFraction(partialDerangementCount(n_tot, n_subset, n_subset_deranged), math.factorial(n_tot))
 
-def partialPrimeDerangementProbabilityFraction(n_max: int, n_primes_deranged: int) -> CustomFraction:
+def partialPrimeDerangementProbabilityFraction(
+    n_max: int,
+    n_primes_deranged: int,
+) -> CustomFraction:
+    """
+    Calculates the probability that a randomly selected permutation
+    of a list of the first n_max strictly positive integers,
+    initially in strictly increasing order, results in exactly
+    n_primes_deranged of the prime numbers in the list being moved
+    to a different position in the list by the permutation, where
+    each permutation of the list being equally likely to be
+    selected.
+
+    Args:
+        Required positional:
+        n_max (int): Non-negative integer giving the largest integer
+                included in the list.
+        n_primes_deranged (int): Non-negative integer giving the
+                exact number of the chosen n_subset objects moved to
+                a different location in
+                the list by the selected permutation whose
+                probability is to be calculated.
+    
+    Returns:
+    CustomFraction object representing the rational number giving
+    the probability that a randomly selected permutation
+    of a list of the first n_max strictly positive integers,
+    initially in strictly increasing order, results in exactly
+    n_primes_deranged of the prime numbers in the list being moved
+    to a different position in the list by the permutation, where
+    each permutation of the list being equally likely to be
+    selected.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation for functions
+    partialDerangementCount() and partialDerangementProbability().
+    The latter of these functions is used with n_tot equal to n_max,
+    n_subset equal to the number of primes no greater than n_max
+    (calculated using a prime sieve) and n_subset_deranged equal
+    to n_primes_deranged.
+    """
     ps = SimplePrimeSieve(n_max)
     n_p = bisect.bisect_right(ps.p_lst, n_max)
-    print(n_p)
+    #print(n_p)
     res = partialDerangementProbability(n_max, n_p, n_primes_deranged)
     return res
 
-def partialPrimeDerangementProbabilityFloat(n_max: int=100, n_primes_deranged: int=22) -> float:
-    res = partialPrimeDerangementProbabilityFraction(n_max, n_primes_deranged)
-    print(res)
+def partialPrimeDerangementProbabilityFloat(
+    n_max: int=100,
+    n_primes_deranged: int=22,
+) -> float:
+    """
+    Solution to Project Euler #239
+
+    Calculates the probability that a randomly selected permutation
+    of a list of the first n_max strictly positive integers,
+    initially in strictly increasing order, results in exactly
+    n_primes_deranged of the prime numbers in the list being moved
+    to a different position in the list by the permutation, where
+    each permutation of the list being equally likely to be
+    selected.
+
+    Args:
+        Required positional:
+        n_max (int): Non-negative integer giving the largest integer
+                included in the list.
+        n_primes_deranged (int): Non-negative integer giving the
+                exact number of the chosen n_subset objects moved to
+                a different location in
+                the list by the selected permutation whose
+                probability is to be calculated.
+    
+    Returns:
+    Float representing the real number giving the probability that a
+    randomly selected permutation of a list of the first n_max
+    strictly positive integers, initially in strictly increasing
+    order, results in exactly n_primes_deranged of the prime numbers
+    in the list being moved to a different position in the list by
+    the permutation, where each permutation of the list being equally
+    likely to be selected.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation for functions
+    partialDerangementCount(), partialDerangementProbability() and
+    partialPrimeDerangementProbabilityFraction().
+    """
+    res = partialPrimeDerangementProbabilityFraction(
+        n_max,
+        n_primes_deranged,
+    )
+    #print(res)
     return res.numerator / res.denominator
 
 # Problem 240
