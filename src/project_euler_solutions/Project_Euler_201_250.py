@@ -5425,8 +5425,51 @@ def partialPrimeDerangementProbabilityFloat(
     return res.numerator / res.denominator
 
 # Problem 240
-def topDiceSumCombinations(n_sides: int=12, n_dice: int=20, n_top_dice: int=10, top_sum: int=70) -> int:
+def topDiceSumCombinations(
+    n_sides: int=12,
+    n_dice: int=20,
+    n_top_dice: int=10,
+    top_sum: int=70,
+) -> int:
+    """
+    Solution to Project Euler #240
 
+    Calculates the number of ways that n_dice dice, each with n_sides
+    faces (where each face labelled with a distinct integer
+    from 1 to n_sides inclusive) can be rolled such that the largest
+    n_top_dice face label values among all of the n_dice dice rolled
+    have a sum equal to top_sum.
+
+    Args:
+        Optional named:
+        n_sides (int): Strictly positive integer giving the number of
+                faces on the dice being rolled, and the largest value
+                of any of the face labels.
+            Default: 12
+        n_dice (int): Strictly positive integer giving the total number
+                of dice to be rolled.
+            Default: 20
+        n_top_dice (int): Strictly positive integer giving the number
+                of dice rolled whose face label values are to sum to
+                top_sum, with the dice chosen being those with the
+                largest values.
+            Default: 10
+        top_sum (int): Non-negative integer giving the total to which
+                the n_top_dice largest face label values among the
+                n_dice dice are to sum for a dice roll to be counted
+                in the total.
+            Default: 70
+
+    Returns:
+    Integer giving the number of ways that n_dice dice, each with
+    n_sides faces (where each face labelled with a distinct integer
+    from 1 to n_sides inclusive) can be rolled such that the largest
+    n_top_dice face label values among all of the n_dice dice rolled
+    have a sum equal to top_sum.
+
+    Outline of rationale:
+    TODO
+    """
     def diceSumEqualsTargetCount(target_score: int, n_sides: int, n_dice: int) -> int:
         if target_score < n_dice: return 0
         #target_score -= n_dice
@@ -6716,5 +6759,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {238}
+    eval_nums = {240}
     evaluateProjectEulerSolutions201to250(eval_nums)
