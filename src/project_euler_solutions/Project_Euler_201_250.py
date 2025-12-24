@@ -5527,14 +5527,61 @@ def topDiceSumCombinations(
 
 # Problem 241
 def divisorFunction(num: int) -> int:
+    """
+    For a strictly positive integer num calculates the
+    divisor function value.
+
+    For any strictly positive integer the divisor function
+    is equal to the sum of strictly positive integers that
+    divide that integer.
+
+    Args:
+        Required positional:
+        num (int): Strictly positive integer for which the
+                divisor function value is to be calculated.
+                
+    Returns:
+    Integer (int) giving the value of the divisor function
+    for num.
+    """
     pf = calculatePrimeFactorisation(num)
     res = 1
     for p, f in pf.items():
         res *= (p ** (f + 1) - 1) // (p - 1)
     return res
 
-def halfIntegerPerfectionQuotients(n_max: int=10 ** 18) -> List[int]:
+def halfIntegerPerfectionQuotients(
+    n_max: int=10 ** 18,
+) -> List[int]:
+    """
+    Calculates the strictly positive integers no greater
+    than n_max whose perfection quotient is an integer
+    plus one half.
 
+    The perfection quotient of a strictly positive integer
+    is the value of the divisor function for that integer
+    divided by the integer itself.
+
+    For any strictly positive integer the divisor function
+    is equal to the sum of strictly positive integers that
+    divide that integer.
+
+    Args:
+        Optional named:
+        n_max (int): Strictly positive integer giving the
+                inclusive upper bound for integers that
+                may be included in the result.
+            Default: 10 ** 18
+    
+    Returns:
+    List of integers (int) giving every strictly positive
+    integer no greater than n_max whose perfection quotient
+    is an integer plus one half. The integers are given in
+    strictly increasing order.
+
+    Outline of rationale:
+    TODO
+    """
     # Review- try to make faster
     # Review- try to implement without arbitrarily setting a maximum
     # prime factor
@@ -5760,9 +5807,39 @@ def halfIntegerPerfectionQuotients(n_max: int=10 ** 18) -> List[int]:
     return res
     """
 
-def halfIntegerPerfectionQuotientsSum(n_max: int=10 ** 18) -> int:
+def halfIntegerPerfectionQuotientsSum(
+    n_max: int=10 ** 18,
+) -> int:
     """
     Solution to Project Euler #241
+    
+    Calculates the sum of strictly positive integers no
+    greater than n_max whose perfection quotient is an
+    integer plus one half.
+
+    The perfection quotient of a strictly positive integer
+    is the value of the divisor function for that integer
+    divided by the integer itself.
+
+    For any strictly positive integer the divisor function
+    is equal to the sum of strictly positive integers that
+    divide that integer.
+
+    Args:
+        Optional named:
+        n_max (int): Strictly positive integer giving the
+                inclusive upper bound for integers that
+                may be included in the sum.
+            Default: 10 ** 18
+    
+    Returns:
+    Integer (int) giving the sum of every strictly positive
+    integer no greater than n_max whose perfection quotient
+    is an integer plus one half.
+
+    Outline of rationale:
+    See outline of rationale section of the function
+    halfIntegerPerfectionQuotients()
     """
     res = halfIntegerPerfectionQuotients(n_max=n_max)
     return sum(res)
