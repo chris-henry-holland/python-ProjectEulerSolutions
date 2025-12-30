@@ -5839,13 +5839,34 @@ def halfIntegerPerfectionQuotientsSum(
 
     Outline of rationale:
     See outline of rationale section of the function
-    halfIntegerPerfectionQuotients()
+    halfIntegerPerfectionQuotients().
     """
     res = halfIntegerPerfectionQuotients(n_max=n_max)
     return sum(res)
 
 # Problem 242
 def oddSumSubsetCount(n: int, k: int) -> int:
+    """
+    Calculates the number of k-element subsets of the set of
+    all integers from 1 to n inclusive whose elements sum to
+    an odd number.
+
+    For non-negative integer k and a set, the k-element subsets
+    are the subsets of the set with size k.
+
+    Args:
+        Required positional:
+        n (int): Non-negative integer giving the largest
+                number in the set (or for zero specifying the
+                empty set).
+        k (int): Non-negative integer giving the size of the
+                subsets in question.
+    
+    Returns:
+    Integer (int) giving the number of k-element subsets of the
+    set of all integers from 1 to n inclusive whose sum is odd.
+    """
+    if k > n: return 0
     n_even = n >> 1
     n_odd = n - n_even
     res = 0
@@ -5855,7 +5876,31 @@ def oddSumSubsetCount(n: int, k: int) -> int:
 
 def oddTripletsCount(n_max: int=10 ** 12) -> int:
     """
-    Solution to Project Euler #142
+    Solution to Project Euler #242
+
+    Calculates the number of ordered pairs of non-negative integers
+    (n, k) for which n and k are both odd, n is no greater than
+    n_max and f(n, k) is odd, where f(n, k) is the number of
+    k-element subsets of the set of all integers from 1 to n
+    inclusive whose elements sum to an odd number.
+
+    For non-negative integer k and a set, the k-element subsets
+    are the subsets of the set with size k.
+
+    Args:
+        Optional named:
+        n_max (int): Non-negative integer giving the inclusive
+                upper bound on the values of n for the ordered
+                pairs (n, k) considered.
+            Default: 10 ** 12
+        
+    Returns:
+    Integer (int) giving the number of ordered pairs of non-negative
+    integers (n, k) for which n and k are both odd, n is no greater
+    than n_max and f(n, k) is odd.
+
+    Outline of rationale:
+    TODO
     """
 
     memo = {}
