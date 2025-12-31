@@ -5929,9 +5929,35 @@ def oddTripletsCount(n_max: int=10 ** 12) -> int:
     return res
 
 # Problem 243
-def smallestDenominatorWithSmallerResilience(resilience_upper_bound: CustomFraction=CustomFraction(15499, 94744)) -> int:
+def smallestDenominatorWithSmallerResilience(
+    resilience_upper_bound: CustomFraction=CustomFraction(15499, 94744),
+) -> int:
     """
     Solution to Project Euler #243
+
+    Calculates the smallest strictly positive integer whose
+    resilience is strictly less than resilience_upper_bound.
+
+    Here, the resilience of a strictly positive integer is
+    equal to the proportion of strictly positive integers
+    strictly smaller than that integer that are coprime
+    with that integer (or equivalently, the Euler totient
+    function value for that integer divided by one less than
+    that integer).
+
+    Args:
+        Optional named:
+        resilience_upper_bound (CustomFraction object): Rational
+                number giving the exclusive upper bound for the
+                resilience of the returned integer.
+            Default: CustomFraction(15499, 94744) (15499 / 94744)
+    
+    Returns:
+    Integer (int) giving the smallest strictly positive integer
+    whose resilience is strictly less than resilience_upper_bound.
+
+    Outline of rationale:
+    TODO
     """
     def testResilience(num: int, sigma: int) -> bool:
         return sigma * resilience_upper_bound.denominator < (num - 1) * resilience_upper_bound.numerator
@@ -6881,5 +6907,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {240}
+    eval_nums = {244}
     evaluateProjectEulerSolutions201to250(eval_nums)
