@@ -6011,13 +6011,91 @@ def smallestDenominatorWithSmallerResilience(
     
     return res[0]
 
+# Problem 244
 def sliderPuzzleShortestPathsChecksumValue(
     init_state: List[List[int]]=[[0, 1, 2, 2], [1, 1, 2, 2], [1, 1, 2, 2], [1, 1, 2, 2]],
     final_state: List[List[int]]=[[0, 2, 1, 2], [2, 1, 2, 1], [1, 2, 1, 2], [2, 1, 2, 1]],
     checksum_mult: int=243,
     checksum_md: int=10 ** 8 + 7,
 ) -> int:
+    """
+    Solution to Project Euler #244
+
+    For a sliding puzzle whose initial state is init_state, finds
+    the sum of the checksums with the given parameters checksum_mult
+    and checksum_md for every sequence of moves that results in the
+    sliding puzzle being in the state final_state for which there
+    exists no such sequence of moves with fewer total moves.
+
+    A sliding puzzle consists rectangular grid of equally sized
+    squares, where all but one of these squares is occupied by
+    a tile that exactly fills the square. These tiles are labelled
+    with strictly positive integers, with tiles whose integers are
+    the same being indistinguishable (i.e. if two tiles containing
+    the same integer were swapped and no other changes were made
+    to the grid, the grid would be considered to be unchanged by
+    the swap). The state of the puzzle at a particular time is
+    represented by a rectangular grid of integers with the same
+    dimensions (with the side length of the squares having unit
+    length) as the puzzle grid, referred to as the state grid.
+    Each entry in the state grid contains an integer representing
+    the contents of the square in the same row and column in the
+    puzzle grid, with squares containing tiles represented by the
+    integer label of the tile and the empty square represented
+    by zero. Given that tiles with the same value are indistinguishable,
+    it follows that the two puzzle states are equal if and only if
+    their state grids are equal (with the same dimensions as each
+    other and all corresponding elements equal).
     
+    A move consists of moving a tile that is horizontally or vertically
+    adjacent to the empty square (without wrapping) into the empty
+    square, so that after the move the previously empty square
+    contains the moved tile and the square that previously contained
+    that tile becomes empty. In terms of the state grid, this amounts
+    to swapping the unique element with value zero with a horizontally
+    or vertically adjacent entry. 
+
+    Each of the four moves is represented by the letters:
+     - L: moving a tile left
+     - R: moving a tile right
+     - U: moving a tile up
+     - D: moving a tile down
+    For any given state and direction, there is at most one tile that
+    can be moved in that direction (that being the tile that is
+    adjacent to the empty tile in the opposite direction), so this
+    for a given state, a move can be uniquely identified using such
+    a move representation. In terms of each move's effect on a 
+    state grid:
+     - L: Swaps the values of the unique value 0 element with the
+          element in the same row and the next column
+     - R: Swaps the values of the unique value 0 element with the
+          element in the same row and the previous column
+     - U: Swaps the values of the unique value 0 element with the
+          element in the next row and the same column
+     - D: Swaps the values of the unique value 0 element with the
+          element in the previous row and the same column
+    
+    A sequence of moves is represented by a string of the characters
+    L, R, U and D, with the corresponding moves being applied in
+    the order they appear in the string, and, for a given initial
+    state, the first move (as specified by the first character in the
+    string) is applied to that initial state and each subsequent move
+    is applied to the resultant state following the previous
+    move, with the final result of the sequence being the state after
+    the final move is performed.
+
+    The checksum ... TODO
+
+    The input arguments init_state and final_state are 2-dimensional
+    rectangular grids of integers, both having the same dimensions
+    and the same frequency of each integer. Furthermore, both must
+    contain the integer 0, representing the empty square, exactly
+    once. All other entries in the grid represent the label of the
+    tile at that location.
+
+    Args:
+        TODO
+    """
     if len(init_state) != len(final_state):
         raise ValueError("init_state and final_state must have the same length")
     shape = (len(init_state), len(init_state[0]))
