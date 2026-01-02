@@ -6084,7 +6084,17 @@ def sliderPuzzleShortestPathsChecksumValue(
     move, with the final result of the sequence being the state after
     the final move is performed.
 
-    The checksum ... TODO
+    For a given sequence of moves and the checksum parameters
+    checksum_mult and checksum_md, the checksum is calculated by
+    starting with zero, then for each character in the string
+    representation in order, the checksum is updated using the
+    formula:
+        checksum = (checksum * checksum_mult + m) % checksum_md
+    where m is the ASCII value of the string character (with these
+    values being: L- 76, R- 82, U- 85, D- 68) and % is the modular
+    division operation (i.e. takes the non-negative remainder of
+    the integer before the % symbol when divided by the integer
+    after the % symbol).
 
     The input arguments init_state and final_state are 2-dimensional
     rectangular grids of integers, both having the same dimensions
@@ -6094,7 +6104,38 @@ def sliderPuzzleShortestPathsChecksumValue(
     tile at that location.
 
     Args:
-        TODO
+        Optional named:
+        init_state (list of lists of integers): A 2-dimensional grid
+                of non-negative integers representing the initial
+                state of the sliding puzzle. Must contain exactly
+                one element with value 0 (representing the empty
+                square).
+            Default: [[0, 1, 2, 2], [1, 1, 2, 2], [1, 1, 2, 2], [1, 1, 2, 2]]
+        final_state (list of lists of integers): A 2-dimensional grid
+                of non-negative integers representing the state of
+                the sliding puzzle that should be achieved by the
+                sequences of moves of interest starting from the
+                state init_state. Must have the same dimensions as
+                init_state
+            Default: [[0, 2, 1, 2], [2, 1, 2, 1], [1, 2, 1, 2], [2, 1, 2, 1]]
+        checksum_mult (int): Strictly positive integer used in the
+                calculation of the checksum for a given move sequence
+                as described above.
+            Default: 243
+        checksum_md (int): Integer strictly greater than 1 used in the
+                calculation of the checksum for a given move sequence
+                as described above.
+            Default: 10 ** 8 + 7
+
+    Returns:
+    Integer giving the sum of the checksums with the given checksum
+    parameters of all distinct sequences of moves that result in a
+    sliding puzzle with intial state init_state being transformed
+    into the state final_state for which there exist no similar
+    sequences that contain fewer moves.
+
+    Outline of rationale:
+    TODO
     """
     if len(init_state) != len(final_state):
         raise ValueError("init_state and final_state must have the same length")
