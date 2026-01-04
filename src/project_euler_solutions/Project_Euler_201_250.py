@@ -5935,11 +5935,11 @@ def smallestDenominatorWithSmallerResilience(
     """
     Solution to Project Euler #243
 
-    Calculates the smallest strictly positive integer whose
-    resilience is strictly less than resilience_upper_bound.
+    Calculates the smallest integer strictly greater than one
+    whose resilience is strictly less than resilience_upper_bound.
 
-    Here, the resilience of a strictly positive integer is
-    equal to the proportion of strictly positive integers
+    Here, the resilience of an integer strictly greater than one
+    is equal to the proportion of strictly positive integers
     strictly smaller than that integer that are coprime
     with that integer (or equivalently, the Euler totient
     function value for that integer divided by one less than
@@ -6296,7 +6296,32 @@ def sliderPuzzleShortestPathsChecksumValue(
 
 # Problem 245
 def compositeCoresilienceAReciprocalSum(n_max: int=2 * 10 ** 11) -> int:
+    """
+    Solution to Project Euler #245
 
+    Calculates the sum of all composite integers between 2 and
+    n_max inclusive whose coresilience is a unit fraction (or
+    equivalently, for which the reciprocal of its coresilience
+    is an integer).
+
+    Here, the coresilience of an integer strictly greater than
+    one is equal that integer minus its Euler totient function
+    value all divided by one less than that integer.
+
+    Args:
+        Optional named:
+        n_max (int): Integer strictly greater than 1 giving the
+                inclusive upper bound for the integers considered
+                for inclusion in the sum.
+            Default: 2 * 10 ** 11
+    
+    Returns:
+    Integer (int) giving the sum of all composite integers between
+    2 and n_max inclusive whose coresilience is a unit fraction.
+
+    Outline of rationale:
+    TODO
+    """
     ps = SimplePrimeSieve()
     def primeCheck(num: int) -> bool:
         res = ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)
@@ -7026,5 +7051,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {244}
+    eval_nums = {245}
     evaluateProjectEulerSolutions201to250(eval_nums)
