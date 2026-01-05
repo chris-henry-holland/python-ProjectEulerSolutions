@@ -6492,10 +6492,70 @@ def compositeCoresilienceAReciprocalSum(n_max: int=2 * 10 ** 11) -> int:
     return res
     
 # Problem 246
-def latticePointsAtTangentsToEllipseLatticePoints(upper_bound_angle_deg: float=45, m_x: int=-2000, g_x: int=8000, circle_radius: int=15000, incl_upper_bound_angle: bool=False, incl_ellipse_border: bool=False) -> int:
+def latticePointsAtTangentsToEllipseLatticePoints(
+    lower_bound_angle_deg: Union[float, int]=45,
+    m_x: int=-2000,
+    g_x: int=8000,
+    circle_radius: int=15000,
+    incl_lower_bound_angle: bool=False,
+    incl_ellipse_border: bool=False,
+) -> int:
     """
     Solution to Project Euler #246
-    """
+
+    For an ellipse in the Cartesian plane with foci at (m_x, 0)
+    and (g_x, 0), defined by the set of points that are equidistant
+    from the latter of these two foci to the closest point on the
+    circle radius circle_radius centred on the former of these two
+    foci, calculates the number of lattice points (i.e. points whose
+    Cartesian coordinates are both integers) for which the two lines
+    tangent to the ellipse that pass through that point form an
+    angle of greater than (or greater than or equal to if
+    incl_lower_bound_angle is given as True) lower_bound_angle_deg
+    degrees at that point.
+
+    Args:
+        Optional named:
+        lower_bound_angle_deg (int or float): Real number between 0
+                and 180 degrees exclusive giving the lower bound on
+                the angle in degrees that the two ellipse tangent
+                lines should form at the lattice points included in
+                the count.
+            Default: 45
+        m_x (int): Integer giving the x-coordinate of the focus of
+                the ellipse around which the circle defining the
+                ellipse is centred.
+            Default: -2000
+        g_x (int): Integer giving the x-coordinate of the focus of
+                the ellipse for which the points equidistant from
+                this focus to the closest point on the circle
+                form the ellipse.
+            Default: 8000
+        circle_radius (int): Integer strictly greater than the
+                absolute difference of m_x and g_x giving the radius
+                of the circle around the focus at (m_x, 0) that
+                defines the ellipse.
+            Default: 15000
+        incl_lower_bound_angle (bool): If True, then lattice points
+                for which the angle formed by the tangent lines is
+                exactly lower_bound_angle_deg are included in the
+                count, otherwise these points are excluded.
+            Default: False
+        incl_ellipse_border (bool): If True, then lattice points that
+                are exactly on the ellipse are included in the count,
+                otherwise these points are excluded.
+            Default: False
+    
+    Returns:
+    Integer (int) giving the number of lattice points for which
+    the two lines tangent to the specified ellipse that pass through
+    that point form an angle of greater than (or greater than or equal
+    to if incl_lower_bound_angle is given as True) lower_bound_angle_deg
+    degrees at that point.
+
+    Outline of rationale:
+    TODO
+    """ 
     c = CustomFraction(abs(g_x - m_x), 2)
     print(c)
     c_sq = c * c
@@ -6508,7 +6568,7 @@ def latticePointsAtTangentsToEllipseLatticePoints(upper_bound_angle_deg: float=4
     print(f"ellipse area = {math.pi * math.sqrt(a_sq.numerator / a_sq.denominator) * math.sqrt(b_sq.numerator / b_sq.denominator)}")
     x_hlf = (c.denominator == 2)
 
-    t = math.tan(math.radians(upper_bound_angle_deg))
+    t = math.tan(math.radians(lower_bound_angle_deg))
     t_sq = t ** 2
     print(f"t_sq = {t_sq}")
 
@@ -6548,9 +6608,9 @@ def latticePointsAtTangentsToEllipseLatticePoints(upper_bound_angle_deg: float=4
             x_max *= 2
             x_max_int = math.floor(x_max)
             x_max_int -= 1 - (x_max_int & 1)
-            return x_max + 1 - 2 * ((x_max_int == x_max) and not incl_upper_bound_angle)
+            return x_max + 1 - 2 * ((x_max_int == x_max) and not incl_lower_bound_angle)
         x_max_int = math.floor(x_max)
-        return x_max_int * 2 + 1 - 2 * ((x_max_int == x_max) and not incl_upper_bound_angle)
+        return x_max_int * 2 + 1 - 2 * ((x_max_int == x_max) and not incl_lower_bound_angle)
 
     res = 0#
     locus_cnt = 0
@@ -7019,11 +7079,11 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     if 246 in eval_nums:
         since = time.time() 
         res = latticePointsAtTangentsToEllipseLatticePoints(
-            upper_bound_angle_deg=45,
+            lower_bound_angle_deg=45,
             m_x=-2000,
             g_x=8000,
             circle_radius=15000,
-            incl_upper_bound_angle=False,
+            incl_lower_bound_angle=False,
             incl_ellipse_border=False
         )
         print(f"Solution to Project Euler #246 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -7051,5 +7111,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {245}
+    eval_nums = {246}
     evaluateProjectEulerSolutions201to250(eval_nums)
