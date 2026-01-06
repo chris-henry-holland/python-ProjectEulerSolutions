@@ -6628,9 +6628,46 @@ def latticePointsAtTangentsToEllipseLatticePoints(
     return locus_cnt - ellipse_cnt
 
 # Problem 247
-def squaresUnderHyperbola(target_index: Tuple[int, int]=(3, 3)) -> int:
+def squaresUnderHyperbola(
+    target_index: Tuple[int, int]=(3, 3),
+) -> int:
     """
     Solution to Project Euler #247
+
+    For the following process, calculates the number of the latest
+    step for which the corresponding square has index target_index.
+
+    The process involves starting with the region in the Cartesian
+    plane for which x >= 1 and 0 <= y <= 1 / x. At each step (with
+    step 1 starting with the original unoccupied region), a
+    square is placed entirely inside this region whose edges are
+    parallel to the x- and y-axes and does not overlap with any
+    previously placed squares, with this square and its location
+    chosen such that there is no larger square that can be placed
+    in the region satisfying those conditions.
+    
+    For a placed square, its index is the ordered pair of non-negative
+    integers, with the first giving the number of squares directly
+    to the left of that square (i.e. the number of other squares
+    encountered when projecting the square in the negative x-direction)
+    and the second giving the number of squares directly below that
+    square (i.e. the number of other squares encountered when projecting
+    the square in the negative y-direction).
+
+    Args:
+        Optional named:
+        target_index (2-tuple of ints): Ordered pair of non-negative
+                integer giving the index the square placed in the
+                returned step must have, with no other subsequent
+                steps also having this index.
+            Default: (3, 3)
+
+    Returns:
+    Integer (int) giving the number of the latest step for which the
+    corresponding square has index target_index in the above process.
+    
+    Outline of rationale:
+    TODO
     """
     def calculateLength(pos: Tuple[float]) -> float:
         d = pos[0] - pos[1]
@@ -7111,5 +7148,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {246}
+    eval_nums = {247}
     evaluateProjectEulerSolutions201to250(eval_nums)
