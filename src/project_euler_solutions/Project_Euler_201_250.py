@@ -5945,6 +5945,12 @@ def smallestDenominatorWithSmallerResilience(
     function value for that integer divided by one less than
     that integer).
 
+    For a strictly positive integer, the Euler totient function
+    value is defined to be the number of strictly positive
+    integers no greater than and are coprime with that integer
+    (where two strictly positive integers are coprime if and
+    only if their greatest common divisor is 1).
+
     Args:
         Optional named:
         resilience_upper_bound (CustomFraction object): Rational
@@ -6307,6 +6313,12 @@ def compositeCoresilienceAReciprocalSum(n_max: int=2 * 10 ** 11) -> int:
     Here, the coresilience of an integer strictly greater than
     one is equal that integer minus its Euler totient function
     value all divided by one less than that integer.
+
+    For a strictly positive integer, the Euler totient function
+    value is defined to be the number of strictly positive
+    integers no greater than and are coprime with that integer
+    (where two strictly positive integers are coprime if and
+    only if their greatest common divisor is 1).
 
     Args:
         Optional named:
@@ -6695,6 +6707,20 @@ def squaresUnderHyperbola(
 
 # Problem 248
 def factorialPrimeFactorisation(n: int) -> Dict[int, int]:
+    """
+    Calculates the prime factorisation of n! (n factorial).
+
+    Args:
+        Required positional:
+        n (int): Non-negative integer for which the prime
+                factorisation of its factorial is to be found.
+
+    Returns:
+    Dictionary (dict) whose keys are integers (int) representing
+    the prime numbers that exactly divide n! with the corresponding
+    value being a strictly positive integer (int) giving the power
+    of that prime in the prime factorisation of n!.
+    """
     pf = {}
     for num in range(2, n + 1):
         pf2 = calculatePrimeFactorisation(num)
@@ -6703,7 +6729,30 @@ def factorialPrimeFactorisation(n: int) -> Dict[int, int]:
     return pf
 
 def numbersWithEulerTotientFunctionNFactorial(n: int) -> List[int]:
-    
+    """
+    Calculates all strictly positive integers whose Euler totient
+    function value is exactly equal to n! (n factorial).
+
+    For a strictly positive integer, the Euler totient function
+    value is defined to be the number of strictly positive
+    integers no greater than and are coprime with that integer
+    (where two strictly positive integers are coprime if and
+    only if their greatest common divisor is 1).
+
+    Args:
+        Required positional:
+        n (int): Non-negative integer whose factorial should
+                be equal to the Euler totient function value
+                for all of the returned integers.
+                
+    Returns:
+    List of integers (int) giving all of the strictly positive
+    integers whose Euler totient function value is equal to n!
+    in strictly increasing order.
+
+    Outline of rationale:
+    TODO
+    """
 
     ps = SimplePrimeSieve()
     def primeCheck(num: int) -> bool:
@@ -6800,9 +6849,37 @@ def numbersWithEulerTotientFunctionNFactorial(n: int) -> List[int]:
 
     return res
 
-def mthSmallestNumbersWithEulerTotientFunctionNFactorial(n: int=13, m: int=15 * 10 ** 4) -> int:
+def mthSmallestNumbersWithEulerTotientFunctionNFactorial(
+    n: int=13,
+    m: int=15 * 10 ** 4,
+) -> int:
     """
     Solution to Project Euler #248
+    
+    Calculates the m:th smallest strictly positive integer
+    whose Euler totient function value is exactly equal to n!
+    (n factorial).
+
+    For a strictly positive integer, the Euler totient function
+    value is defined to be the number of strictly positive
+    integers no greater than and are coprime with that integer
+    (where two strictly positive integers are coprime if and
+    only if their greatest common divisor is 1).
+
+    Args:
+        Optional named:
+        n (int): Non-negative integer whose factorial should
+                be equal to the Euler totient function value
+                for the returned integer.
+                
+    Returns:
+    Integers (int) giving the m:th smallest strictly positive
+    integer whose Euler totient function value is exactly
+    n! if at least m such values exist, otherwise -1.
+
+    Outline of rationale:
+    See the outline of rationale section of the function
+    numbersWithEulerTotientFunctionNFactorial().
     """
     nums = numbersWithEulerTotientFunctionNFactorial(n)
     return nums[m - 1] if len(nums) >= m else -1
@@ -7148,5 +7225,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {247}
+    eval_nums = {248}
     evaluateProjectEulerSolutions201to250(eval_nums)
