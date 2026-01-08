@@ -19,7 +19,7 @@ import numpy as np
 import time
 
 from collections import deque, defaultdict
-from sortedcontainers import SortedList, SortedSet
+from sortedcontainers import SortedList, SortedSet, SortedDict
 
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
@@ -6885,27 +6885,62 @@ def mthSmallestNumbersWithEulerTotientFunctionNFactorial(
     return nums[m - 1] if len(nums) >= m else -1
 
 # Problem 249
-def primeSumsetSums(p_max: int=4999, md: Optional[int]=10 ** 16) -> int:
+def primeSumsetSums(
+    p_max: int=4999,
+    res_md: Optional[int]=10 ** 16,
+) -> int:
     """
     Solution to Project Euler #249
+
+    Calculates the number of subsets of the set of all primes
+    no greater than p_max whose elements sum to a prime number.
+    If res_md is given as a strictly positive integer, this is
+    returned modulo res_md, otherwise the total itself is
+    returned.
+
+    Args:
+        Optional named:
+        p_max (int): Integer giving the inclusive upper bound
+                on the value of primes included in the set whose
+                subsets satisfying the given conditions are to
+                be counted.
+            Default: 499
+        res_md (int or None): If given as a strictly positive
+                integer, specifies the modulus to which the
+                returned result is to be taken. Otherwise, the
+                total itself is returned.
+            Default: 10 ** 16
+
+    Returns:
+    Integer (int) giving the number of subsets of the set of all
+    primes no greater than p_max whose elements sum to a prime
+    number, with the total being given modulo res_md if this is
+    specified as a strictly positive integer, otherwise the
+    total itself being given.
+
+    Outline of rationale:
+    TODO
     """
     ps = SimplePrimeSieve(n_max=p_max)
     def primeCheck(num: int) -> bool:
         res = ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)
         return res[0]
 
-    curr = {0: 1}
+    curr = SortedDict({0: 1})
     for p in ps.endlessPrimeGenerator():
         if p > p_max: break
         print(p, len(curr))
-        for num in reversed(sorted(curr.keys())):
-            curr[num + p] = curr.get(num + p, 0) + curr[num]
-            if md is not None: curr[num + p] %= md
+        for num_neg in list(curr.keys()):
+            f = curr[num_neg]
+            num_neg2 = num_neg - p
+            curr[num_neg2] = curr.get(num_neg2, 0) + f
+            if res_md is not None: curr[num_neg2] %= res_md
+    #print(curr)
     res = 0
-    for num, f in curr.items():
-        if primeCheck(num):
+    for num_neg, f in curr.items():
+        if primeCheck(-num_neg):
             res += f
-            if md is not None: res %= md
+            if res_md is not None: res %= res_md
     return res
 
 # Problem 250
@@ -7214,7 +7249,7 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
 
     if 249 in eval_nums:
         since = time.time() 
-        res = primeSumsetSums(p_max=5000, md=10 ** 16)
+        res = primeSumsetSums(p_max=4999, res_md=10 ** 16)
         print(f"Solution to Project Euler #249 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 250 in eval_nums:
@@ -7225,5 +7260,5 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {248}
+    eval_nums = {249}
     evaluateProjectEulerSolutions201to250(eval_nums)
