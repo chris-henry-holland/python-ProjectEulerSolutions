@@ -6944,24 +6944,31 @@ def primeSumsetSums(
     return res
 
 # Problem 250
-def numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max: int=250250, div: int=250, md: Optional[int]=10 ** 16) -> int:
+def numberToItsOwnPowerSubsetDivisibleByNumberCount(
+    n_max: int=250250,
+    div: int=250,
+    res_md: Optional[int]=10 ** 16,
+) -> int:
     """
     Solution to Project Euler #250
 
     Calculates the number of subsets of the set of the integers
     no greater than n_max to their own power whose sum of elements
-    is divisible by div
+    is divisible by div.
     If res_md is given as a strictly positive integer, this is
     returned modulo res_md, otherwise the total itself is
     returned.
 
     Args:
         Optional named:
-        p_max (int): Integer giving the inclusive upper bound
-                on the value of primes included in the set whose
-                subsets satisfying the given conditions are to
-                be counted.
-            Default: 499
+        n_max (int): Integer giving the inclusive upper bound
+                on the value of integers taken to their own
+                power is included in the set whose subsets
+                satisfying the given conditions are to be counted.
+            Default: 250250
+        div (int): Strictly positive integer giving the number
+                by which the sum of elements of subsets should be
+                divisible in order to be included in the count.
         res_md (int or None): If given as a strictly positive
                 integer, specifies the modulus to which the
                 returned result is to be taken. Otherwise, the
@@ -6969,11 +6976,11 @@ def numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max: int=250250, div: int=
             Default: 10 ** 16
 
     Returns:
-    Integer (int) giving the number of subsets of the set of all
-    primes no greater than p_max whose elements sum to a prime
-    number, with the total being given modulo res_md if this is
-    specified as a strictly positive integer, otherwise the
-    total itself being given.
+    Integer (int) giving the number of subsets of the set of the
+    integers no greater than n_max to their own power whose sum
+    of elements is divisible by div, with the total being given
+    modulo res_md if this is specified as a strictly positive
+    integer, otherwise the total itself being given.
 
     Outline of rationale:
     TODO
@@ -6986,11 +6993,11 @@ def numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max: int=250250, div: int=
         for i, f in enumerate(list(curr)):
             if not f: continue
             curr[(i + num2) % div] += f
-        if md is None: continue
+        if res_md is None: continue
         for i, f in enumerate(curr):
-            curr[i] = f % md
+            curr[i] = f % res_md
     res = curr[0] - 1
-    if md is not None: res %= md
+    if res_md is not None: res %= res_md
     return res
 
 ##############
@@ -7284,11 +7291,11 @@ def evaluateProjectEulerSolutions201to250(eval_nums: Optional[Set[int]]=None) ->
 
     if 250 in eval_nums:
         since = time.time() 
-        res = numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max=250250, div=250, md=10 ** 16)
+        res = numberToItsOwnPowerSubsetDivisibleByNumberCount(n_max=250250, div=250, res_md=10 ** 16)
         print(f"Solution to Project Euler #250 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     #print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {249}
+    eval_nums = {250}
     evaluateProjectEulerSolutions201to250(eval_nums)
