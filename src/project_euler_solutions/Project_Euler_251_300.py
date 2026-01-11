@@ -36,7 +36,54 @@ from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGe
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 
 # Problem 251
-def cardanoTripletGeneratorBySum(sum_max: Optional[int]=None) -> Generator[Tuple[int, Tuple[int, int, int]], None, None]:
+def cardanoTripletGeneratorBySum(
+    sum_max: Optional[int]=None,
+) -> Generator[Tuple[int, Tuple[int, int, int]], None, None]:
+    """
+    Generator iterating over the Cardano Triplets in increasing order
+    of the sum of the triplet integers, with, if sum_max given, sum no
+    greater than sum_max.
+
+    An Cardano Triplet is an ordered triple of strictly positive integers
+    (a, b, c) that satisfies:
+        cuberoot(a + b * sqrt(c)) + cuberoot(a - b * sqrt(c)) = 1
+    
+    Note that if sum_max is not specified, the generator never
+    of itself terminates and thus any in such a case for loops over
+    this generator must include provision to terminate (e.g. a
+    break or return statement inside a conditional, or be zipped
+    with a generator that does terminate), otherwise it would result
+    in an infinite loop.
+
+    Args:
+        Optional named:
+        sum_max (int or None): If given as an integer, is the
+                inclusive upper bound on the sum of Cardano Triplets
+                yielded, otherwise there is no such upper bound. 
+                Note that if this is not given or given as None,
+                the generator does not of itself terminate.
+            Default: None
+    
+    Yields:
+    3-tuple of integers representing a Cardano Triplet. These are
+    yielded in strictly increasing order of the sum of the three
+    numbers, with different triples with the same sum ordered
+    in increasing lexicographic order. A Cardano Triplet is
+    yielded only after all existing Cardano Triplets that precede
+    it by this ordering are yielded (i.e. no Cardano Triplets are
+    skipped) and if sum_max is given as an integer, all Cardano
+    Triplets whose sum is no greater than sum_max are yielded
+    before terminating.
+    Note that if sum_max is not given or given as None, the generator
+    does not of itself terminate so in any in such a case for loops
+    over this generator must include provision to terminate (e.g. a
+    break or return statement inside a conditional, or be zipped
+    with a generator that does terminate), otherwise it would result
+    in an infinite loop.
+
+    Outline of rationale:
+    TODO
+    """
     ps = PrimeSPFsieve()
     h = []
     for k in itertools.count(1):
@@ -102,6 +149,28 @@ def cardanoTripletGeneratorBySum(sum_max: Optional[int]=None) -> Generator[Tuple
 def cardanoTripletCount(sum_max: int=11 * 10 ** 7) -> int:
     """
     Solution to Project Euler #251
+
+    Calculates the number of Cardano Triplets for which the sum
+    of the three integers in the triplet is no greater than
+    sum_max.
+
+    An Cardano Triplet is an ordered triple of strictly positive
+    integers (a, b, c) that satisfies:
+        cuberoot(a + b * sqrt(c)) + cuberoot(a - b * sqrt(c)) = 1
+
+    Args:
+        Optional named:
+        sum_max (int): The inclusive upper bound on the sum of
+                Cardano Triplets included in the count.
+            Default: 11 * 10 ** 7
+    
+    Yields:
+    Integer (int) giving the number of Cardano Triplets for which
+    the sum of the three integers in the triplet is no greater than
+    sum_max.
+
+    Outline of rationale:
+    TODO
     """
     # Review- Try to make faster
     ps = PrimeSPFsieve()
@@ -3001,7 +3070,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {200}
+    eval_nums = {251}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -3102,9 +3171,10 @@ for w in range(1, isqrt(sz) + 1):
     cnt += isTatamiFree(w, h)
 print(f"sz = {sz}, Tatami-free count = {cnt}")
 """
-
+"""
 for num, num_pf in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
     n_factors=400,
 ):
     if num > 10 ** 8: break
     print(num, num_pf)
+"""
