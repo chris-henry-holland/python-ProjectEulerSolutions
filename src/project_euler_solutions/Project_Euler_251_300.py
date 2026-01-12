@@ -145,7 +145,6 @@ def cardanoTripletGeneratorBySum(
     while h: yield heapq.heappop(h)
     return
 
-
 def cardanoTripletCount(sum_max: int=11 * 10 ** 7) -> int:
     """
     Solution to Project Euler #251
@@ -233,12 +232,70 @@ def cardanoTripletCount(sum_max: int=11 * 10 ** 7) -> int:
     return res
 
 # Problem 252
-def triangleDoubleArea(p1: Tuple[int, int], p2: Tuple[int, int], p3: Tuple[int, int]) -> int:
+def triangleDoubleArea(
+    p1: Tuple[int, int],
+    p2: Tuple[int, int],
+    p3: Tuple[int, int],
+) -> int:
+    """
+    For a triangle in the Cartesian plane whose vertices
+    p1, p2 and p3 have integer Cartesian coordinates,
+    calculates double the area of the triangle.
+
+    Args:
+        Required positional:
+        p1 (2-tuple of ints): The integer Cartesian coordinates
+                giving the position of the first of the
+                triangle vertices.
+        p2 (2-tuple of ints): The integer Cartesian coordinates
+                giving the position of the second of the
+                triangle vertices.
+        p3 (2-tuple of ints): The integer Cartesian coordinates
+                giving the position of the third of the
+                triangle vertices.
+
+    Returns:
+    Integer (int) giving twice the area of the triangle in
+    the Cartesian plane whose vertices are at the positions
+    with Cartesian coordinates p1, p2 and p3 respectively.
+    """
     res = abs(p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]))
     #print(p1, p2, p3, res)
     return res
 
-def calculateLargestEmptyConvexPolygonDoubleArea(points: List[Tuple[int, int]]) -> int:
+def calculateLargestEmptyConvexPolygonDoubleArea(
+    points: List[Tuple[int, int]],
+) -> int:
+    """
+    For the points in the Cartesian plane with integer Cartesian
+    coordinates given by the list points, calculates the largest
+    integer such that there exists a convex polygon for which
+    twice its area is equal to that integer, whose vertices are
+    all in points and there are no other elements of points
+    that are in the interior of the polygon (with the perimeter
+    of the polygon not being considered to be in the interior of
+    the polygon).
+
+    A polygon is convex if and only if for any two points in the
+    interior of the polygon, every point on the straight line
+    between the two points is also in the interior of the polygon.
+
+    Args:
+        Required positional:
+        points (list of 2-tuples of ints): The Cartesian coordinates
+                of the points in the plane for which the double
+                area of the largest polygon satisfying the given
+                constraints is to be found.
+    
+    Returns:
+    Integer (int) giving the largest number such that there exists
+    a convex polygon for which twice its area is equal to that
+    integer, whose vertices are all in points and there are no other
+    elements of points that are in the interior of the polygon.
+
+    Outline of rationale:
+    TODO
+    """
     # Review- try to make faster
     n = len(points)
     points.sort()
@@ -362,7 +419,39 @@ def calculateLargestEmptyConvexPolygonDoubleArea(points: List[Tuple[int, int]]) 
     return [res[-1], *res[:-1]]
     """
 
-def calculateLargestEmptyConvexPolygonAreaFloat(points: List[Tuple[int, int]]) -> float:
+def calculateLargestEmptyConvexPolygonAreaFloat(
+    points: List[Tuple[int, int]],
+) -> float:
+    """
+    For the points in the Cartesian plane with integer Cartesian
+    coordinates given by the list points, calculates the largest
+    number such that there exists a convex polygon for which
+    its area is equal to that number, whose vertices are all in
+    points and there are no other elements of points that are in
+    the interior of the polygon (with the perimeter of the polygon
+    not being considered to be in the interior of the polygon).
+
+    A polygon is convex if and only if for any two points in the
+    interior of the polygon, every point on the straight line
+    between the two points is also in the interior of the polygon.
+
+    Args:
+        Required positional:
+        points (list of 2-tuples of ints): The Cartesian coordinates
+                of the points in the plane for which the area of the
+                largest polygon satisfying the given constraints is
+                to be found.
+    
+    Returns:
+    Float giving the largest real number such that there exists
+    a convex polygon for which its area is equal to that number,
+    whose vertices are all in points and there are no other
+    elements of points that are in the interior of the polygon.
+
+    Outline of rationale:
+    See outline of rationale section of the function
+    calculateLargestEmptyConvexPolygonDoubleArea().
+    """
     return 0.5 * calculateLargestEmptyConvexPolygonDoubleArea(points)
 
 def blumBlueShubPseudoRandomPointGenerator(
@@ -477,6 +566,10 @@ def blumBlumShubPseudoRandomTwoDimensionalPointsLargestEmptyConvexHoleArea(
     Returns:
     Float (float) giving the largest area of any convex hole formed by the
     n_points points generated by blumBlueShubPseudoRandomPointGenerator().
+
+    Outline of rationale:
+    See outline of rationale section of the function
+    calculateLargestEmptyConvexPolygonDoubleArea().
     """
     it = iter(blumBlueShubPseudoRandomPointGenerator(
         n_dim=2,
@@ -3070,7 +3163,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {251}
+    eval_nums = {252}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
