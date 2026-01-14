@@ -605,9 +605,42 @@ def blumBlumShubPseudoRandomTwoDimensionalPointsLargestEmptyConvexHoleArea(
     return res
 
 # Problem 253
-def constructingLinearPuzzleMaxSegmentCountDistribution0(n_pieces: int) -> List[int]:
+def constructingLinearPuzzleMaxSegmentCountDistribution0(
+    n_pieces: int,
+) -> List[int]:
+    """
+    For a permutation of the first n_pieces integers, the
+    numbers are selected in the order they appear in the
+    permutation and placed in another list of length n_pieces
+    in the position corresponding to the integer until the
+    list is filled. After any given step in this process,
+    the number of segments in the list is the number of
+    contiguous blocks of filled entries that are in the
+    list (where a contiguous block of filled entries is
+    a number of consecutive entries in the list, all of
+    which are filled, where the first element is either the
+    first entry of the list or is preceded by an unfilled
+    entry and the last element is either the last entry of
+    the list or is succeeded by an unfilled entry). This
+    function calculates the counts of the maximum number of
+    segments that occur at any part of the process over
+    each possible distinct permutation of the n_pieces integers.
+
+    Args:
+        Required positional:
+        n_pieces (int): The number of integers used during the
+                described process.
     
-    
+    Returns:
+    List of integers (int), where the 0-indexed i:th element
+    of the list corresponds to the number of permutations of the
+    n_pieces integers which, when the described process is
+    applied has a maximum number of segments seen equal to i.
+
+    Outline of rationale:
+    TODO
+    """
+    # Review- look into rewording the documentation for clarity
     if n_pieces == 1: return [0, 1]
 
     def addDistribution(distr: List[int], distr_add: List[int], mn_val: int=0) -> None:
@@ -793,7 +826,39 @@ def constructingLinearPuzzleMaxSegmentCountDistribution0(n_pieces: int) -> List[
     return res
 
 def constructingLinearPuzzleMaxSegmentCountDistribution(n_pieces: int) -> List[int]:
+    """
+    For a permutation of the first n_pieces integers, the
+    numbers are selected in the order they appear in the
+    permutation and placed in another list of length n_pieces
+    in the position corresponding to the integer until the
+    list is filled. After any given step in this process,
+    the number of segments in the list is the number of
+    contiguous blocks of filled entries that are in the
+    list (where a contiguous block of filled entries is
+    a number of consecutive entries in the list, all of
+    which are filled, where the first element is either the
+    first entry of the list or is preceded by an unfilled
+    entry and the last element is either the last entry of
+    the list or is succeeded by an unfilled entry). This
+    function calculates the counts of the maximum number of
+    segments that occur at any part of the process over
+    each possible distinct permutation of the n_pieces integers.
+
+    Args:
+        Required positional:
+        n_pieces (int): The number of integers used during the
+                described process.
     
+    Returns:
+    List of integers (int), where the 0-indexed i:th element
+    of the list corresponds to the number of permutations of the
+    n_pieces integers which, when the described process is
+    applied has a maximum number of segments seen equal to i.
+
+    Outline of rationale:
+    TODO
+    """
+    # Review- look into rewording the documentation for clarity
     # Review- Look into the binary tree solution of Lucy_Hedgehog
     if n_pieces == 1: return [0, 1]
 
@@ -875,7 +940,43 @@ def constructingLinearPuzzleMaxSegmentCountDistribution(n_pieces: int) -> List[i
         res.append(res_cumu[i] - res_cumu[i - 1])
     return res
 
-def constructingLinearPuzzleMaxSegmentCountMeanFraction(n_pieces: int) -> CustomFraction:
+def constructingLinearPuzzleMaxSegmentCountMeanFraction(
+    n_pieces: int,
+) -> CustomFraction:
+    """
+    For a permutation of the first n_pieces integers, the
+    numbers are selected in the order they appear in the
+    permutation and placed in another list of length n_pieces
+    in the position corresponding to the integer until the
+    list is filled. After any given step in this process,
+    the number of segments in the list is the number of
+    contiguous blocks of filled entries that are in the
+    list (where a contiguous block of filled entries is
+    a number of consecutive entries in the list, all of
+    which are filled, where the first element is either the
+    first entry of the list or is preceded by an unfilled
+    entry and the last element is either the last entry of
+    the list or is succeeded by an unfilled entry). This
+    function calculates the mean of the maximum number of
+    segments that occur at any part of the process over
+    each possible distinct permutation of the n_pieces integers.
+
+    Args:
+        Required positional:
+        n_pieces (int): The number of integers used during the
+                described process.
+    
+    Returns:
+    CustomFraction object representing the rational number equal
+    to the mean maximum number of segments that occur at any
+    part of the described process over each possible distinct
+    permutation of the n_pieces integers.
+
+    Outline of rationale:
+    See outline of rationale section of the function
+    constructingLinearPuzzleMaxSegmentCountDistribution().
+    """
+    # Review- look into rewording the documentation for clarity
     denom = 0
     numer = 0
     distr = constructingLinearPuzzleMaxSegmentCountDistribution(n_pieces)
@@ -885,9 +986,43 @@ def constructingLinearPuzzleMaxSegmentCountMeanFraction(n_pieces: int) -> Custom
         denom += num
     return CustomFraction(numer, denom)
 
-def constructingLinearPuzzleMaxSegmentCountMeanFloat(n_pieces: int=40) -> float:
+def constructingLinearPuzzleMaxSegmentCountMeanFloat(
+    n_pieces: int=40,
+) -> float:
     """
     Solution to Project Euler #253
+
+    For a permutation of the first n_pieces integers, the
+    numbers are selected in the order they appear in the
+    permutation and placed in another list of length n_pieces
+    in the position corresponding to the integer until the
+    list is filled. After any given step in this process,
+    the number of segments in the list is the number of
+    contiguous blocks of filled entries that are in the
+    list (where a contiguous block of filled entries is
+    a number of consecutive entries in the list, all of
+    which are filled, where the first element is either the
+    first entry of the list or is preceded by an unfilled
+    entry and the last element is either the last entry of
+    the list or is succeeded by an unfilled entry). This
+    function calculates the mean of the maximum number of
+    segments that occur at any part of the process over
+    each possible distinct permutation of the n_pieces integers.
+
+    Args:
+        Required positional:
+        n_pieces (int): The number of integers used during the
+                described process.
+    
+    Returns:
+    Float representing the real number equal to the mean
+    maximum number of segments that occur at any part of the
+    described process over each possible distinct permutation
+    of the n_pieces integers.
+
+    Outline of rationale:
+    See outline of rationale section of the function
+    constructingLinearPuzzleMaxSegmentCountDistribution().
     """
     frac = constructingLinearPuzzleMaxSegmentCountMeanFraction(n_pieces)
     print(frac)
@@ -3184,7 +3319,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {252}
+    eval_nums = {253}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
