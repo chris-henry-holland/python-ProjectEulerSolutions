@@ -1029,7 +1029,39 @@ def constructingLinearPuzzleMaxSegmentCountMeanFloat(
     return frac.numerator / frac.denominator
 
 # Problem 254
-def calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN(n: int, base: int=10) -> List[int]:
+def calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN(
+    n: int,
+    base: int=10,
+) -> List[int]:
+    """
+    Calculates the frequencies of the digits of the representation
+    of the number in the chosen base that is the smallest strictly
+    positive integer for which the sum of the factorial over each
+    of its digits when represented in that base is equal to n.
+
+    Args:
+        Required positional:
+        n (int): Strictly positive integer giving the number to which
+                the number with the digit frequencies returned
+                should have the factorials of its digits sum
+                (when represented in the chosen base).
+
+        Optional named:
+        base (int): Integer strictly greater than 1 giving the
+                base in which the numbers should be represented
+                when assessing their digits.
+            Default: 10
+
+    Returns:
+    List of integers (int) with length base, where the 0-indexed
+    i:th element is equal to the frequency of the digit i in the
+    representation in the chosen base of the smallest strictly
+    positive integer for which the sum of the factorial over each
+    of its digits when represented in that base is equal to n.
+
+    Outline of rationale:
+    TODO
+    """
     
     mx_non_max_dig_tot = math.factorial(base - 1) - 1
     mx_non_max_dig_n_dig = 0
@@ -1168,8 +1200,44 @@ def calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN(n
             break
     return res[1]
 
-def calculateSmallestNumberDigitFrequenciesWithTheFirstNSumOfDigitFactorials(n_max: int, base: int=10) -> List[int]:
+def calculateSmallestNumberDigitFrequenciesWithTheFirstNSumOfDigitFactorials(
+    n_max: int,
+    base: int=10,
+) -> List[int]:
+    """
+    Calculates the total frequencies of the digits of the
+    representations of the numbers in the chosen base that are
+    the smallest strictly positive integers for which the sum
+    of the factorial over each of their digits when represented
+    in that base is equal to the integers between 1 and n_max
+    inclusive
 
+    Args:
+        Required positional:
+        n_max (int): Strictly positive integer giving the inclusive
+                upper bound on the values to which the numbers whose
+                digit frequencies are included in the returned total
+                frequencies should have the factorials of its digits
+                sum (when represented in the chosen base).
+
+        Optional named:
+        base (int): Integer strictly greater than 1 giving the
+                base in which the numbers should be represented
+                when assessing their digits.
+            Default: 10
+
+    Returns:
+    List of integers (int) with length base, where the 0-indexed
+    i:th element is equal to the total frequency of the digit i in
+    the representations in the chosen base of the smallest strictly
+    positive integer for which the sum of the factorial over each
+    of its digits when represented in that base is equal to each
+    of the integers between 1 and n_max inclusive.
+
+    Outline of rationale:
+    TODO
+    """
+    
     res = [[]]
     for num in range(1, n_max + 1):
         dig_freqs = calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN(num, base=base)
@@ -3319,7 +3387,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {253}
+    eval_nums = {254}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
