@@ -1210,7 +1210,7 @@ def calculateSmallestNumberDigitFrequenciesWithTheFirstNSumOfDigitFactorials(
     the smallest strictly positive integers for which the sum
     of the factorial over each of their digits when represented
     in that base is equal to the integers between 1 and n_max
-    inclusive
+    inclusive.
 
     Args:
         Required positional:
@@ -1235,7 +1235,8 @@ def calculateSmallestNumberDigitFrequenciesWithTheFirstNSumOfDigitFactorials(
     of the integers between 1 and n_max inclusive.
 
     Outline of rationale:
-    TODO
+    See outline of rationale section in the documentation of function
+    calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN().
     """
     
     res = [[]]
@@ -1245,8 +1246,44 @@ def calculateSmallestNumberDigitFrequenciesWithTheFirstNSumOfDigitFactorials(
         res.append(dig_freqs)
     return res
 
-def calculateSmallestNumberWithTheFirstNSumOfDigitFactorials0(n_max: int, base: int=10) -> List[int]:
+def calculateSmallestNumberWithTheFirstNSumOfDigitFactorials0(
+    n_max: int,
+    base: int=10,
+) -> List[int]:
+    """
+    Calculates the total frequencies of the digits of the
+    representations of the numbers in the chosen base that are
+    the smallest strictly positive integers for which the sum
+    of the factorial over each of their digits when represented
+    in that base is equal to the integers between 1 and n_max
+    inclusive.
 
+    Args:
+        Required positional:
+        n_max (int): Strictly positive integer giving the inclusive
+                upper bound on the values to which the numbers whose
+                digit frequencies are included in the returned total
+                frequencies should have the factorials of its digits
+                sum (when represented in the chosen base).
+
+        Optional named:
+        base (int): Integer strictly greater than 1 giving the
+                base in which the numbers should be represented
+                when assessing their digits.
+            Default: 10
+
+    Returns:
+    List of integers (int) with length base, where the 0-indexed
+    i:th element is equal to the total frequency of the digit i in
+    the representations in the chosen base of the smallest strictly
+    positive integer for which the sum of the factorial over each
+    of its digits when represented in that base is equal to each
+    of the integers between 1 and n_max inclusive.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of function
+    calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN().
+    """
     factorials = [math.factorial(i) for i in range(base)]
 
     res = [-1] * (n_max + 1)
@@ -1318,6 +1355,37 @@ def calculateSmallestNumberWithTheFirstNSumOfDigitFactorials0(n_max: int, base: 
 def calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max: int=150, base: int=10) -> int:
     """
     Solution to Project Euler #254
+
+    Calculates the sum of the digits in the representations of
+    the numbers in the chosen base that are the smallest strictly
+    positive integers for which the sum of the factorial over each
+    of their digits when represented in that base is equal to the
+    integers between 1 and n_max inclusive.
+
+    Args:
+        Required positional:
+        n_max (int): Strictly positive integer giving the inclusive
+                upper bound on the values to which the numbers whose
+                digit sums are included in the returned total sum
+                should have the factorials of its digits sum (when
+                represented in the chosen base).
+
+        Optional named:
+        base (int): Integer strictly greater than 1 giving the
+                base in which the numbers should be represented
+                when assessing their digits.
+            Default: 10
+
+    Returns:
+    Integer (int) giving the sum of the digits in the representations
+    of the numbers in the chosen base that are the smallest strictly
+    positive integers for which the sum of the factorial over each
+    of their digits when represented in that base is equal to the
+    integers between 1 and n_max inclusive.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of function
+    calculateSmallestNumberDigitFrequenciesWithSumOfFactorialSumDigitsEqualToN().
     """
     freq_lsts = calculateSmallestNumberDigitFrequenciesWithTheFirstNSumOfDigitFactorials(n_max, base=base)
     print(freq_lsts)
