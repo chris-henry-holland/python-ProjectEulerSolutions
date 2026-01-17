@@ -1421,8 +1421,45 @@ def calculateSmallestNumberWithTheFirstNSumOfDigitFactorialsDigitSumTotal(n_max:
     return res
 
 # Problem 255
-def calculateNumberOfIterationsOfHeronsMethodForIntegers(n: int, base: int=10) -> int:
+def calculateNumberOfIterationsOfHeronsMethodForIntegers(
+    n: int,
+) -> int:
+    """
+    Calculates the number of iterations required by an adaptation
+    of Heron's method for integer arithmetic to calculate the
+    rounded square root of the non-negative integer n.
 
+    The adaptation of Heron's method for integer arithmetic used
+    is an iterative procedure whereby for integer k >= 0, the
+    term x_(k + 1) is calculated using:
+        x_(k + 1) = floor((x_k + ceil(n / x_k)) / 2)
+    where floor() is the floor function (equal to the largest
+    integer no greater than the input) and ceil() is the ceiling
+    function (equal to the smallest integer no less than the input).
+    The procedure starts with x_0, where, for d equal to the number
+    of digits in the representation of the integer in base 10:
+        x_0 = 2 * 10 ** ((d - 1) / 2) if d is odd
+        x_0 = 7 * 10 ** ((d - 2) / 2) if d is even
+    The iteration stops for the smallest k such that x_(k + 1) = x_k,
+    and for this k the number of iterations is (k + 1).
+    For this process, it is guaranteed that there exists a
+    non-negative integer k for which  x_(k + 1) = x_k, and therefore
+    the adaptation of Heron's method for integer arithmetic is
+    guaranteed to terminate in a finite number of steps.
+
+    Args:
+        n (int): The non-negative integer n for which the number
+                of steps in the adaptation of Heron's method for
+                integer arithmetic described to find the rounded
+                square root.
+
+    Returns:
+    Integer (int) giving the number of iterations required by the
+    adaptation of Heron's method for integer arithmetic described
+    to calculate the rounded square root of the non-negative integer
+    n.
+    """
+    base = 10
     n_dig = 0
     num2 = n
     while num2:
@@ -1440,17 +1477,16 @@ def calculateNumberOfIterationsOfHeronsMethodForIntegers(n: int, base: int=10) -
 def meanNumberOfIterationsOfHeronsMethodForIntegersFraction(
     n_min: int,
     n_max: int,
-    base: int=10,
 ) -> CustomFraction:
 
-
+    base = 10
     def calculateTransition(rng: Tuple[int], lower: int) -> int:
 
         lft, rgt = rng
         while lft < rgt:
             mid = rgt - ((rgt - lft) >> 1)
             #print(lft, rgt, mid, calculateNumberOfIterationsOfHeronsMethodForIntegers(mid, base=base), lower)
-            if calculateNumberOfIterationsOfHeronsMethodForIntegers(mid, base=base) > lower:
+            if calculateNumberOfIterationsOfHeronsMethodForIntegers(mid) > lower:
                 rgt = mid - 1
             else: lft = mid
         return lft
@@ -1528,12 +1564,11 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFraction(
 def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
     n_min: int,
     n_max: int,
-    base: int=10,
 ) -> float:
     """
     Solution to Project Euler #255
     """
-    res = meanNumberOfIterationsOfHeronsMethodForIntegersFraction(n_min, n_max, base=base)
+    res = meanNumberOfIterationsOfHeronsMethodForIntegersFraction(n_min, n_max)
     print(res)
     return res.numerator / res.denominator
 
