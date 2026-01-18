@@ -1478,7 +1478,49 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFraction(
     n_min: int,
     n_max: int,
 ) -> CustomFraction:
+    """
+    Calculates the mean number of iterations required by an
+    adaptation of Heron's method for integer arithmetic to
+    calculate the rounded square root of each of the non-negative
+    integers between n_min and n_max inclusive as a fraction.
 
+    The adaptation of Heron's method for integer arithmetic used
+    is an iterative procedure whereby for integer k >= 0, the
+    term x_(k + 1) is calculated using:
+        x_(k + 1) = floor((x_k + ceil(n / x_k)) / 2)
+    where floor() is the floor function (equal to the largest
+    integer no greater than the input) and ceil() is the ceiling
+    function (equal to the smallest integer no less than the input).
+    The procedure starts with x_0, where, for d equal to the number
+    of digits in the representation of the integer in base 10:
+        x_0 = 2 * 10 ** ((d - 1) / 2) if d is odd
+        x_0 = 7 * 10 ** ((d - 2) / 2) if d is even
+    The iteration stops for the smallest k such that x_(k + 1) = x_k,
+    and for this k the number of iterations is (k + 1).
+    For this process, it is guaranteed that there exists a
+    non-negative integer k for which  x_(k + 1) = x_k, and therefore
+    the adaptation of Heron's method for integer arithmetic is
+    guaranteed to terminate in a finite number of steps.
+
+    Args:
+        n_min (int): The inclusive lower bound on the non-negative
+                integers for which the number of steps in the
+                adaptation of Heron's method for integer arithmetic
+                described to find the rounded square root is to
+                be included in the calculation of the mean.
+        n_max (int): The inclusive upper bound on the non-negative
+                integers for which the number of steps in the
+                adaptation of Heron's method for integer arithmetic
+                described to find the rounded square root is to
+                be included in the calculation of the mean.
+
+    Returns:
+    CustomFraction object giving the rational number representing
+    the mean number of iterations required by the adaptation of
+    Heron's method for integer arithmetic described to calculate
+    the rounded square root of the non-negative integers between
+    n_min and n_max inclusive.
+    """
     base = 10
     def calculateTransition(rng: Tuple[int], lower: int) -> int:
 
@@ -1534,8 +1576,8 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFraction(
         #print(rt, rngs)
         for sub_rng in rngs:
             cnt_rng = (
-                calculateNumberOfIterationsOfHeronsMethodForIntegers(sub_rng[0][0], base=base),
-                calculateNumberOfIterationsOfHeronsMethodForIntegers(sub_rng[0][1], base=base),
+                calculateNumberOfIterationsOfHeronsMethodForIntegers(sub_rng[0][0]),
+                calculateNumberOfIterationsOfHeronsMethodForIntegers(sub_rng[0][1]),
             )
             #print(f"sub_rng = {sub_rng}, cnt_rng = {cnt_rng}")
             sub_rng2 = list(sub_rng[0])
@@ -1567,6 +1609,47 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
 ) -> float:
     """
     Solution to Project Euler #255
+
+    Calculates the mean number of iterations required by an
+    adaptation of Heron's method for integer arithmetic to
+    calculate the rounded square root of each of the non-negative
+    integers between n_min and n_max inclusive as a float.
+
+    The adaptation of Heron's method for integer arithmetic used
+    is an iterative procedure whereby for integer k >= 0, the
+    term x_(k + 1) is calculated using:
+        x_(k + 1) = floor((x_k + ceil(n / x_k)) / 2)
+    where floor() is the floor function (equal to the largest
+    integer no greater than the input) and ceil() is the ceiling
+    function (equal to the smallest integer no less than the input).
+    The procedure starts with x_0, where, for d equal to the number
+    of digits in the representation of the integer in base 10:
+        x_0 = 2 * 10 ** ((d - 1) / 2) if d is odd
+        x_0 = 7 * 10 ** ((d - 2) / 2) if d is even
+    The iteration stops for the smallest k such that x_(k + 1) = x_k,
+    and for this k the number of iterations is (k + 1).
+    For this process, it is guaranteed that there exists a
+    non-negative integer k for which  x_(k + 1) = x_k, and therefore
+    the adaptation of Heron's method for integer arithmetic is
+    guaranteed to terminate in a finite number of steps.
+
+    Args:
+        n_min (int): The inclusive lower bound on the non-negative
+                integers for which the number of steps in the
+                adaptation of Heron's method for integer arithmetic
+                described to find the rounded square root is to
+                be included in the calculation of the mean.
+        n_max (int): The inclusive upper bound on the non-negative
+                integers for which the number of steps in the
+                adaptation of Heron's method for integer arithmetic
+                described to find the rounded square root is to
+                be included in the calculation of the mean.
+
+    Returns:
+    Float object giving the real number representing the mean number
+    of iterations required by the adaptation of Heron's method for
+    integer arithmetic described to calculate the rounded square root
+    of the non-negative integers between n_min and n_max inclusive.
     """
     res = meanNumberOfIterationsOfHeronsMethodForIntegersFraction(n_min, n_max)
     print(res)
@@ -3408,7 +3491,6 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
             n_min=10 ** 13,
             n_max=10 ** 14 - 1,
-            base=10,
         )
         print(f"Solution to Project Euler #255 = {res}, calculated in {time.time() - since:.4f} seconds")
     
@@ -3490,7 +3572,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {254}
+    eval_nums = {255}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
