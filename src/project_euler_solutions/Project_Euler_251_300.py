@@ -1660,11 +1660,46 @@ def meanNumberOfIterationsOfHeronsMethodForIntegersFloat(
 def isTatamiFreeBruteForce(
     w: int,
     h: int,
-    known_non_tatami: Optional[Set[Tuple[int, int, int, int]]]=None,
-) -> int:
-    # Assumes at least one of w and h is even
+) -> bool:
+    """
+    Calculates whether a rectangular grid of equally sized squares
+    with dimensions w x h is Tatami-free.
+
+    For a rectangular grid of equally sized squares, consider an
+    arrangement of 1 x 2 rectangles that collectively completely
+    fill the rectangular grid with no overlap between the rectangles.
+    This arrangement is Tatami if and only if there is no point
+    in the rectangular grid at which corners of four different
+    rectangles meet.
+
+    A rectangular grid with given dimensions is Tatami-free if
+    and only if there does not exist any such arrangement that
+    is Tatami.
+
+    Args:
+        Required positional:
+        w (int): Strictly positive integer giving the width of the
+                rectangular grid in terms of the side lengths of
+                the equally sized squares of which it is comprised
+        h (int): Strictly positive integer giving the height of the
+                rectangular grid in terms of the side lengths of
+                the equally sized squares of which it is comprised
+    
+    Returns:
+    Boolean (bool) specifying whether the rectangular grid of
+    squares with dimensions w x h is Tatami-free.
+
+    Outline of rationale:
+    TODO
+    """
+    if (w & 1) and (h & 1):
+        # All odd area rectangular grids are Tatami-free given
+        # that it is not possible to fill such a rectangular grid
+        # with 1 x 2 rectangles without overlap.
+        return True
     if w > h: w, h = h, w
-    if known_non_tatami is None: known_non_tatami = set()
+    #if known_tatami_free is None: known_tatami_free = set()
+    known_tatami_free = set()
     def transitionGenerator(
         h_bm: int,
         corner_bm: int,
@@ -1732,21 +1767,21 @@ def isTatamiFreeBruteForce(
     #seen = set()
     def recur(h_remain: int, h_bm: int, corner_bm: int) -> bool:
         args = (w, h_remain, h_bm, corner_bm)
-        if args in known_non_tatami: return False
+        if args in known_tatami_free: return False
         #print(f"h_remain = {h_remain}")
         if h_remain == 1:
             prev_filled = True
             for _ in range(w - 1):
                 if h_bm & 1:
                     if not prev_filled:
-                        known_non_tatami.add(args)
+                        known_tatami_free.add(args)
                         return False
                     prev_filled = True
                 elif prev_filled:
                     prev_filled = False
                 else:
                     if corner_bm & 1:
-                        known_non_tatami.add(args)
+                        known_tatami_free.add(args)
                         return False
                     prev_filled = True
                 h_bm >>= 1
@@ -1757,7 +1792,7 @@ def isTatamiFreeBruteForce(
             if recur(h_remain - 1, h_bm2, corner_bm2):
                 #print(h_remain - 1, format(h_bm2, "b"), format(corner_bm2, "b"))
                 return True
-        known_non_tatami.add(args)
+        known_tatami_free.add(args)
         return False
 
     res = recur(h, 0, 0)
@@ -1768,7 +1803,42 @@ def isTatamiFree(
     w: int,
     h: int,
 ) -> int:
-    # Assumes at least one of w and h is even
+    """
+    Calculates whether a rectangular grid of equally sized squares
+    with dimensions w x h is Tatami-free.
+
+    For a rectangular grid of equally sized squares, consider an
+    arrangement of 1 x 2 rectangles that collectively completely
+    fill the rectangular grid with no overlap between the rectangles.
+    This arrangement is Tatami if and only if there is no point
+    in the rectangular grid at which corners of four different
+    rectangles meet.
+
+    A rectangular grid with given dimensions is Tatami-free if
+    and only if there does not exist any such arrangement that
+    is Tatami.
+
+    Args:
+        Required positional:
+        w (int): Strictly positive integer giving the width of the
+                rectangular grid in terms of the side lengths of
+                the equally sized squares of which it is comprised
+        h (int): Strictly positive integer giving the height of the
+                rectangular grid in terms of the side lengths of
+                the equally sized squares of which it is comprised
+    
+    Returns:
+    Boolean (bool) specifying whether the rectangular grid of
+    squares with dimensions w x h is Tatami-free.
+
+    Outline of rationale:
+    TODO
+    """
+    if (w & 1) and (h & 1):
+        # All odd area rectangular grids are Tatami-free given
+        # that it is not possible to fill such a rectangular grid
+        # with 1 x 2 rectangles without overlap.
+        return True
     if w > h: w, h = h, w
     m = (h - 2) // (w + 1)
     if m < 1: return False
@@ -1777,7 +1847,31 @@ def isTatamiFree(
 def integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
     n_factors: int,
 ) -> Generator[Tuple[int, Dict[int, int]], None, None]:
-    
+    """
+    Generator iterating over the strictly positive integers with
+    at least n_factors distinct factors in strictly increasing
+    order and their prime factorisations.
+
+    Args:
+        Required positional:
+        n_factors (int): Non-negative integer giving the inclusive
+                lower bound on the number of distinct factors the
+                values yielded must have.
+
+    Yields:
+    2-tuple whose index 0 contains a strictly positive integer
+    with at least n_factors distinct factors, and whose index
+    1 contains a dictionary representing the prime factorisation
+    of the integer at index 0, whose keys are integers giving a
+    prime that divides the integer with corresponding value being
+    the power of that prime in the prime factorisation of the
+    integer. These are yielded in increasing order of size of the
+    integer.
+                
+    Outline of rationale:
+    TODO
+    """
+    # Review- try to make faster.
     ps = SimplePrimeSieve()
 
     def numbersWithExactlyNPrimeFactorsWithLargestPrimeGenerator(
@@ -1910,7 +2004,7 @@ def integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
     while h0 or nxt is not None:
         
         while not h0 or (nxt is not None and nxt[1] < h0[0][0]):
-            print(h0[0], nxt)
+            #print(h0[0], nxt)
             idx, ans, it2 = nxt
             heapq.heappush(h0, (ans, it2))
             nxt = getNextLargestPrimeFactorGenerator(idx + 1)
@@ -1951,7 +2045,7 @@ def smallestRoomSizeWithExactlyNTatamiFreeConfigurations(n_config: int=200) -> i
     Solution to Project Euler #256
     """
     ps = PrimeSPFsieve()
-    known_non_tatami = set()
+    #known_non_tatami = set()
     # note that no perfect squares are Tatami-free
     mn_factor_cnt = (n_config << 1)
     for sz in itertools.count(2, step=2):
@@ -3572,7 +3666,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {255}
+    eval_nums = {249}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -3680,3 +3774,9 @@ for num, num_pf in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
     if num > 10 ** 8: break
     print(num, num_pf)
 """
+
+cnt = 0
+for tup in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(5):
+    print(tup)
+    cnt += 1
+    if cnt >= 20: break
