@@ -2040,9 +2040,46 @@ def integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
         
     return
 
-def smallestRoomSizeWithExactlyNTatamiFreeConfigurations(n_config: int=200) -> int:
+def smallestRoomSizeWithExactlyNTatamiFreeConfigurations(
+    n_config: int=200,
+) -> int:
     """
     Solution to Project Euler #256
+
+    Calculates the smallest strictly positive integer for which
+    there exists exactly n_config distinct rectangular grids of
+    equally sized squares containing that number of squares that
+    are Tatami-free and for which the width is no greater than
+    its height.
+
+    For a rectangular grid of equally sized squares, consider an
+    arrangement of 1 x 2 rectangles that collectively completely
+    fill the rectangular grid with no overlap between the rectangles.
+    This arrangement is Tatami if and only if there is no point
+    in the rectangular grid at which corners of four different
+    rectangles meet.
+
+    A rectangular grid with given dimensions is Tatami-free if
+    and only if there does not exist any such arrangement that
+    is Tatami.
+
+    Args:
+        Optional named:
+        n_config (int): Non-negative integer giving the exact
+                number of Tatami-free rectangular grids whose width
+                is no greater than its height that should exist
+                containing the number of squares returned.
+            Default: 200
+        
+    Returns:
+    Integer (int) giving the smallest strictly positive integer for
+    which there exists exactly n_config distinct rectangular grids of
+    equally sized squares containing that number of squares that
+    are Tatami-free and for which the width is no greater than
+    its height.
+
+    Outline of rationale:
+    TODO
     """
     ps = PrimeSPFsieve()
     #known_non_tatami = set()
@@ -3774,9 +3811,10 @@ for num, num_pf in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
     if num > 10 ** 8: break
     print(num, num_pf)
 """
-
+"""
 cnt = 0
 for tup in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(5):
     print(tup)
     cnt += 1
     if cnt >= 20: break
+"""
