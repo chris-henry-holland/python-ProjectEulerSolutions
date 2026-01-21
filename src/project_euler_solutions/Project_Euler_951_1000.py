@@ -1169,6 +1169,10 @@ def expectedMinimalFractionalValue(N: int=10 ** 4, use_float: bool=True) -> floa
     print(res)
     return res.numerator / res.denominator
 
+
+# Problem 979
+
+
 ##############
 project_euler_num_range = (951, 1000)
 

@@ -2146,8 +2146,32 @@ def smallestRoomSizeWithExactlyNTatamiFreeConfigurations(
 
 
 # Problem 257
-def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max: int) -> int:
+def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(
+    perimeter_max: int,
+) -> int:
+    """
+    For triangles ABC with integer side lengths BC <= AC <= AB and
+    the points where the angular bisectors intersect with the opposite
+    edge E (for the bisector of angle C), F (for the bisector of angle
+    A) and G (for the bisector of angle B), calculates the number of
+    such triangles ABC whose perimeter is no greater than perimeter_max
+    and whose area is an integer multiple of the area of the triangle
+    AEG.
 
+    Args:
+        Required positional:
+        perimeter_max (int): Integer giving the inclusive upper bound
+                on the perimeters of the triangles ABC considered for
+                inclusion in the count.
+
+    Returns:
+    Integer (int) giving the number of triangles ABC as described whose
+    perimeter is no greater than perimeter_max and whose area is an
+    integer multiple of the area of the triangle AEG.
+
+    Outline of rationale:
+    TODO
+    """
     res = 0
     m_primitive_cnts = {}
     for perim in range(3, perimeter_max + 1):
@@ -2173,9 +2197,34 @@ def angularBisectorTrianglePartitionIntegerRatioCountBruteForce(perimeter_max: i
     print(m_primitive_cnts)
     return res
 
-def angularBisectorTrianglePartitionIntegerRatioCount(perimeter_max: int=10 ** 8) -> int:
+def angularBisectorTrianglePartitionIntegerRatioCount(
+    perimeter_max: int=10 ** 8,
+) -> int:
     """
     Solution to Project Euler #257
+
+    For triangles ABC with integer side lengths BC <= AC <= AB and
+    the points where the angular bisectors intersect with the opposite
+    edge E (for the bisector of angle C), F (for the bisector of angle
+    A) and G (for the bisector of angle B), calculates the number of
+    such triangles ABC whose perimeter is no greater than perimeter_max
+    and whose area is an integer multiple of the area of the triangle
+    AEG.
+
+    Args:
+        Optional named:
+        perimeter_max (int): Integer giving the inclusive upper bound
+                on the perimeters of the triangles ABC considered for
+                inclusion in the count.
+            Default: 10 ** 8
+
+    Returns:
+    Integer (int) giving the number of triangles ABC as described whose
+    perimeter is no greater than perimeter_max and whose area is an
+    integer multiple of the area of the triangle AEG.
+
+    Outline of rationale:
+    TODO
     """
     
     res = perimeter_max // 3 # equilateral triangles (ratio = 4)
