@@ -2306,7 +2306,7 @@ def angularBisectorTrianglePartitionIntegerRatioCount(
     return res
 
 # Problem 258
-def calculateLaggedFibonacciTerm(
+def calculateGeneralisedLaggedFibonacciTerm(
     term_idx: int=10 ** 18,
     initial_terms: List[int]=[1] * 2000,
     prev_terms_to_sum: List[int]=[1999, 2000],
@@ -2314,6 +2314,60 @@ def calculateLaggedFibonacciTerm(
 ) -> int:
     """
     Solution to Project Euler #258
+
+    Calculates value of term term_idx of the generalisation of
+    the lagged Fibonacci sequence with initial terms initial_terms
+    and previous terms to sum prev_terms_to_sum. If res_md
+    is given as a strictly positive integer, this value is
+    given modulo res_md.
+    
+    The generalisation of the lagged Fibonacci sequence for
+    given initial terms in the list initial_terms and given
+    previous terms to sum in the list prev_terms_to_sum is the
+    sequence such that for integer i >= 0, the i:th term in
+    the sequence is:
+        t_i = initial_terms[i] if i < len(initial_terms)
+              ((sum j from 0 to len(prev_terms_to_sum) - 1) (t_(i - prev_terms_to_sum[i])))
+                otherwise
+
+    Args:
+        Optional named:
+        term_idx (int): The term of the generalisation of the
+                lagged Fibonacci sequence to be returned, given
+                modulo res_md if res_md is a strictly positive
+                integer.
+            Default: 10 ** 18,
+        initial_terms (list of ints): List of integers giving the
+                initial terms of the generalisation of the lagged
+                Fibonacci sequence, with t_i = initial_terms[i]
+                for integers 0 <= i < len(initial_terms). The
+                length of this sequence should be no less than the
+                largest value in prev_terms_to_sum.
+            Default: [1] * 2000 (a list of length 2000 of 1s)
+        prev_terms_to_sum (list of ints): List of strictly positive
+                integers specifying, for the terms in the sequence
+                after the initial terms, how many terms back in the
+                sequence from which each the terms summed to produce
+                the current term should be taken relative to the
+                current term's position in the sequence. Each of the
+                integers contained should not exceed the length of
+                initial_terms.
+            Default: [1999, 2000]
+        res_md (int or None): If given as a strictly positive integer,
+                the modulus to which the value of term term_idx should
+                be taken when returned, otherwise the term value itself
+                is returned.
+            Default: 20092010
+        
+    Returns:
+    Integer (int) giving the value of term term_idx of the generalisation
+    of the lagged Fibonacci sequence described, with initial terms
+    initial_terms and previous terms to sum prev_terms_to_sum. If res_md
+    is given as a strictly positive integer, this value is given modulo
+    res_md, otherwise the value of the term itself is returned.
+
+    Outline of rationale:
+    TODO
     """
     # Review- look into method using Cayley-Hamilton theory, from which
     # we can get (for the default values) that the transition matrix M satisfies:
@@ -3686,7 +3740,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 258 in eval_nums:
         since = time.time()
-        res = calculateLaggedFibonacciTerm(
+        res = calculateGeneralisedLaggedFibonacciTerm(
             term_idx=10 ** 18,
             initial_terms=[1] * 2000,
             prev_terms_to_sum=[1999, 2000],
@@ -3752,7 +3806,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {249}
+    eval_nums = {258}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
