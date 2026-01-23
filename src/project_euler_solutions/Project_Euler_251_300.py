@@ -2461,8 +2461,47 @@ def calculateGeneralisedLaggedFibonacciTerm(
     """
 
 # Problem 259
-def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> List[int]:
+def calculateReachableIntegers(
+    dig_min: int=1,
+    dig_max: int=9,
+    base: int=10,
+) -> List[int]:
+    """
+    Calculates all reachable integers for the chosen base with
+    minimum and maximum digit dig_min and dig_max.
 
+    A reachable integer for a given base with minimum and maximum digit
+    is a strictly positive integer that is the result of an arithmetic
+    expression containing only the digits between dig_min and dig_max
+    exactly once each in increasing order of size from left to right,
+    which can be combined using concatenation in the chosen base,
+    addition, subtraction, multiplication and division, without unary
+    minus and with order of operations (other than concatenation, which
+    is always performed first) specified freely using brackets.
+
+    Args:
+        Optional named:
+        dig_min (int): Non-negative integer strictly less than base giving
+                the smallest and leftmost digit used in any arithmetic
+                expression equal to one of the returned integers.
+            Default: 1
+        dig_max (int): Non-negative integer no less than dig_max and
+                strictly less than base giving the largest and rightmost
+                digit used in any arithmetic expression equal to one of
+                the returned integers.
+            Default: 9
+        base (int): Integer strictly greater than 1 giving the base in
+                which concatenation of digits is to be performed.
+            Default: 10
+    
+    Returns:
+    List of integers (int) giving all reachable integers for the chosen base
+    with minimum and maximum digit dig_min and dig_max in strictly increasing
+    order.
+
+    Outline of rationale:
+    TODO
+    """
     def concatenationsGenerator(
         digs: List[int],
         base: int,
@@ -2563,6 +2602,41 @@ def calculateReachableIntegers(dig_min: int=1, dig_max: int=9, base: int=10) -> 
 def calculateReachableNumbersSum(dig_min: int=1, dig_max: int=9, base: int=10) -> int:
     """
     Solution to Project Euler #259
+
+    Calculates the sum of all reachable integers for the chosen base with
+    minimum and maximum digit dig_min and dig_max.
+
+    A reachable integer for a given base with minimum and maximum digit
+    is a strictly positive integer that is the result of an arithmetic
+    expression containing only the digits between dig_min and dig_max
+    exactly once each in increasing order of size from left to right,
+    which can be combined using concatenation in the chosen base,
+    addition, subtraction, multiplication and division, without unary
+    minus and with order of operations (other than concatenation, which
+    is always performed first) specified freely using brackets.
+
+    Args:
+        Optional named:
+        dig_min (int): Non-negative integer strictly less than base giving
+                the smallest and leftmost digit used in any arithmetic
+                expression equal to one of the returned integers.
+            Default: 1
+        dig_max (int): Non-negative integer no less than dig_max and
+                strictly less than base giving the largest and rightmost
+                digit used in any arithmetic expression equal to one of
+                the returned integers.
+            Default: 9
+        base (int): Integer strictly greater than 1 giving the base in
+                which concatenation of digits is to be performed.
+            Default: 10
+    
+    Returns:
+    List of integers (int) giving the sum of all reachable integers for the
+    chosen base with minimum and maximum digit dig_min and dig_max.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of the function
+    calculateReachableIntegers().
     """
     res = sum(calculateReachableIntegers(dig_min=dig_min, dig_max=dig_max, base=base))
     return res
@@ -3806,7 +3880,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {258}
+    eval_nums = {259}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
