@@ -2642,8 +2642,49 @@ def calculateReachableNumbersSum(dig_min: int=1, dig_max: int=9, base: int=10) -
     return res
 
 # Problem 260
-def stoneGamePlayerTwoWinningConfigurationsGenerator(n_piles: int, pile_size_max: int) -> Generator[Tuple[int], None, None]:
-    # Using Sprague-Grundy
+def stoneGamePlayerTwoWinningConfigurationsGenerator(
+    n_piles: int,
+    pile_size_max: int,
+) -> Generator[List[int], None, None]:
+    """
+    Generator iterating over the initial configurations of the
+    following two player stone game with n_piles piles of stones,
+    each with maximum initial size of pile_size_max for which the
+    player whose turn is second (referred to as player 2) can
+    guarantee a win with perfect play.
+
+    The stone game starts with a given number of (possibly empty)
+    piles of stones, where the number of stones in each pile at this
+    stage in non-decreasing order is referred to as the initial
+    configuration.
+    The two players alternately take turns, with player 1 taking the
+    first turn and player 2 taking the second turn. On each turn,
+    a player selects a strictly positive integer N and a non-empty
+    subset of the piles of stones, each of which must contain no less
+    than N stones. A player loses the game if they are unable to make
+    a valid move (i.e. if there are no non-empty piles remaining at
+    the start of their turn) with the other player consequently winning.
+
+    Args:
+        Required positional:
+        n_piles (int): Non-negative integer giving the number of
+                stone piles in the stone game described.
+        pile_size_max (int): Non-negative integer giving the maximum
+                number of stones in each pile for the initial
+                configurations considered.
+
+    Yields:
+    List of integers (int) with length n_piles giving an initial
+    configuration for which player 2 can with perfect play guarantee
+    a win as a list of the initial pile sizes in non-decreasing order,
+    with the generator yielding all such initial configurations for
+    which no pile contains more than pile_size_max stones.
+    These configurations are yielded in no particular order.
+
+    Outline of rationale:
+    TODO
+    """
+    
     if pile_size_max < 0: return
     #state0 = tuple([0] * n_piles)
     #yield state0
@@ -2703,7 +2744,7 @@ def stoneGamePlayerTwoWinningConfigurationsGenerator(n_piles: int, pile_size_max
         return False
     
     curr = []
-    def recur(idx: int) -> Generator[Tuple[int], None, None]:
+    def recur(idx: int) -> Generator[List[int], None, None]:
         """
         if idx == n_piles - 1:
             mn = curr[-1] if curr else 0
@@ -2733,7 +2774,7 @@ def stoneGamePlayerTwoWinningConfigurationsGenerator(n_piles: int, pile_size_max
                     if i2 > pile_size_max: break
                     curr[-1] = i2
                     if not winning(curr):
-                        yield tuple(curr)
+                        yield list(curr)
                         seen.add(i2)
                         skipped_gaps.pop(~j)
                         break
@@ -2745,7 +2786,7 @@ def stoneGamePlayerTwoWinningConfigurationsGenerator(n_piles: int, pile_size_max
                     
                     curr[-1] = i2
                     if not winning(curr):
-                        yield tuple(curr)
+                        yield list(curr)
                         seen.add(i2)
                         break
                     skipped_gaps.add(gap)
@@ -2767,7 +2808,44 @@ def stoneGamePlayerTwoWinningConfigurationsGenerator(n_piles: int, pile_size_max
     
     yield from recur(0)
 
-def stoneGamePlayerTwoWinningConfigurationsGenerator2(pile_size_max: int) -> Generator[Tuple[int], None, None]:
+def stoneGamePlayerTwoWinningConfigurationsGenerator2(
+    pile_size_max: int,
+) -> Generator[Tuple[int, int, int], None, None]:
+    """
+    Generator iterating over the initial configurations of the
+    following two player stone game with three piles of stones,
+    each with maximum initial size of pile_size_max for which the
+    player whose turn is second (referred to as player 2) can
+    guarantee a win with perfect play.
+
+    The stone game starts with three (possibly empty) piles of stones,
+    where the number of stones in each pile at this stage in
+    non-decreasing order is referred to as the initial configuration.
+    The two players alternately take turns, with player 1 taking the
+    first turn and player 2 taking the second turn. On each turn,
+    a player selects a strictly positive integer N and a non-empty
+    subset of the piles of stones, each of which must contain no less
+    than N stones. A player loses the game if they are unable to make
+    a valid move (i.e. if there are no non-empty piles remaining at
+    the start of their turn) with the other player consequently winning.
+
+    Args:
+        Required positional:
+        pile_size_max (int): Non-negative integer giving the maximum
+                number of stones in each pile for the initial
+                configurations considered.
+
+    Yields:
+    3-tuple of integers (int) giving an initial configuration for
+    which player 2 can with perfect play guarantee a win as a list
+    of the initial pile sizes in non-decreasing order, with the
+    generator yielding all such initial configurations for
+    which no pile contains more than pile_size_max stones.
+    These configurations are yielded in no particular order.
+
+    Outline of rationale:
+    TODO
+    """
     # Based on https://euler.stephan-brumme.com/260/
     # Review- generalise to any number of piles
     def enc(j1: int, j2: int) -> int:
@@ -2795,7 +2873,44 @@ def stoneGamePlayerTwoWinningConfigurationsGenerator2(pile_size_max: int) -> Gen
                 break
     return
 
-def stoneGamePlayerTwoWinningConfigurationsSum(n_piles: int=3, pile_size_max: int=1000) -> int:
+def stoneGamePlayerTwoWinningConfigurationsSum(
+    pile_size_max: int=1000,
+) -> int:
+    """
+    Calculates the total number of stones over all of the distinct
+    initial configurations of the following two player stone game
+    with three piles of stones, each with maximum initial size of
+    pile_size_max for which the player whose turn is second (referred
+    to as player 2) can guarantee a win with perfect play.
+
+    The stone game starts with three (possibly empty) piles of stones,
+    where the number of stones in each pile at this stage in
+    non-decreasing order is referred to as the initial configuration.
+    The two players alternately take turns, with player 1 taking the
+    first turn and player 2 taking the second turn. On each turn,
+    a player selects a strictly positive integer N and a non-empty
+    subset of the piles of stones, each of which must contain no less
+    than N stones. A player loses the game if they are unable to make
+    a valid move (i.e. if there are no non-empty piles remaining at
+    the start of their turn) with the other player consequently winning.
+
+    Args:
+        Required positional:
+        pile_size_max (int): Non-negative integer giving the maximum
+                number of stones in each pile for the initial
+                configurations considered.
+
+    Yields:
+    Integer (int) giving the total number of stones over all of the
+    distinct initial configurations of the stone game described for
+    which player 2 can with perfect play guarantee a win over all
+    such initial configurations for which no pile contains more than
+    pile_size_max stones.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation for function
+    stoneGamePlayerTwoWinningConfigurationsGenerator2().
+    """
     res = 0
     cnt = 0
     counts = []
@@ -3829,7 +3944,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 260 in eval_nums:
         since = time.time()
-        res = stoneGamePlayerTwoWinningConfigurationsSum(n_piles=3, pile_size_max=1000)
+        res = stoneGamePlayerTwoWinningConfigurationsSum(pile_size_max=1000)
         print(f"Solution to Project Euler #260 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 261 in eval_nums:
@@ -3880,7 +3995,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {259}
+    eval_nums = {260}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
