@@ -1171,7 +1171,198 @@ def expectedMinimalFractionalValue(N: int=10 ** 4, use_float: bool=True) -> floa
 
 
 # Problem 979
+def countPolygonalTilingPaths(
+    polygon_n_sides: int=7,
+    n_steps: int=20,
+) -> int:
+    
+    adj = [{1: polygon_n_sides}, {0: 1, 1: 2}]
+    counts = [1, polygon_n_sides]
+    min_n_steps = [0, 1]
+    mxmn_n_steps = n_steps >> 1
+    remain_dict = {1: [polygon_n_sides - 3, 1, 1]}
+    for idx in itertools.count(start=1):
+        print(f"idx = {idx}, adj = {adj}, remain_dict = {remain_dict}")
+        if idx >= len(adj): break
+        if min_n_steps[idx] >= mxmn_n_steps: continue
+        if idx not in remain_dict.keys(): continue
+        remain_lst = remain_dict.pop(idx)
+        #if not remain_lst[0]: continue
+        cnt = counts[idx]
+        if remain_lst[1] == remain_lst[2]:
+            for _ in range(remain_lst[0] >> 1):
+                idx2 = remain_lst[1]
+                idx3 = len(adj)
+                adj.append({})
+                min_n_steps.append(min(min_n_steps[idx], min_n_steps[idx2]) + 1)
+                remain_lst[1] = idx3
+                remain_dict[idx3] = [polygon_n_sides - 1, idx, idx2]
+                if idx == idx2:
+                    counts.append(cnt)
+                    adj[idx][idx3] = 2
+                    adj[idx3][idx] = 2
+                    remain_dict[idx3][0] -= 1
+                    continue
+                counts.append(cnt << 1)
+                adj[idx][idx3] = 2
+                adj[idx3][idx] = 1
+                
+                adj[idx3].setdefault(idx2, 0)
+                adj[idx3][idx2] += 1
+                
+                remain_dict[idx3][0] -= 1
+                #remain_dict[idx2][0] -= 1
+                for j in range(1, 3):
+                    #j = 2 - (remain_dict[idx2][1] == idx)
+                    if remain_dict[idx2][j] == idx:
+                        remain_dict[idx2][j] = idx3
+                        adj[idx2].setdefault(idx3, 0)
+                        adj[idx2][idx3] += 1
+                        remain_dict[idx2][0] -= 1
+                        #adj[idx3][idx2] = 1
+                        #adj[idx2][idx3] = 1
+                        
+                        
 
+            if remain_lst[0] & 1:
+                idx2 = remain_lst[1]
+                idx3 = len(adj)
+                print(f"adding index {idx3}")
+                adj.append({})
+                min_n_steps.append(min(min_n_steps[idx], min_n_steps[idx2]) + 1)
+                remain_dict[idx3] = [polygon_n_sides - 1, idx2, idx2]
+                if idx == idx2:
+                    # Closing a platonic solid
+                    counts.append(1)
+                    adj[idx][idx3] = 1
+                    adj[idx3][idx] = polygon_n_sides
+                    remain_dict.pop(idx3)
+                    continue
+                counts.append(cnt)
+                adj[idx][idx3] = 1
+                adj[idx3][idx] = 1
+                #adj[idx2][idx3] = 2
+                #adj[idx3][idx2] = 1 + (remain_dict[idx2][0] > 1)
+                
+                adj[idx3].setdefault(idx2, 0)
+                adj[idx3][idx2] += 2
+                
+                remain_dict[idx3][0] -= 2
+                #remain_dict[idx2][0] -= 2
+                #remain_dict[idx3][0] -= adj[idx3][idx2] + 1
+                #adj[idx2][idx3] = 1
+                #adj[idx3][idx] = 0
+                #adj[idx3][idx2] = 2
+                for j in range(1, 3):
+                    #j = 2 - (remain_dict[idx2][1] == idx)
+                    if remain_dict[idx2][j] == idx:
+                        remain_dict[idx2][j] = idx3
+                        adj[idx2].setdefault(idx3, 0)
+                        adj[idx2][idx3] += 1
+                        remain_dict[idx2][0] -= 1
+            else:
+                idx2 = remain_lst[1]
+                if idx2 == idx: continue
+
+                adj[idx2].setdefault(idx2, 0)
+                adj[idx2][idx2] += 1
+                remain_dict[idx2][0] -= 1
+                for j in range(1, 3):
+                    #j = 2 - (remain_dict[idx2][1] == idx)
+                    if remain_dict[idx2][j] == idx:
+                        remain_dict[idx2][j] = idx2
+            continue
+        for _ in range(remain_lst[0] >> 1):
+            for i in range(1, 3):
+                idx2 = remain_lst[i]
+                idx3 = len(adj)
+                adj.append({})
+                min_n_steps.append(min(min_n_steps[idx], min_n_steps[idx2]) + 1)
+                remain_lst[i] = idx3
+                remain_dict[idx3] = [polygon_n_sides - 1, idx, idx2]
+                if idx == idx2:
+                    counts.append(cnt >> 1)
+                    adj[idx][idx3] = 1
+                    adj[idx3][idx] = 1
+                    continue
+                counts.append(cnt)
+                #adj[idx][idx3] = 1
+                #adj[idx2][idx3] = 1
+                #adj[idx3][idx] = 0
+                #adj[idx3][idx2] = 1
+                adj[idx][idx3] = 1
+                adj[idx3][idx] = 1
+                #adj[idx3][idx2] = 1
+                #adj[idx2][idx3] = 1
+
+                #remain_dict[idx2][0] -= 1
+                #remain_dict[idx3][0] -= 2
+                for j in range(1, 3):
+                    #j = 2 - (remain_dict[idx2][1] == idx)
+                    if remain_dict[idx2][j] == idx:
+                        remain_dict[idx2][j] = idx3
+                        #remain_dict[idx2][0] -= 1
+                        adj[idx3].setdefault(idx2, 0)
+                        adj[idx3][idx2] += 1
+                        adj[idx2].setdefault(idx3, 0)
+                        adj[idx2][idx3] += 1
+                        remain_dict[idx2][0] -= 1
+                        remain_dict[idx3][0] -= 1
+        #print(remain_lst)
+        if remain_lst[0] & 1:
+            idx3 = len(adj)
+            adj.append({})
+            min_n_steps.append(min(min_n_steps[idx], min_n_steps[remain_lst[1]], min_n_steps[remain_lst[2]]) + 1)
+            remain_dict[idx3] = [polygon_n_sides - 1, remain_lst[1], remain_lst[2]]
+            if idx == idx2:
+                counts.append(cnt >> 1)
+                adj[idx][idx3] = 1
+                adj[idx3][idx] = 2
+                remain_dict[idx3][0] -= 1
+                continue
+            counts.append(cnt)
+            adj[idx][idx3] = 1
+            adj[idx3][idx] = 1
+            for i in range(1, 3):
+                idx2 = remain_lst[i]
+                #adj[idx2][idx3] = 1
+                #adj[idx3][idx2] = 1
+                #remain_dict[idx2][0] -= 1
+                for j in range(1, 3):
+                    #j = 2 - (remain_dict[idx2][1] == idx)
+                    if remain_dict[idx2][j] == idx:
+                        remain_dict[idx2][j] = idx3
+                        #remain_dict[idx2][0] -= 1
+                        adj[idx2].setdefault(idx3, 0)
+                        adj[idx2][idx3] += 1
+                        adj[idx3].setdefault(idx2, 0)
+                        adj[idx3][idx2] += 1
+                        remain_dict[idx2][0] -= 1
+                        remain_dict[idx3][0] -= 1
+            continue
+        else:
+            idx2 = remain_lst[1]
+            idx3 = remain_lst[2]
+            adj[idx2][idx3] = 1
+            adj[idx3][idx2] = 1
+            
+            remain_dict[idx2][0] -= 1
+            remain_dict[idx3][0] -= 1
+            for j in range(1, 3):
+                #j = 2 - (remain_dict[idx2][1] == idx)
+                if remain_dict[idx2][j] == idx:
+                    remain_dict[idx2][j] = idx3
+                    #remain_dict[idx2][0] -= 1
+                if remain_dict[idx3][j] == idx:
+                    remain_dict[idx3][j] = idx2
+                    #remain_dict[idx3][0] -= 1
+
+    print(counts)
+    print(min_n_steps)
+    print(adj)
+    print(f"number of distinct tile types = {len(counts)}")
+    print(f"total number of tiles = {sum(counts)}")
+    return 0
 
 ##############
 project_euler_num_range = (951, 1000)
@@ -1220,8 +1411,14 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = expectedMinimalFractionalValue(N=10 ** 1, use_float=True)
         print(f"Solution to Project Euler #965 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+
+    if 979 in eval_nums:
+        since = time.time()
+        res = countPolygonalTilingPaths(polygon_n_sides=5, n_steps=15)
+        print(f"Solution to Project Euler #979 = {res}, calculated in {time.time() - since:.4f} seconds")
+
 if __name__ == "__main__":
-    eval_nums = {965}
+    eval_nums = {979}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
