@@ -1182,7 +1182,8 @@ def countPolygonalTilingPaths(
     mxmn_n_steps = n_steps >> 1
     remain_dict = {1: [polygon_n_sides - 3, 1, 1]}
     for idx in itertools.count(start=1):
-        print(f"idx = {idx}, adj = {adj}, remain_dict = {remain_dict}")
+        #print(f"idx = {idx}, adj = {adj}, remain_dict = {remain_dict}")
+        #if not remain_dict: break
         if idx >= len(adj): break
         if min_n_steps[idx] >= mxmn_n_steps: continue
         if idx not in remain_dict.keys(): continue
@@ -1207,27 +1208,29 @@ def countPolygonalTilingPaths(
                 adj[idx][idx3] = 2
                 adj[idx3][idx] = 1
                 
-                adj[idx3].setdefault(idx2, 0)
-                adj[idx3][idx2] += 1
+                #adj[idx3].setdefault(idx2, 0)
+                #adj[idx3][idx2] += 1
                 
-                remain_dict[idx3][0] -= 1
+                #remain_dict[idx3][0] -= 1
                 #remain_dict[idx2][0] -= 1
                 for j in range(1, 3):
                     #j = 2 - (remain_dict[idx2][1] == idx)
+                    #print(f"idx = {idx}, idx2 = {idx2}, idx3 = {idx3}")
                     if remain_dict[idx2][j] == idx:
                         remain_dict[idx2][j] = idx3
-                        adj[idx2].setdefault(idx3, 0)
-                        adj[idx2][idx3] += 1
+                        adj[idx2][idx3] = adj[idx2].get(idx3, 0) + 1
                         remain_dict[idx2][0] -= 1
-                        #adj[idx3][idx2] = 1
-                        #adj[idx2][idx3] = 1
+                    if remain_dict[idx3][j] == idx:
+                        adj[idx3][idx2] = adj[idx3].get(idx2, 0) + 1
+                        #print("subtracting")
+                        remain_dict[idx3][0] -= 1
                         
                         
 
             if remain_lst[0] & 1:
                 idx2 = remain_lst[1]
                 idx3 = len(adj)
-                print(f"adding index {idx3}")
+                #print(f"adding index {idx3}")
                 adj.append({})
                 min_n_steps.append(min(min_n_steps[idx], min_n_steps[idx2]) + 1)
                 remain_dict[idx3] = [polygon_n_sides - 1, idx2, idx2]
@@ -1244,10 +1247,14 @@ def countPolygonalTilingPaths(
                 #adj[idx2][idx3] = 2
                 #adj[idx3][idx2] = 1 + (remain_dict[idx2][0] > 1)
                 
-                adj[idx3].setdefault(idx2, 0)
-                adj[idx3][idx2] += 2
+                #adj[idx3].setdefault(idx2, 0)
+                #adj[idx3][idx2] += 1
                 
+                
+                adj[idx3][idx2] = adj[idx3].get(idx2, 0) + 2
                 remain_dict[idx3][0] -= 2
+
+                #remain_dict[idx3][0] -= 1
                 #remain_dict[idx2][0] -= 2
                 #remain_dict[idx3][0] -= adj[idx3][idx2] + 1
                 #adj[idx2][idx3] = 1
@@ -1257,20 +1264,24 @@ def countPolygonalTilingPaths(
                     #j = 2 - (remain_dict[idx2][1] == idx)
                     if remain_dict[idx2][j] == idx:
                         remain_dict[idx2][j] = idx3
-                        adj[idx2].setdefault(idx3, 0)
-                        adj[idx2][idx3] += 1
+                        adj[idx2][idx3] = adj[idx2].get(idx3, 0) + 1
                         remain_dict[idx2][0] -= 1
+                    #if remain_dict[idx3][j] == idx:
+                    #    remain_dict[idx3][j] = idx3
+                    #    adj[idx3][idx2] = adj[idx3].get(idx2, 0) + 1
+                    #    remain_dict[idx3][0] -= 1
             else:
                 idx2 = remain_lst[1]
-                if idx2 == idx: continue
-
-                adj[idx2].setdefault(idx2, 0)
-                adj[idx2][idx2] += 1
-                remain_dict[idx2][0] -= 1
+                
+                if idx2 == idx:
+                    adj[idx2][idx2] = adj[idx2].get(idx2, 0) + 1
+                    continue
                 for j in range(1, 3):
                     #j = 2 - (remain_dict[idx2][1] == idx)
                     if remain_dict[idx2][j] == idx:
                         remain_dict[idx2][j] = idx2
+                        adj[idx2][idx2] = adj[idx2].get(idx2, 0) + 1
+                        remain_dict[idx2][0] -= 1
             continue
         for _ in range(remain_lst[0] >> 1):
             for i in range(1, 3):
@@ -1283,7 +1294,8 @@ def countPolygonalTilingPaths(
                 if idx == idx2:
                     counts.append(cnt >> 1)
                     adj[idx][idx3] = 1
-                    adj[idx3][idx] = 1
+                    adj[idx3][idx] = 2
+                    remain_dict[idx3][0] -= 1
                     continue
                 counts.append(cnt)
                 #adj[idx][idx3] = 1
@@ -1292,6 +1304,7 @@ def countPolygonalTilingPaths(
                 #adj[idx3][idx2] = 1
                 adj[idx][idx3] = 1
                 adj[idx3][idx] = 1
+                
                 #adj[idx3][idx2] = 1
                 #adj[idx2][idx3] = 1
 
@@ -1299,70 +1312,93 @@ def countPolygonalTilingPaths(
                 #remain_dict[idx3][0] -= 2
                 for j in range(1, 3):
                     #j = 2 - (remain_dict[idx2][1] == idx)
+                    #print(f"idx = {idx}, idx2 = {idx2}, idx3 = {idx3}")
                     if remain_dict[idx2][j] == idx:
                         remain_dict[idx2][j] = idx3
-                        #remain_dict[idx2][0] -= 1
-                        adj[idx3].setdefault(idx2, 0)
-                        adj[idx3][idx2] += 1
-                        adj[idx2].setdefault(idx3, 0)
-                        adj[idx2][idx3] += 1
+                        adj[idx2][idx3] = adj[idx2].get(idx3, 0) + 1
                         remain_dict[idx2][0] -= 1
+                    if remain_dict[idx3][j] == idx:
+                        adj[idx3][idx2] = adj[idx3].get(idx2, 0) + 1
                         remain_dict[idx3][0] -= 1
+                #if idx3 == 7:
+                #    print(f"idx2 = {idx2}, idx3 = {idx3}, adj[idx2][idx3] = {adj[idx2][idx3]}, adj[idx3][idx2] = {adj[idx3][idx2]}")
         #print(remain_lst)
         if remain_lst[0] & 1:
             idx3 = len(adj)
             adj.append({})
             min_n_steps.append(min(min_n_steps[idx], min_n_steps[remain_lst[1]], min_n_steps[remain_lst[2]]) + 1)
-            remain_dict[idx3] = [polygon_n_sides - 1, remain_lst[1], remain_lst[2]]
-            if idx == idx2:
-                counts.append(cnt >> 1)
-                adj[idx][idx3] = 1
-                adj[idx3][idx] = 2
-                remain_dict[idx3][0] -= 1
-                continue
+            remain_dict[idx3] = [polygon_n_sides - 3, remain_lst[1], remain_lst[2]]
             counts.append(cnt)
             adj[idx][idx3] = 1
             adj[idx3][idx] = 1
             for i in range(1, 3):
                 idx2 = remain_lst[i]
+                if idx == idx2:
+                    counts.append(cnt >> 1)
+                    adj[idx][idx3] = 1
+                    adj[idx3][idx] = 2
+                    adj[idx3][idx3] = adj[idx3].get(idx3, 0) + 2
+                    remain_dict[idx3][0] -= 1
+                    remain_dict[idx3][i] = idx3
+                    continue
                 #adj[idx2][idx3] = 1
                 #adj[idx3][idx2] = 1
                 #remain_dict[idx2][0] -= 1
+                adj[idx3][idx2] = adj[idx3].get(idx2, 0) + 1
                 for j in range(1, 3):
                     #j = 2 - (remain_dict[idx2][1] == idx)
+                    #print(f"idx = {idx}, idx2 = {idx2}, idx3 = {idx3}")
                     if remain_dict[idx2][j] == idx:
                         remain_dict[idx2][j] = idx3
-                        #remain_dict[idx2][0] -= 1
-                        adj[idx2].setdefault(idx3, 0)
-                        adj[idx2][idx3] += 1
-                        adj[idx3].setdefault(idx2, 0)
-                        adj[idx3][idx2] += 1
+                        adj[idx2][idx3] = adj[idx2].get(idx3, 0) + 1
                         remain_dict[idx2][0] -= 1
-                        remain_dict[idx3][0] -= 1
             continue
         else:
             idx2 = remain_lst[1]
             idx3 = remain_lst[2]
-            adj[idx2][idx3] = 1
-            adj[idx3][idx2] = 1
+            #adj[idx2][idx3] = 1
+            #adj[idx3][idx2] = 1
             
-            remain_dict[idx2][0] -= 1
-            remain_dict[idx3][0] -= 1
+            #remain_dict[idx2][0] -= 1
+            #remain_dict[idx3][0] -= 1
             for j in range(1, 3):
                 #j = 2 - (remain_dict[idx2][1] == idx)
                 if remain_dict[idx2][j] == idx:
                     remain_dict[idx2][j] = idx3
-                    #remain_dict[idx2][0] -= 1
+                    adj[idx2][idx3] = adj[idx2].get(idx3, 0) + 1
+                    remain_dict[idx2][0] -= 1
                 if remain_dict[idx3][j] == idx:
                     remain_dict[idx3][j] = idx2
-                    #remain_dict[idx3][0] -= 1
+                    adj[idx3][idx2] = adj[idx3].get(idx2, 0) + 1
+                    remain_dict[idx3][0] -= 1
 
     print(counts)
     print(min_n_steps)
     print(adj)
     print(f"number of distinct tile types = {len(counts)}")
     print(f"total number of tiles = {sum(counts)}")
-    return 0
+
+    curr = {0: 1}
+    for i in range((n_steps) >> 1):
+        prev = curr
+        curr = {}
+        for idx1, f1 in prev.items():
+            for idx2, wt in adj[idx1].items():
+                curr[idx2] = curr.get(idx2, 0) + f1 * wt
+        print(f"after {i + 1} steps, the number of ways to get to each tile type are: {curr}")
+        for idx, f in curr.items():
+            if f % counts[idx]:
+                print(f"for tile type {idx}, the number of such tiles {counts[idx]} does not exactly divide the number of paths of length {i} to that tile type {f}")
+
+    res = 0
+    if not n_steps & 1:
+        for idx, f in curr.items():
+            res += (f ** 2) // counts[idx]
+        return res
+    for idx1, f1 in curr.items():
+        for idx2, wt in adj[idx1].items():
+            res += (f1 * curr.get(idx2, 0) * wt) // counts[idx2]
+    return res
 
 ##############
 project_euler_num_range = (951, 1000)
@@ -1414,7 +1450,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
 
     if 979 in eval_nums:
         since = time.time()
-        res = countPolygonalTilingPaths(polygon_n_sides=5, n_steps=15)
+        res = countPolygonalTilingPaths(polygon_n_sides=5, n_steps=20)
         print(f"Solution to Project Euler #979 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
