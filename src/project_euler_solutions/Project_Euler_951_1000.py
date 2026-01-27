@@ -1169,13 +1169,93 @@ def expectedMinimalFractionalValue(N: int=10 ** 4, use_float: bool=True) -> floa
     print(res)
     return res.numerator / res.denominator
 
+# Problem 978
+def randomWalkDistributionBruteForce(n_steps: int) -> Tuple[Dict[int, int], int]:
+    if n_steps < 0: return ({}, 0)
+    if not n_steps: return ({0: 1}, 1)
+    if n_steps <= 2: return ({1: 1}, 1)
+
+    curr = {(1, 1): 1}
+    for i in range(3, n_steps + 1):
+        print(f"i = {i}, curr size = {len(curr)}")
+        prev = curr
+        curr = {}
+        for p, f in prev.items():
+            if not p[0]:
+                p2 = (abs(p[1]), p[1])
+                curr[p2] = curr.get(p2, 0) + 2 * f
+                continue
+            p2 = (abs(p[1]), p[1] - p[0])
+            curr[p2] = curr.get(p2, 0) + f
+            p2 = (abs(p[1]), p[1] + p[0])
+            curr[p2] = curr.get(p2, 0) + f
+    res = {}
+    for p, f in curr.items():
+        res[p[1]] = res.get(p[1], 0) + f
+    return (res, 1 << (n_steps - 2))
+
+def randomWalkSkewnessBruteForce(n_steps: int=50) -> float:
+    
+    if n_steps <= 2: return 0
+
+    curr = {(1, 1): 1}
+    for i in range(3, n_steps + 1):
+        print(f"i = {i}, curr size = {len(curr)}")
+        prev = curr
+        curr = {}
+        distrib = {}
+        for p, f in prev.items():
+            if not p[0]:
+                p2 = (abs(p[1]), p[1])
+                curr[p2] = curr.get(p2, 0) + 2 * f
+                distrib[p2[1]] = distrib.get(p2[1], 0) + 2 * f
+                continue
+            p2 = (abs(p[1]), p[1] - p[0])
+            curr[p2] = curr.get(p2, 0) + f
+            distrib[p2[1]] = distrib.get(p2[1], 0) + f
+            p2 = (abs(p[1]), p[1] + p[0])
+            curr[p2] = curr.get(p2, 0) + f
+            distrib[p2[1]] = distrib.get(p2[1], 0) + f
+        norm = 1 << (i - 2)
+        mean = sum(x * f for x, f in distrib.items()) / norm
+        var = sum(x ** 2 * f for x, f in distrib.items()) / norm - mean ** 2
+        stdev = math.sqrt(var)
+        cubed_expectation = sum(x ** 3 * f for x, f in distrib.items()) / norm
+        skew = (cubed_expectation - 3 * mean * var - mean ** 3) / stdev ** 3
+        print(f"after {i} steps, mean = {mean}, variance = {var}, skew = {skew}, cubed expectation = {cubed_expectation}")
+
+    return skew
+
+def randomWalkSkewness(n_steps: int=50) -> float:
+    """
+    Solution to Project Euler #978
+    """
+    # Using OEIS A006130
+    if n_steps <= 2: return 0
+
+    mean = 1
+    fib1 = [1, 1]
+    fib2 = [1, 1]
+    for _ in range(3, n_steps + 1):
+        fib1 = [fib1[1], sum(fib1)]
+        fib2 = [fib2[1], 3 * fib2[0] + fib2[1]]
+    var = fib1[1] - 1
+    cubed_expectation = fib2[1]
+    stdev = math.sqrt(var)
+    skew = (cubed_expectation - 3 * mean * var - mean ** 3) / stdev ** 3
+    print(f"after {n_steps} steps, mean = {mean}, variance = {var}, skew = {skew}, cubed expectation = {cubed_expectation}")
+    return skew
 
 # Problem 979
 def countPolygonalTilingPaths(
     polygon_n_sides: int=7,
     n_steps: int=20,
 ) -> int:
-    
+    """
+    Solution to Project Euler #979
+    """
+    # Review- try to generalise to any number of polygons meeting at each
+    # vertex no less than 3, not just (as present) 3.
     adj = [{1: polygon_n_sides}, {0: 1, 1: 2}]
     counts = [1, polygon_n_sides]
     min_n_steps = [0, 1]
@@ -1400,6 +1480,149 @@ def countPolygonalTilingPaths(
             res += (f1 * curr.get(idx2, 0) * wt) // counts[idx2]
     return res
 
+# Problem 980
+def stringIsNeutral(s: str) -> bool:
+
+    counts = [0, 0, 0]
+    idx_map = "xyz"
+    idx_inv_map = {l: i for i, l in enumerate(idx_map)}
+    for l in s:
+        counts[idx_inv_map[l]] += 1
+    print(counts)
+    n_odd = sum(x & 1 for x in counts)
+    if n_odd % 3:
+        #print(f"odd count found: {counts}")
+        return False
+    curr_cnts = [0, 0, 0]
+    n_swap = 0
+    for l in s:
+        j = idx_inv_map[l]
+        n_swap += sum(curr_cnts[j2] for j2 in range(j + 1, 3))
+        curr_cnts[j] += 1
+
+    res = (sum(((x >> 1) & 1) for x in counts) + n_swap) & 1
+    print(n_swap)
+    return not bool(res)
+
+def countGeneratedSequencesNeutralStringsBruteForce(n_max: int=10 ** 6 - 1) -> int:
+
+    idx_map = "xyz"
+    #idx_inv_map = {l: i for i, l in enumerate(idx_map)}
+
+    memo0 = {}
+    def getSequenceTerm(i: int) -> int:
+        if i < 0: return 0
+        if not i: return 88_888_888
+        if i in memo0.keys(): return memo0[i]
+        res = (8888 * getSequenceTerm(i - 1)) % 888_888_883
+        memo0[i] = res
+        return res
+    
+
+    memo = {}
+    def generateIthString(i: int) -> str:
+        if i in memo.keys(): return memo[i]
+        res = []
+        for j in range(50):
+            res.append(idx_map[getSequenceTerm(50 * i + j) % 3])
+        return "".join(res)
+
+    res = 0
+    for i in range(n_max + 1):
+        s1 = generateIthString(i)
+        #print(s1)
+        for j in range(n_max + 1):
+            s = "".join([s1, generateIthString(j)])
+            b = stringIsNeutral(s)
+            print(s, b)
+            res += b
+    return res
+
+# Problem 981
+def countNeutralStringsWithGivenCharacterCountsBruteForce(n_x: int, n_y: int, n_z: int) -> int:
+    counts = sorted([n_x, n_y, n_z])
+    n_odd = sum(x & 1 for x in counts)
+    if n_odd % 3: return 0
+    seen = set()
+    res = 0
+    swap_counts = []
+    for s_tup in itertools.permutations("".join(["x" * n_x, "y" * n_y, "z" * n_z])):
+        s = "".join(s_tup)
+        if s in seen: continue
+        seen.add(s)
+        counts = [0, 0, 0]
+        idx_map = "xyz"
+        idx_inv_map = {l: i for i, l in enumerate(idx_map)}
+        for l in s:
+            counts[idx_inv_map[l]] += 1
+        #print(counts)
+        n_odd = sum(x & 1 for x in counts)
+        if n_odd % 3:
+            #print(f"odd count found: {counts}")
+            return False
+        curr_cnts = [0, 0, 0]
+        n_swap = 0
+        for l in s:
+            j = idx_inv_map[l]
+            n_swap += sum(curr_cnts[j2] for j2 in range(j + 1, 3))
+            curr_cnts[j] += 1
+        swap_counts += [0] * (n_swap - len(swap_counts) + 1)
+        swap_counts[n_swap] += 1
+        b = (sum(((x >> 1) & 1) for x in counts) + n_swap) & 1
+
+        res += not b
+    print(f"total number of strings seen = {len(seen)}")
+    print(f"swap counts: {swap_counts}")
+    return res
+    
+
+def countNeutralStringsWithGivenCharacterCounts(n_x: int, n_y: int, n_z: int, res_md: Optional[int]=None) -> int:
+    counts = sorted([n_x, n_y, n_z])
+    if counts[0] < 0: return 0
+    if counts[-1] == 0: return 1
+    n_odd = sum(x & 1 for x in counts)
+    if n_odd % 3: return 0
+    if res_md is None: 
+        if n_odd == 3:
+            return (math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y)) >> 1
+        n_x2, n_y2, n_z2 = n_x >> 1, n_y >> 1, n_z >> 1
+        if (n_x2 + n_y2 + n_z2) & 1:
+            return (math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y) - math.comb(n_x2 + n_y2 + n_z2, n_x2) * math.comb(n_y2 + n_z2, n_y2)) >> 1
+        return (math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y) + math.comb(n_x2 + n_y2 + n_z2, n_x2) * math.comb(n_y2 + n_z2, n_y2)) >> 1
+        #print(math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y))
+    two_inv = pow(2, res_md - 2, res_md)
+    #print(2, two_inv, (2 * two_inv) % res_md)
+    res = ((math.comb(n_x + n_y + n_z, n_x) % res_md) * (math.comb(n_y + n_z, n_y) % res_md)) % res_md
+    if n_odd == 3:
+        return (res * two_inv) % res_md
+    n_x2, n_y2, n_z2 = n_x >> 1, n_y >> 1, n_z >> 1
+    res2 = ((math.comb(n_x2 + n_y2 + n_z2, n_x2) % res_md) * (math.comb(n_y2 + n_z2, n_y2) % res_md)) % res_md
+    if (n_x2 + n_y2 + n_z2) & 1:
+        return ((res - res2) * two_inv) % res_md
+    return ((res + res2) * two_inv) % res_md
+
+def neutralStringsWithCubeCharacterCountsSum(cube_max: int=87, res_md: Optional[int]=888_888_883) -> int:
+    """
+    Solution to Project Euler #981
+    """
+    res = 0
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    # For non-zero count, values must be either all odd or all even (noting that the
+    # parity of a number and its cube are always the same)
+    for i in range(cube_max + 1):
+        print(f"i = {i}")
+        i_cub = i ** 3
+        for j in range(i & 1, i, 2):
+            j_cub = j ** 3
+            for k in range(i & 1, i, 2):
+                res = addMod(res, 6 * countNeutralStringsWithGivenCharacterCounts(i_cub, j_cub, k ** 3, res_md=res_md))
+            res = addMod(res, 3 * countNeutralStringsWithGivenCharacterCounts(i_cub, j_cub, j_cub, res_md=res_md))
+        for k in range(i & 1, i, 2):
+            res = addMod(res, 3 * countNeutralStringsWithGivenCharacterCounts(i_cub, i_cub, k ** 3, res_md=res_md))
+        res = addMod(res, countNeutralStringsWithGivenCharacterCounts(i_cub, i_cub, i_cub, res_md=res_md))
+    return res
+
 ##############
 project_euler_num_range = (951, 1000)
 
@@ -1447,14 +1670,28 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = expectedMinimalFractionalValue(N=10 ** 1, use_float=True)
         print(f"Solution to Project Euler #965 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 978 in eval_nums:
+        since = time.time()
+        res = randomWalkSkewness(n_steps=50)
+        print(f"Solution to Project Euler #978 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 979 in eval_nums:
         since = time.time()
-        res = countPolygonalTilingPaths(polygon_n_sides=5, n_steps=20)
+        res = countPolygonalTilingPaths(polygon_n_sides=7, n_steps=20)
         print(f"Solution to Project Euler #979 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 980 in eval_nums:
+        since = time.time()
+        res = countGeneratedSequencesNeutralStringsBruteForce(n_max=99)
+        print(f"Solution to Project Euler #980 = {res}, calculated in {time.time() - since:.4f} seconds")
+    
+    if 981 in eval_nums:
+        since = time.time()
+        res = neutralStringsWithCubeCharacterCountsSum(cube_max=87, res_md=888_888_883)
+        print(f"Solution to Project Euler #981 = {res}, calculated in {time.time() - since:.4f} seconds")
+
 if __name__ == "__main__":
-    eval_nums = {979}
+    eval_nums = {981}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
@@ -1507,3 +1744,9 @@ for num in range(2, 500):
     
     print(num, res, num / res[1], num / (res[1] * phi ** 2))
 """
+
+#for args in [(1, 1, 1), (2, 2, 2), (2, 2, 4), (2, 4, 4), (4, 4, 4)]:
+#    print(f"N{args} = {countNeutralStringsWithGivenCharacterCounts(*args, res_md=888_888_883)}, {countNeutralStringsWithGivenCharacterCountsBruteForce(*args)}")
+
+
+#print(randomWalkDistributionBruteForce(n_steps=35))
