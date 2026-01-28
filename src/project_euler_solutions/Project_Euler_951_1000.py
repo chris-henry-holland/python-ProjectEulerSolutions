@@ -30,7 +30,7 @@ from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 from data_structures.fenwick_tree import FenwickTree
 
-from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, extendedEuclideanAlgorithm
+from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, PrimeModuloCalculator
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.string_searching_algorithms import KnuthMorrisPratt
 #from algorithms.geometry_algorithms import determinant
@@ -1584,19 +1584,19 @@ def countNeutralStringsWithGivenCharacterCounts(n_x: int, n_y: int, n_z: int, re
     if n_odd % 3: return 0
     if res_md is None: 
         if n_odd == 3:
-            return (math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y)) >> 1
+            return (math.comb(n_x + n_y + n_z, n_z) * math.comb(n_x + n_z, n_y)) >> 1
         n_x2, n_y2, n_z2 = n_x >> 1, n_y >> 1, n_z >> 1
         if (n_x2 + n_y2 + n_z2) & 1:
-            return (math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y) - math.comb(n_x2 + n_y2 + n_z2, n_x2) * math.comb(n_y2 + n_z2, n_y2)) >> 1
-        return (math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y) + math.comb(n_x2 + n_y2 + n_z2, n_x2) * math.comb(n_y2 + n_z2, n_y2)) >> 1
-        #print(math.comb(n_x + n_y + n_z, n_x) * math.comb(n_y + n_z, n_y))
+            return (math.comb(n_x + n_y + n_z, n_z) * math.comb(n_x + n_y, n_y) - math.comb(n_x2 + n_y2 + n_z2, n_z2) * math.comb(n_x2 + n_y2, n_y2)) >> 1
+        return (math.comb(n_x + n_y + n_z, n_z) * math.comb(n_x + n_y, n_y) + math.comb(n_x2 + n_y2 + n_z2, n_z2) * math.comb(n_x2 + n_y2, n_y2)) >> 1
+        #print(math.comb(n_x + n_y + n_z, n_z) * math.comb(n_x + n_y, n_y))
     two_inv = pow(2, res_md - 2, res_md)
     #print(2, two_inv, (2 * two_inv) % res_md)
-    res = ((math.comb(n_x + n_y + n_z, n_x) % res_md) * (math.comb(n_y + n_z, n_y) % res_md)) % res_md
+    res = ((math.comb(n_x + n_y + n_z, n_z) % res_md) * (math.comb(n_x + n_y, n_y) % res_md)) % res_md
     if n_odd == 3:
         return (res * two_inv) % res_md
     n_x2, n_y2, n_z2 = n_x >> 1, n_y >> 1, n_z >> 1
-    res2 = ((math.comb(n_x2 + n_y2 + n_z2, n_x2) % res_md) * (math.comb(n_y2 + n_z2, n_y2) % res_md)) % res_md
+    res2 = ((math.comb(n_x2 + n_y2 + n_z2, n_z2) % res_md) * (math.comb(n_x2 + n_y2, n_y2) % res_md)) % res_md
     if (n_x2 + n_y2 + n_z2) & 1:
         return ((res - res2) * two_inv) % res_md
     return ((res + res2) * two_inv) % res_md
@@ -1605,23 +1605,80 @@ def neutralStringsWithCubeCharacterCountsSum(cube_max: int=87, res_md: Optional[
     """
     Solution to Project Euler #981
     """
+    if res_md is not None:
+        pmc = PrimeModuloCalculator(res_md)
+
+    memo1 = {}
+    def calculateBinomial(n: int, k: int) -> int:
+        args = (n, min(k, n - k))
+        if args in memo1.keys(): return memo1[args]
+        res = math.comb(n, k)
+        memo1[args] = res
+        return res
+
+    memo2 = {}
+    def calculateBinomialMod(n: int, k: int, pmc: PrimeModuloCalculator) -> int:
+        args = (n, min(k, n - k))
+        if args in memo2.keys(): return memo2[args]
+        res = pmc.binomial(*args)#math.comb(n, k) % pmc.p#
+        memo2[args] = res
+        return res
+
+    def findCount(n_x: int, n_y: int, n_z: int) -> int:
+        counts = sorted([n_x, n_y, n_z])
+        if counts[0] < 0: return 0
+        if counts[-1] == 0: return 1
+        n_odd = sum(x & 1 for x in counts)
+        if n_odd % 3: return 0
+        if n_odd == 3:
+            return (calculateBinomial(n_x + n_y + n_z, n_z) * calculateBinomial(n_x + n_y, n_y)) >> 1
+        n_x2, n_y2, n_z2 = n_x >> 1, n_y >> 1, n_z >> 1
+        if (n_x2 + n_y2 + n_z2) & 1:
+            return (calculateBinomial(n_x + n_y + n_z, n_z) * calculateBinomial(n_x + n_y, n_y) - calculateBinomial(n_x2 + n_y2 + n_z2, n_z2) * calculateBinomial(n_x2 + n_y2, n_y2)) >> 1
+        return (calculateBinomial(n_x + n_y + n_z, n_z) * calculateBinomial(n_x + n_y, n_y) + calculateBinomial(n_x2 + n_y2 + n_z2, n_z2) * calculateBinomial(n_x2 + n_y2, n_y2)) >> 1
+
+    def findDoubleCountMod(n_x: int, n_y: int, n_z: int, pmc: PrimeModuloCalculator) -> int:
+        res_md = pmc.p
+        counts = sorted([n_x, n_y, n_z])
+        if counts[0] < 0: return 0
+        if counts[-1] == 0: return 2
+        n_odd = sum(x & 1 for x in counts)
+        if n_odd % 3: return 0
+        res = (calculateBinomialMod(n_x + n_y + n_z, n_z, pmc=pmc) * calculateBinomialMod(n_x + n_y, n_y, pmc=pmc)) % res_md
+        if n_odd == 3:
+            return res
+        n_x2, n_y2, n_z2 = n_x >> 1, n_y >> 1, n_z >> 1
+        res2 = (calculateBinomialMod(n_x2 + n_y2 + n_z2, n_z2, pmc=pmc) * calculateBinomialMod(n_x2 + n_y2, n_y2, pmc=pmc)) % res_md
+        if (n_x2 + n_y2 + n_z2) & 1:
+            return (res - res2) % res_md
+        return (res + res2) % res_md
+
     res = 0
 
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    getCount = lambda n_x, n_y, n_z: findCount(n_x, n_y, n_z)
+    if res_md is not None:
+        pmc = PrimeModuloCalculator(res_md)
+        getCount = lambda n_x, n_y, n_z: findDoubleCountMod(n_x, n_y, n_z, pmc=pmc)
+    #two_inv = pow(2, res_md - 2, res_md)
     # For non-zero count, values must be either all odd or all even (noting that the
     # parity of a number and its cube are always the same)
     for i in range(cube_max + 1):
-        print(f"i = {i}")
+        #print(f"i = {i}")
         i_cub = i ** 3
+        print(f"i = {i}, i ** 3 = {i_cub}")
         for j in range(i & 1, i, 2):
             j_cub = j ** 3
+            print(f"j = {j}, j ** 3 = {j_cub}")
             for k in range(i & 1, i, 2):
-                res = addMod(res, 6 * countNeutralStringsWithGivenCharacterCounts(i_cub, j_cub, k ** 3, res_md=res_md))
-            res = addMod(res, 3 * countNeutralStringsWithGivenCharacterCounts(i_cub, j_cub, j_cub, res_md=res_md))
+                res = addMod(res, 6 * getCount(i_cub, j_cub, k ** 3))
+            res = addMod(res, 3 * getCount(i_cub, j_cub, j_cub))
+        print(f"j = {i}, j ** 3 = {i_cub}")
         for k in range(i & 1, i, 2):
-            res = addMod(res, 3 * countNeutralStringsWithGivenCharacterCounts(i_cub, i_cub, k ** 3, res_md=res_md))
-        res = addMod(res, countNeutralStringsWithGivenCharacterCounts(i_cub, i_cub, i_cub, res_md=res_md))
-    return res
+            res = addMod(res, 3 * getCount(i_cub, i_cub, k ** 3))
+        res = addMod(res, getCount(i_cub, i_cub, i_cub))
+    #print(res)
+    return res if res_md is None else (res * pow(2, res_md - 2, res_md)) % res_md
 
 ##############
 project_euler_num_range = (951, 1000)
@@ -1687,7 +1744,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
     
     if 981 in eval_nums:
         since = time.time()
-        res = neutralStringsWithCubeCharacterCountsSum(cube_max=87, res_md=888_888_883)
+        res = neutralStringsWithCubeCharacterCountsSum(cube_max=30, res_md=888_888_883)
         print(f"Solution to Project Euler #981 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
@@ -1745,8 +1802,8 @@ for num in range(2, 500):
     print(num, res, num / res[1], num / (res[1] * phi ** 2))
 """
 
-#for args in [(1, 1, 1), (2, 2, 2), (2, 2, 4), (2, 4, 4), (4, 4, 4)]:
-#    print(f"N{args} = {countNeutralStringsWithGivenCharacterCounts(*args, res_md=888_888_883)}, {countNeutralStringsWithGivenCharacterCountsBruteForce(*args)}")
+for args in [(1, 1, 1), (1, 1, 3), (1, 3, 3), (3, 3, 3), (0, 0, 0), (0, 0, 2), (0, 2, 0), (2, 0, 0), (0, 2, 2), (2, 0, 2), (2, 2, 0), (2, 2, 2), (2, 2, 4), (2, 4, 2), (4, 2, 2), (2, 4, 4), (4, 2, 4), (4, 4, 2), (4, 4, 4)]:
+    print(f"N{args} = {countNeutralStringsWithGivenCharacterCounts(*args, res_md=888_888_883)}, {countNeutralStringsWithGivenCharacterCountsBruteForce(*args)}")
 
 
 #print(randomWalkDistributionBruteForce(n_steps=35))
