@@ -1538,6 +1538,88 @@ def countGeneratedSequencesNeutralStringsBruteForce(n_max: int=10 ** 6 - 1) -> i
             res += b
     return res
 
+def countGeneratedSequencesNeutralStrings(n_max: int=10 ** 6 - 1) -> int:
+    """
+    Solution to Project Euler #980
+    """
+    idx_map = "xyz"
+    idx_inv_map = {l: i for i, l in enumerate(idx_map)}
+
+    memo0 = {}
+    def getSequenceTerm(i: int) -> int:
+        if i < 0: return 0
+        if not i: return 88_888_888
+        if i in memo0.keys(): return memo0[i]
+        res = (8888 * getSequenceTerm(i - 1)) % 888_888_883
+        memo0[i] = res
+        return res
+    
+
+    def generateIthString(i: int) -> str:
+        res = []
+        for j in range(50):
+            res.append(idx_map[getSequenceTerm(50 * i + j) % 3])
+        return "".join(res)
+
+    def strEncoding(s: str) -> int:
+        counts_mod4 = [0, 0, 0]
+        swaps_parity = False
+        for l in s:
+            idx = idx_inv_map[l]
+            swaps_parity = (swaps_parity != (bool(sum(counts_mod4[idx + 1:]) & 1)))
+            counts_mod4[idx] = (counts_mod4[idx] + 1) & 3
+        res = 0
+        for num in counts_mod4:
+            res <<= 2
+            res ^= num
+        
+        return (res << 1) ^ int(swaps_parity)
+    
+    def numberListEncoding(lst: List[int]) -> int:
+        counts_mod4 = [0, 0, 0]
+        swaps_parity = False
+        for idx in lst:
+            swaps_parity = (swaps_parity != (bool(sum(counts_mod4[idx + 1:]) & 1)))
+            counts_mod4[idx] = (counts_mod4[idx] + 1) & 3
+        res = 0
+        for num in counts_mod4:
+            res <<= 2
+            res ^= num
+        
+        return (res << 1) ^ int(swaps_parity)
+    
+    f_dict = {}
+    curr = 88_888_888
+    for i in range(n_max + 1):
+        if not i % 10000: print(i)
+        num_lst = []
+        for _ in range(50):
+            num_lst.append(curr % 3)
+            curr = (8888 * curr) % 888_888_883
+        #num = strEncoding(generateIthString(i))
+        #print(num_lst)
+        e = numberListEncoding(num_lst) 
+        f_dict[e] = f_dict.get(e, 0) + 1
+    print(f_dict)
+    res = 0
+    for e2, f2 in f_dict.items():
+        print(format(e2, "b"))
+        for e1, f1 in f_dict.items():
+            parity = (e1 & 1) != (e2 & 1)
+            counts1_mod4 = [(e1 >> 5), (e1 >> 3) & 3, (e1 >> 1) & 3]
+            counts2_mod4 = [(e2 >> 5), (e2 >> 3) & 3, (e2 >> 1) & 3]
+            if len({(x + y) & 1 for x, y in zip(counts1_mod4, counts2_mod4)}) > 1: continue
+            if sum(((x + y) >> 1) & 1 for x, y in zip(counts1_mod4, counts2_mod4)) & 1:
+                parity = not parity
+            if counts2_mod4[0] & 1 and ((counts1_mod4[1] & 1) != (counts1_mod4[2] & 1)):
+                parity = not parity
+            if counts2_mod4[1] & 1 and (counts1_mod4[2] & 1):
+                parity = not parity
+            if parity: continue
+            print((format(e1, "b"), f1), (format(e2, "b"), f2))
+            res += f1 * f2
+    return res
+
 # Problem 981
 def countNeutralStringsWithGivenCharacterCountsBruteForce(n_x: int, n_y: int, n_z: int) -> int:
     counts = sorted([n_x, n_y, n_z])
@@ -1654,7 +1736,8 @@ def neutralStringsWithCubeCharacterCountsSum(cube_max: int=87, res_md: Optional[
         return (res + res2) % res_md
 
     res = 0
-
+    #res_md2 = res_md
+    #res_md = None
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     getCount = lambda n_x, n_y, n_z: findCount(n_x, n_y, n_z)
     if res_md is not None:
@@ -1739,16 +1822,16 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
 
     if 980 in eval_nums:
         since = time.time()
-        res = countGeneratedSequencesNeutralStringsBruteForce(n_max=99)
+        res = countGeneratedSequencesNeutralStrings(n_max=10 ** 6 - 1)
         print(f"Solution to Project Euler #980 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     if 981 in eval_nums:
         since = time.time()
-        res = neutralStringsWithCubeCharacterCountsSum(cube_max=30, res_md=888_888_883)
+        res = neutralStringsWithCubeCharacterCountsSum(cube_max=87, res_md=888_888_883)
         print(f"Solution to Project Euler #981 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {981}
+    eval_nums = {980}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
@@ -1802,8 +1885,10 @@ for num in range(2, 500):
     print(num, res, num / res[1], num / (res[1] * phi ** 2))
 """
 
-for args in [(1, 1, 1), (1, 1, 3), (1, 3, 3), (3, 3, 3), (0, 0, 0), (0, 0, 2), (0, 2, 0), (2, 0, 0), (0, 2, 2), (2, 0, 2), (2, 2, 0), (2, 2, 2), (2, 2, 4), (2, 4, 2), (4, 2, 2), (2, 4, 4), (4, 2, 4), (4, 4, 2), (4, 4, 4)]:
-    print(f"N{args} = {countNeutralStringsWithGivenCharacterCounts(*args, res_md=888_888_883)}, {countNeutralStringsWithGivenCharacterCountsBruteForce(*args)}")
+#for args in [(1, 1, 1), (1, 1, 3), (1, 3, 3), (3, 3, 3), (0, 0, 0), (0, 0, 2), (0, 2, 0), (2, 0, 0), (0, 2, 2), (2, 0, 2), (2, 2, 0), (2, 2, 2), (2, 2, 4), (2, 4, 2), (4, 2, 2), (2, 4, 4), (4, 2, 4), (4, 4, 2), (4, 4, 4)]:
+#    print(f"N{args} = {countNeutralStringsWithGivenCharacterCounts(*args, res_md=888_888_883)}, {countNeutralStringsWithGivenCharacterCountsBruteForce(*args)}")
+#for args in [(0, 2, 4), (2, 0, 4), (1, 3, 5), (3, 1, 5)]:
+#    print(f"N{args} = {countNeutralStringsWithGivenCharacterCounts(*args, res_md=888_888_883)}, {countNeutralStringsWithGivenCharacterCountsBruteForce(*args)}")
 
 
 #print(randomWalkDistributionBruteForce(n_steps=35))
