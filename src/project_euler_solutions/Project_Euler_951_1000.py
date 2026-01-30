@@ -1750,16 +1750,18 @@ def neutralStringsWithCubeCharacterCountsSum(cube_max: int=87, res_md: Optional[
         #print(f"i = {i}")
         i_cub = i ** 3
         print(f"i = {i}, i ** 3 = {i_cub}")
+        
         for j in range(i & 1, i, 2):
             j_cub = j ** 3
-            print(f"j = {j}, j ** 3 = {j_cub}")
-            for k in range(i & 1, i, 2):
+            #print(f"j = {j}, j ** 3 = {j_cub}")
+            for k in range(j & 1, j, 2):
                 res = addMod(res, 6 * getCount(i_cub, j_cub, k ** 3))
             res = addMod(res, 3 * getCount(i_cub, j_cub, j_cub))
-        print(f"j = {i}, j ** 3 = {i_cub}")
+        #print(f"j = {i}, j ** 3 = {i_cub}")
         for k in range(i & 1, i, 2):
             res = addMod(res, 3 * getCount(i_cub, i_cub, k ** 3))
         res = addMod(res, getCount(i_cub, i_cub, i_cub))
+        
     #print(res)
     return res if res_md is None else (res * pow(2, res_md - 2, res_md)) % res_md
 
@@ -1831,7 +1833,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         print(f"Solution to Project Euler #981 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {980}
+    eval_nums = {981}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
