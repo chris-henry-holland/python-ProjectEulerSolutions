@@ -1169,6 +1169,148 @@ def expectedMinimalFractionalValue(N: int=10 ** 4, use_float: bool=True) -> floa
     print(res)
     return res.numerator / res.denominator
 
+# Problem 974
+def calculateNthVeryOddNumber(n: int=10 ** 16, div: int=105, base: int=10) -> int:
+    if not div & 1: return -1
+    n_odd = (base + 1) >> 1
+
+
+    memo = {}
+    def calculateMDigitNumbers(m: int, md_div: int=0, dig_parity_bm: int=0, n_even_cnts: int=n_odd) -> int:
+        if n_even_cnts > m or n_even_cnts & 1 != m & 1: return 0
+        #if n_nonzero_even_cnts > m: return 0
+        if not m: return int(not md_div)
+        args = (m, dig_parity_bm, md_div)
+        if args in memo.keys(): return memo[args]
+        #bm2 = dig_parity_bm
+        res = 0
+        if n_even_cnts == m:
+            bm2 = 1
+            for i in range(n_odd):
+                if not bm2 & dig_parity_bm:
+                    res += calculateMDigitNumbers(m - 1, md_div=(md_div * base + (2 * i + 1)) % div, dig_parity_bm=dig_parity_bm ^ bm2, n_even_cnts=n_even_cnts - 1)
+                bm2 <<= 1
+        else:
+            bm2 = 1
+            for i in range(n_odd):
+                add = bool(bm2 & dig_parity_bm)
+                res += calculateMDigitNumbers(m - 1, md_div=(md_div * base + (2 * i + 1)) % div, dig_parity_bm=dig_parity_bm ^ bm2, n_even_cnts=n_even_cnts + (1 if add else -1))
+                bm2 <<= 1
+
+        memo[args] = res
+        return res
+    
+    #memo2 = {}
+    #def calculateVeryOddLEMDigitsCount(m: int) -> int:
+    #    if m < n_odd: return 0
+    #    args = m
+    #    if args in memo2.keys(): return memo2[args]
+    #    res = calculateMDigitNumbers(m, md_div=0, dig_parity_bm=0, n_even_cnts=n_odd) + calculateVeryOddLEMDigitsCount(m - 1)
+    #    memo2[args] = res
+    #    return res
+    n2 = n
+    for n_dig in itertools.count(n_odd):
+        cnt = calculateMDigitNumbers(n_dig, md_div=0, dig_parity_bm=0, n_even_cnts=n_odd)
+        if cnt >= n2: break
+        n2 -= cnt
+
+    #print(n_dig, n2)
+
+
+    def calculateVeryOddLENumWithSameNumberOfDigitsCount(num: int) -> int:
+        digs = []
+        num2 = num
+        while num2:
+            num2, d = divmod(num2, base)
+            digs.append(d)
+        if len(digs) & 1 != n_odd & 1: return 0
+        #print(digs)
+        
+        def recur(idx: int, md_div: int=0, dig_parity_bm: int=0, n_even_cnts: int=n_odd):
+            m = idx + 1
+            if n_even_cnts > m: return 0
+            #if n_nonzero_even_cnts > m: return 0
+            if not m: return int(not md_div)
+            #args = (m, dig_parity_bm, md_div)
+            #if args in memo.keys(): return memo[args]
+            #bm2 = dig_parity_bm
+            res = 0
+            j = digs[idx] >> 1
+            if n_even_cnts == m:
+                bm2 = 1
+                for i in range(j):
+                    if not bm2 & dig_parity_bm:
+                        res += calculateMDigitNumbers(m - 1, md_div=(md_div * base + (2 * i + 1)) % div, dig_parity_bm=dig_parity_bm ^ bm2, n_even_cnts=n_even_cnts - 1)
+                    bm2 <<= 1
+                if digs[idx] & 1 and not bm2 & dig_parity_bm:
+                    res += recur(idx - 1, md_div=(md_div * base + (2 * j + 1)) % div, dig_parity_bm=dig_parity_bm ^ bm2, n_even_cnts=n_even_cnts - 1)
+            else:
+                bm2 = 1
+                for i in range(j):
+                    add = bool(bm2 & dig_parity_bm)
+                    res += calculateMDigitNumbers(m - 1, md_div=(md_div * base + (2 * i + 1)) % div, dig_parity_bm=dig_parity_bm ^ bm2, n_even_cnts=n_even_cnts + (1 if add else -1))
+                    bm2 <<= 1
+                if digs[idx] & 1:
+                    add = bool(bm2 & dig_parity_bm)
+                    res += recur(idx - 1, md_div=(md_div * base + (2 * j + 1)) % div, dig_parity_bm=dig_parity_bm ^ bm2, n_even_cnts=n_even_cnts + (1 if add else -1))
+            return res
+        
+        return recur(len(digs) - 1, md_div=0, dig_parity_bm=0, n_even_cnts=n_odd)
+        
+    lft, rgt = base ** (n_dig - 1), base ** n_dig - 1
+    while lft < rgt:
+        mid = lft + ((rgt - lft) >> 1)
+        ans = calculateVeryOddLENumWithSameNumberOfDigitsCount(mid)
+        #print(mid, ans)
+        if ans < n2:
+            lft = mid + 1
+        else: rgt = mid 
+
+    return lft
+
+
+# Problem 977
+def checkFunctionIsIteratedBruteForce(func: List[int]) -> bool:
+    n = len(func)
+    memo = {}
+    def iteratedValues(x: int, y: int) -> int:
+        if x == 1: return func[y - 1]
+        args = (x, y)
+        if args in memo.keys(): return memo[args]
+        res = iteratedValues(x - 1, func[y - 1])
+        memo[args] = res
+        return res
+
+    for i in range(1, n + 1):
+        for j in range(1, i + 1):
+            if iteratedValues(i, j) != iteratedValues(j, i):
+                return False
+    return True
+
+def countIteratedFunctionsBruteForce(n: int) -> int:
+    
+    curr = [0] * n
+    def funcsGenerator(idx: int) -> Generator[List[int], None, None]:
+        if idx == n:
+            yield list(curr)
+            return
+        for i in range(1, n + 1):
+            curr[idx] = i
+            yield from funcsGenerator(idx + 1)
+        return
+    
+    print(f"n = {n}")
+    res = 0
+    func_one_map_counts = [0] * n
+    for func in funcsGenerator(0):
+        if not checkFunctionIsIteratedBruteForce(func): continue
+        #print(func)
+        res += 1
+        func_one_map_counts[func[0] - 1] += 1
+        #if func[0] == 2: cnt2 += 1
+    print(f"counts of the functions that map 1 to the different values = {func_one_map_counts}")
+    return res
+
 # Problem 978
 def randomWalkDistributionBruteForce(n_steps: int) -> Tuple[Dict[int, int], int]:
     if n_steps < 0: return ({}, 0)
@@ -1812,6 +1954,17 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = expectedMinimalFractionalValue(N=10 ** 1, use_float=True)
         print(f"Solution to Project Euler #965 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+
+    if 974 in eval_nums:
+        since = time.time()
+        res = calculateNthVeryOddNumber(n=10 ** 16, div=105, base=10)
+        print(f"Solution to Project Euler #974 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 977 in eval_nums:
+        since = time.time()
+        res = countIteratedFunctionsBruteForce(n=8)
+        print(f"Solution to Project Euler #977 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 978 in eval_nums:
         since = time.time()
         res = randomWalkSkewness(n_steps=50)
@@ -1833,7 +1986,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         print(f"Solution to Project Euler #981 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {981}
+    eval_nums = {974}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
