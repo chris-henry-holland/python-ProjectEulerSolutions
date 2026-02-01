@@ -1907,6 +1907,108 @@ def neutralStringsWithCubeCharacterCountsSum(cube_max: int=87, res_md: Optional[
     #print(res)
     return res if res_md is None else (res * pow(2, res_md - 2, res_md)) % res_md
 
+# Problem 982
+def diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces: int, n_dice: int) -> CustomFraction:
+    n_opts = die_n_faces ** n_dice
+    #alice_target = CustomFraction(die_n_faces + 1, 2)
+    bob_cutoff = CustomFraction(1, 2) * die_n_faces + 1
+    print(f"bob cutoff = {bob_cutoff}")
+
+    def bobChoices(dice_vals_sorted: List[int], hidden_die_idx: int) -> Dict[int, CustomFraction]:
+        mx_idx = n_dice - 1 - (hidden_die_idx == n_dice - 1)
+        mx = dice_vals_sorted[mx_idx]
+        diff = mx - bob_cutoff 
+        if diff >= 0: return {mx_idx: CustomFraction(1, 1)}
+        elif diff <= -1: return {hidden_die_idx: CustomFraction(1, 1)}
+        res = {mx_idx: diff}
+        res[hidden_die_idx] = res.get(hidden_die_idx, 0) + 1 - diff
+        return res
+
+    def aliceChoicesGivenBobStrategy(dice_vals_sorted: List[int], bob_strategy: Callable) -> Dict[int, CustomFraction]:
+        #if dice_vals_sorted[0] == dice_vals_sorted[-1]: return {0: CustomFraction(1, 1)}
+        best = (CustomFraction(die_n_faces + 1, 1), [])
+        for idx in range(n_dice):
+            if idx > 0 and dice_vals_sorted[idx] == dice_vals_sorted[idx - 1]:
+                continue
+            expected = CustomFraction(0, 1)
+            for idx2, p in bobChoices(dice_vals_sorted, idx).items():
+                expected += dice_vals_sorted[idx2] * p
+            if expected == best[0]: best[1].append(idx)
+            elif expected < best[0]: best = (expected, [idx])
+        p = CustomFraction(1, len(best[1]))
+        return {idx: p for idx in best[1]}
+        """
+        diff = dice_vals_sorted[-1] + dice_vals_sorted[0] - (die_n_faces + 1)
+        if diff < 0: return {0: CustomFraction(1, 1)}
+        elif diff > 0: return {n_dice - 1: CustomFraction(1, 1)}
+        n_mx = 1
+        for i in reversed(range(n_dice - 1)):
+            if dice_vals_sorted[i] == dice_vals_sorted[-1]:
+                break
+            n_mx += 1
+        n_mn = 1
+        for i in reversed(range(1, n_dice)):
+            if dice_vals_sorted[i] == dice_vals_sorted[0]:
+                break
+            n_mn += 1
+        #return {0: CustomFraction(n_mn, n_mn + n_mx), n_dice - 1: CustomFraction(n_mx, n_mn + n_mx)}
+        res = {0: CustomFraction(1, 2)}
+        res[n_dice - 1] = res.get(n_dice - 1, 0) + CustomFraction(1, 2)
+        return res
+        """
+    
+    def bobChoicesGivenAliceStrategy(dice_vals_sorted: List[int], hidden_die_idx: int, alice_strategy: Callable) -> Dict[int, CustomFraction]:
+        seen_dice_vals_sorted = [num for i, num in dice_vals_sorted if hidden_die_idx != i]
+        p_visible_dice = CustomFraction(0, 1)
+        for hidden_die_val in range(1, die_n_faces + 1):
+            dice_vals_sorted2 = sorted(dice_vals_sorted + [hidden_die_val])
+            alice_choices = alice_strategy(dice_vals_sorted2) 
+            p_hidden_die_selected_given_value = CustomFraction(0, 1)
+            #for idx, p in alice_choices.items():
+            return {}
+
+    
+    
+    def diceRollsGenerator() -> Generator[Tuple[List[int], int], None, None]:
+        
+        curr = [0] * n_dice
+        def recur(idx: int, mult: int, prev: int=1, curr_run: int=0) -> Generator[List[Tuple[int, int]], None, None]:
+            if idx == n_dice:
+                yield (list(curr), mult)
+                return
+            curr[idx] = prev
+            yield from recur(idx + 1, mult // (curr_run + 1), prev=prev, curr_run=curr_run + 1)
+            for num in range(prev + 1, die_n_faces + 1):
+                curr[idx] = num
+                yield from recur(idx + 1, mult, prev=num, curr_run=1)
+            return
+            
+        yield from recur(0, math.factorial(n_dice), prev=1, curr_run=0)
+        return
+    
+    tot = 0
+    res = CustomFraction(0, 1)
+    for dice_vals_sorted, mult in diceRollsGenerator():
+        print(dice_vals_sorted, mult)
+        tot += mult
+        ac = aliceChoicesGivenBobStrategy(dice_vals_sorted, bob_strategy=bobChoices)
+        print(ac)
+        print(f"alice choices for dice values {dice_vals_sorted}: {ac}")
+        for idx1, p1 in ac.items():
+            bc = bobChoices(dice_vals_sorted, idx1)
+            print(f"bob choices if alice chooses to hide die index {idx1}: {bc}")
+            for idx2, p2 in bc.items():
+                res += p1 * p2 * dice_vals_sorted[idx2] * mult
+    res /= n_opts
+    print(f"total possible dice rolls = {tot}")
+    
+    return res
+
+def diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces: int=6, n_dice: int=3) -> CustomFraction:
+    res = diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces, n_dice)
+    print(res)
+    return res.numerator / res.denominator
+
 ##############
 project_euler_num_range = (951, 1000)
 
@@ -1985,8 +2087,13 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = neutralStringsWithCubeCharacterCountsSum(cube_max=87, res_md=888_888_883)
         print(f"Solution to Project Euler #981 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 982 in eval_nums:
+        since = time.time()
+        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=6, n_dice=3)
+        print(f"Solution to Project Euler #982 = {res}, calculated in {time.time() - since:.4f} seconds")
+
 if __name__ == "__main__":
-    eval_nums = {974}
+    eval_nums = {982}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
