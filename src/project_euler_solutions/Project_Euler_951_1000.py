@@ -1908,8 +1908,298 @@ def neutralStringsWithCubeCharacterCountsSum(cube_max: int=87, res_md: Optional[
     return res if res_md is None else (res * pow(2, res_md - 2, res_md)) % res_md
 
 # Problem 982
-def diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces: int, n_dice: int) -> CustomFraction:
+def diceGameNashEquilibriumExpectedPayoutFraction(
+    die_n_faces: int,
+    n_dice: int,
+    n_dice_hidden: int,
+) -> CustomFraction:
     n_opts = die_n_faces ** n_dice
+
+    def diceRollsGenerator0() -> Generator[Tuple[List[int], int], None, None]:
+        
+        curr = [0] * n_dice
+        def recur(idx: int, mult: int, prev: int=1, curr_run: int=0) -> Generator[Tuple[List[int], int], None, None]:
+            if idx == n_dice:
+                yield (list(curr), mult)
+                return
+            curr[idx] = prev
+            yield from recur(idx + 1, mult // (curr_run + 1), prev=prev, curr_run=curr_run + 1)
+            for num in range(prev + 1, die_n_faces + 1):
+                curr[idx] = num
+                yield from recur(idx + 1, mult, prev=num, curr_run=1)
+            return
+            
+        yield from recur(0, math.factorial(n_dice), prev=1, curr_run=0)
+        return
+    
+    def diceRollsGenerator(die_n_faces: int, n_dice: int) -> Generator[Tuple[List[int], int], None, None]:
+        
+        curr = [0] * die_n_faces
+        def recur(idx: int, mult: int, remain: int) -> Generator[List[Tuple[int, int]], None, None]:
+            if idx == die_n_faces - 1:
+                curr[idx] = remain
+                yield (list(curr), mult // math.factorial(curr[idx]))
+                curr[idx] = 0
+                return
+            curr[idx] = remain
+            mult //= math.factorial(remain)
+            yield (list(curr), mult)
+            for cnt in reversed(range(remain)):
+                mult *= curr[idx]
+                curr[idx] -= 1
+                yield from recur(idx + 1, mult, remain - cnt)
+            curr[idx] = 0
+            return
+            
+        yield from recur(0, math.factorial(n_dice), remain=n_dice)
+        return
+
+    def aliceHiddenChoicesGenerator(
+        n_dice: int,
+        dice_roll: List[int],
+        n_hidden: int,
+    ) -> Generator[List[int], None, None]:
+        die_n_faces = len(dice_roll)
+        curr = [0] * die_n_faces
+        def recur(idx: int, remain_hidden: int=n_hidden, remain_tot: int=n_dice) -> Generator[List[int], None, None]:
+            if idx == die_n_faces - 1:
+                curr[idx] = remain_hidden
+                yield list(curr)
+                curr[idx] = 0
+                return
+            #curr[idx] = 0
+            if not dice_roll[idx]:
+                yield from recur(idx + 1, remain_hidden=remain_hidden, remain_tot=remain_tot)
+                return
+            if remain_hidden <= dice_roll[idx]:
+                curr[idx] = remain_hidden
+                yield list(curr)
+            for cnt in reversed(range(max(0, remain_hidden - remain_tot + dice_roll[idx]), min(dice_roll[idx] + 1, remain_hidden))):
+                curr[idx] = cnt
+                yield from recur(idx + 1, remain_hidden=remain_hidden - cnt, remain_tot=remain_tot - dice_roll[idx])
+            
+            curr[idx] = 0
+            return
+            
+        yield from recur(0, remain_hidden=n_hidden, remain_tot=n_dice)
+        return
+    
+    alice_choice_map = []
+    alice_choice_map_inv = {}
+    bob_choice_map = []
+    bob_choice_map_inv = {}
+    lagrange_map = []
+    lagrange_map_inv = {}
+    for dice_roll, f in diceRollsGenerator(die_n_faces=die_n_faces, n_dice=n_dice):
+        if dice_roll[-1] >= n_dice_hidden:# or max(dice_roll) == n_dice:
+            # If there are at least as many maximum roll values as are to be hidden, all hidden dice should have the maximum roll value
+            # Additionally, if all dice values are the same then there is no choice to be made
+            continue
+        dice_roll_tup = tuple(dice_roll)
+        val = tuple(dice_roll)
+        idx = len(lagrange_map)
+        lagrange_map.append(val)
+        lagrange_map_inv[val] = idx
+        print(f"dice roll = {dice_roll} with frequency {f} and dice selections:")
+        for hidden_dice_choice in aliceHiddenChoicesGenerator(
+            n_dice=n_dice,
+            dice_roll=dice_roll,
+            n_hidden=n_dice_hidden,
+        ):
+            val = (dice_roll_tup, tuple(hidden_dice_choice))
+            idx = len(alice_choice_map)
+            alice_choice_map.append(val)
+            alice_choice_map_inv[val] = idx
+    if n_dice_hidden < n_dice:
+        for dice_roll, _ in diceRollsGenerator(die_n_faces=die_n_faces, n_dice=n_dice - n_dice_hidden):
+            if dice_roll[-1] or dice_roll[0] == n_dice - n_dice_hidden:
+                continue
+            val = tuple(dice_roll)
+            idx = len(bob_choice_map)
+            bob_choice_map.append(val)
+            bob_choice_map_inv[val] = idx
+    lagrange_idx0 = len(alice_choice_map)
+    bob_idx0 = lagrange_idx0 + len(lagrange_map)
+    mat_size = bob_idx0 + len(bob_choice_map)
+    
+    print(f"alice choice map = {alice_choice_map}")
+    print(f"bob choice map = {bob_choice_map}")
+    print(f"lagrange map = {lagrange_map}")
+    print(f"number of alice choices = {len(alice_choice_map)}, number of bob choices = {len(bob_choice_map)}, number of Lagrange multipliers = {len(lagrange_map)}")
+    print(f"matrix size = {mat_size}")
+
+    mat = [[CustomFraction(0, 1) for _ in range(mat_size)] for _ in range(mat_size)]
+    vec = [CustomFraction(0, 1) for _ in range(mat_size)]
+
+    res = 0
+    alice_choice_idx = 0
+    lagrange_idx = lagrange_idx0
+    for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+        #dice_roll_tup = tuple(dice_roll)
+        print(f"dice roll:  {dice_roll}")
+        if dice_roll[-1] >= n_dice_hidden:
+            alice_choice = [0] * die_n_faces#list(dice_roll)
+            alice_choice[-1] = n_dice_hidden
+            visible_dice = list([x - y for x, y in zip(dice_roll, alice_choice)])
+            hidden_expected = CustomFraction(die_n_faces, 1)
+            
+            if not visible_dice[-1] and visible_dice[0] != (n_dice - n_dice_hidden):
+                for mx_visible in reversed(range(len(visible_dice))):
+                    if visible_dice[mx_visible]: break
+                else: mx_visible = -1
+                mx_visible += 1
+                print(f"alice choice = {alice_choice}, max visible = {mx_visible}, expected hidden = {hidden_expected}")
+                if bob_choice_map:
+                    bob_choice_idx = bob_idx0 + bob_choice_map_inv[tuple(visible_dice)]
+                    vec[bob_choice_idx] -= f * (hidden_expected - mx_visible)
+            continue
+        #elif max()
+        for alice_choice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+            mat[alice_choice_idx][lagrange_idx] += 1
+            mat[lagrange_idx][alice_choice_idx] += 1
+
+            visible_dice = list([x - y for x, y in zip(dice_roll, alice_choice)])
+            hidden_expected = CustomFraction(sum((j + 1) * cnt for j, cnt in enumerate(alice_choice)), n_dice_hidden)
+            if visible_dice[-1]:
+                # bob will always choose the largest die value if it is available
+                vec[alice_choice_idx] -= f * die_n_faces
+            elif visible_dice[0] == (n_dice - n_dice_hidden):
+                # bob will always choose the hidden die if all other values are the smallest possible
+                vec[alice_choice_idx] -= f * hidden_expected
+            else:
+                for mx_visible in reversed(range(len(visible_dice))):
+                    if visible_dice[mx_visible]: break
+                else: mx_visible = -1
+                mx_visible += 1
+                print(f"alice choice = {alice_choice}, max visible = {mx_visible}, expected hidden = {hidden_expected}")
+                if bob_choice_map:
+                    bob_choice_idx = bob_idx0 + bob_choice_map_inv[tuple(visible_dice)]
+                    print(f"bob_choice_idx = {bob_choice_idx}")
+                    mat[alice_choice_idx][bob_choice_idx] += f * (hidden_expected - mx_visible)
+                    mat[bob_choice_idx][alice_choice_idx] += f * (hidden_expected - mx_visible)
+                    vec[alice_choice_idx] -= f * mx_visible
+                elif n_dice_hidden:
+                    vec[alice_choice_idx] -= f * hidden_expected
+                else:
+                    vec[alice_choice_idx] -= f * mx_visible
+            alice_choice_idx += 1
+        vec[lagrange_idx] += 1
+        print(f"vec[lagrange_idx] for lagrange_idx = {lagrange_idx} is {vec[lagrange_idx]}")
+        lagrange_idx += 1
+    print(vec)
+
+    def gaussianEliminationFraction(mat: List[List[CustomFraction]], vec: List[CustomFraction]) -> List[CustomFraction]:
+        # Assumes mat is a square matrix and vec is the same dimension as mat
+        n = len(mat)
+        for i1 in range(n):
+            i1_ = i1
+            if mat[i1][i1] == 0:
+                for i1_ in range(i1 + 1, n):
+                    if mat[i1_][i1] != 0:
+                        mat[i1], mat[i1_] = mat[i1_], mat[i1]
+                        vec[i1], vec[i1_] = vec[i1_], vec[i1]
+                        #print(f"swapped rows {i1} and {i1_}:")
+                        #for row in mat:
+                        #    print(row)
+                        break
+                else:
+                    print("matrix not invertible")
+                    print(f"matrix when found non-invertible (row {i1}):")
+                    for row in mat:
+                        print(row)
+                    print(f"vector:")
+                    print(vec)
+                    return [] # the matrix is not invertible
+            for i1_ in range(i1_ + 1, n):
+                if mat[i1_][i1] == 0: continue
+                mult = mat[i1_][i1] / mat[i1][i1]
+                mat[i1_][i1] = CustomFraction(0, 1)
+                for i2 in range(i1 + 1, n):
+                    mat[i1_][i2] -= mult * mat[i1][i2]
+                vec[i1_] -= mult * vec[i1]
+            #print(f"eliminated column {i1}:")
+            #for row in mat:
+            #    print(row)
+        res = [CustomFraction(0, 1) for _ in range(n)]
+        for i1 in reversed(range(n)):
+            ans = vec[i1]
+            for i2 in reversed(range(i1 + 1, n)):
+                ans -= mat[i1][i2] * res[i2]
+            res[i1] = ans / mat[i1][i1]
+        return res
+
+    print("matrix:")
+    for row in mat:
+        print(row)
+    print("vector:")
+    print(vec)
+
+    prob_lst = gaussianEliminationFraction(mat, vec)
+    #prob_lst = [CustomFraction(1, 1), CustomFraction(0, 1), CustomFraction(1, 1), CustomFraction(1, 1), 0, 0, 0, CustomFraction(0, 1)]
+    #prob_lst[1] = CustomFraction(0, 1)
+    #prob_lst[2] = CustomFraction(1, 1)
+    #prob_lst[-1] = CustomFraction(0, 1)
+    print(f"probability list = {prob_lst}")
+    if not prob_lst: return CustomFraction(-1, 1)
+    res = 0
+    alice_choice_idx = 0
+    #lagrange_idx = 0
+    for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+        #dice_roll_tup = tuple(dice_roll)
+        if dice_roll[-1] >= n_dice_hidden:
+            alice_choice = [0] * die_n_faces
+            alice_choice[-1] = n_dice_hidden
+            visible_dice = list([x - y for x, y in zip(dice_roll, alice_choice)])
+
+            for mx_visible in reversed(range(len(visible_dice))):
+                if visible_dice[mx_visible]: break
+            else: mx_visible = -1
+            mx_visible += 1
+            expected = mx_visible
+            p_bob_chooses_hidden = None
+            if visible_dice[-1]:
+                p_bob_chooses_hidden = CustomFraction(0, 1)
+            elif visible_dice[0] == n_dice - n_dice_hidden:
+                p_bob_chooses_hidden = CustomFraction(1, 1)
+            else:
+                p_bob_chooses_hidden = prob_lst[bob_choice_map_inv[tuple(visible_dice)] + bob_idx0] if bob_choice_map else CustomFraction(int(bool(n_dice_hidden)), 1)
+            hidden_expected = CustomFraction(sum((j + 1) * cnt for j, cnt in enumerate(alice_choice)), n_dice_hidden)
+            #bob_choice_idx = bob_idx0 + bob_choice_map_inv[tuple(visible_dice)]
+            expected += p_bob_chooses_hidden * (hidden_expected - mx_visible)
+            print(f"dice roll = {dice_roll}, alice choice = {alice_choice}, P(alice makes this choice) = 1, P(bob chooses hidden) = {p_bob_chooses_hidden}, hidden expected score = {hidden_expected}, visible expected = {mx_visible}, expected score = {expected}, relative probability = {f}")
+            res += f * expected
+            print(f"total = {res}")
+            continue
+        for alice_choice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+            
+            visible_dice = list([x - y for x, y in zip(dice_roll, alice_choice)])
+            
+            
+            for mx_visible in reversed(range(len(visible_dice))):
+                if visible_dice[mx_visible]: break
+            else: mx_visible = -1
+            mx_visible += 1
+            expected = mx_visible
+            p_bob_chooses_hidden = None
+            if visible_dice[-1]:
+                p_bob_chooses_hidden = CustomFraction(0, 1)
+            elif visible_dice[0] == n_dice - n_dice_hidden:
+                p_bob_chooses_hidden = CustomFraction(1, 1)
+            else:
+                p_bob_chooses_hidden = prob_lst[bob_choice_map_inv[tuple(visible_dice)] + bob_idx0] if bob_choice_map else CustomFraction(int(bool(n_dice_hidden)), 1)
+            hidden_expected = CustomFraction(sum((j + 1) * cnt for j, cnt in enumerate(alice_choice)), n_dice_hidden)
+            #bob_choice_idx = bob_idx0 + bob_choice_map_inv[tuple(visible_dice)]
+            expected += p_bob_chooses_hidden * (hidden_expected - mx_visible)
+            print(alice_choice_idx)
+            print(f"dice roll = {dice_roll}, alice choice = {alice_choice}, P(alice makes this choice) = {prob_lst[alice_choice_idx]}, P(bob chooses hidden) = {p_bob_chooses_hidden}, hidden expected score = {hidden_expected}, visible expected = {mx_visible}, expected score = {expected}, relative probability = {f * prob_lst[alice_choice_idx]}")
+            res += f * prob_lst[alice_choice_idx] * expected
+            print(f"total = {res}")
+            alice_choice_idx += 1
+        #lagrange_idx += 1
+    print(f"res = {res}")
+    if isinstance(res, int): res = CustomFraction(res, 1)
+    return res / (die_n_faces ** n_dice)
+    """
     #alice_target = CustomFraction(die_n_faces + 1, 2)
     bob_cutoff = CustomFraction(1, 2) * die_n_faces + 1
     print(f"bob cutoff = {bob_cutoff}")
@@ -1937,25 +2227,38 @@ def diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces: int, n_dice: int)
             elif expected < best[0]: best = (expected, [idx])
         p = CustomFraction(1, len(best[1]))
         return {idx: p for idx in best[1]}
-        """
-        diff = dice_vals_sorted[-1] + dice_vals_sorted[0] - (die_n_faces + 1)
-        if diff < 0: return {0: CustomFraction(1, 1)}
-        elif diff > 0: return {n_dice - 1: CustomFraction(1, 1)}
-        n_mx = 1
-        for i in reversed(range(n_dice - 1)):
-            if dice_vals_sorted[i] == dice_vals_sorted[-1]:
-                break
-            n_mx += 1
-        n_mn = 1
-        for i in reversed(range(1, n_dice)):
-            if dice_vals_sorted[i] == dice_vals_sorted[0]:
-                break
-            n_mn += 1
-        #return {0: CustomFraction(n_mn, n_mn + n_mx), n_dice - 1: CustomFraction(n_mx, n_mn + n_mx)}
-        res = {0: CustomFraction(1, 2)}
-        res[n_dice - 1] = res.get(n_dice - 1, 0) + CustomFraction(1, 2)
-        return res
-        """
+        
+        # diff = dice_vals_sorted[-1] + dice_vals_sorted[0] - (die_n_faces + 1)
+        # if diff < 0: return {0: CustomFraction(1, 1)}
+        # elif diff > 0: return {n_dice - 1: CustomFraction(1, 1)}
+        # n_mx = 1
+        # for i in reversed(range(n_dice - 1)):
+        #     if dice_vals_sorted[i] == dice_vals_sorted[-1]:
+        #         break
+        #     n_mx += 1
+        # n_mn = 1
+        # for i in reversed(range(1, n_dice)):
+        #     if dice_vals_sorted[i] == dice_vals_sorted[0]:
+        #         break
+        #     n_mn += 1
+        # #return {0: CustomFraction(n_mn, n_mn + n_mx), n_dice - 1: CustomFraction(n_mx, n_mn + n_mx)}
+        # res = {0: CustomFraction(1, 2)}
+        # res[n_dice - 1] = res.get(n_dice - 1, 0) + CustomFraction(1, 2)
+        # return res
+    
+    def calculateSortedDiceValuesProbability(dice_vals_sorted: List[int]) -> CustomFraction:
+        n_dice = len(dice_vals_sorted)
+        run_len = 0
+        prev = -1
+        numerator = math.factorial(n_dice)
+        for num in dice_vals_sorted:
+            if num == prev:
+                run_len += 1
+                numerator //= run_len
+            else:
+                run_len = 1
+                prev = num
+        return CustomFraction(numerator, die_n_faces ** n_dice)
     
     def bobChoicesGivenAliceStrategy(dice_vals_sorted: List[int], hidden_die_idx: int, alice_strategy: Callable) -> Dict[int, CustomFraction]:
         seen_dice_vals_sorted = [num for i, num in dice_vals_sorted if hidden_die_idx != i]
@@ -1964,7 +2267,10 @@ def diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces: int, n_dice: int)
             dice_vals_sorted2 = sorted(dice_vals_sorted + [hidden_die_val])
             alice_choices = alice_strategy(dice_vals_sorted2) 
             p_hidden_die_selected_given_value = CustomFraction(0, 1)
+            p_dice_vals = calculateSortedDiceValuesProbability(dice_vals_sorted2)
+            p_visible_dice += p_dice_vals
             #for idx, p in alice_choices.items():
+                
             return {}
 
     
@@ -2003,9 +2309,14 @@ def diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces: int, n_dice: int)
     print(f"total possible dice rolls = {tot}")
     
     return res
+    """
 
-def diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces: int=6, n_dice: int=3) -> CustomFraction:
-    res = diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces, n_dice)
+def diceGameNashEquilibriumExpectedPayoutFloat(
+    die_n_faces: int=6,
+    n_dice: int=3,
+    n_dice_hidden: int=1,
+) -> CustomFraction:
+    res = diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces, n_dice, n_dice_hidden)
     print(res)
     return res.numerator / res.denominator
 
@@ -2089,7 +2400,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
 
     if 982 in eval_nums:
         since = time.time()
-        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=6, n_dice=3)
+        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=3, n_dice=3, n_dice_hidden=1)
         print(f"Solution to Project Euler #982 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
