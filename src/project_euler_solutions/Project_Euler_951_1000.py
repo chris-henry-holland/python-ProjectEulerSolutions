@@ -1983,7 +1983,61 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
             
         yield from recur(0, remain_hidden=n_hidden, remain_tot=n_dice)
         return
+
+    dice_rolls = []
+    dice_rolls_map = {}
+    visible_choices = []
+    visible_choices_map = {}
+    hidden_expected_map = {}
+    alice_choices = []
+    bob_choices = []
+    for dice_roll, _ in diceRollsGenerator(die_n_faces=die_n_faces, n_dice=n_dice):
+        dice_roll_tup = tuple(dice_roll)
+        d_idx = len(dice_rolls)
+        dice_rolls_map[dice_roll_tup] = d_idx
+        dice_rolls.append(dice_roll_tup)
+        alice_choices.append(([], set()))
+        #choice_exists = (max(dice_roll) != n_dice)
+        mnmx = -float("inf")
+        for hidden_choice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+            visible_choice = tuple(x - y for x, y in zip(dice_roll, hidden_choice))
+            if visible_choice not in visible_choices_map.keys():
+                v_idx = len(visible_choices)
+                visible_choices_map[visible_choice] = len(visible_choices)
+                for mx_visible in reversed(range(die_n_faces)):
+                    if visible_choice[mx_visible]: break
+                else: visible_choice = -1
+                mx_visible += 1
+                visible_choices.append((visible_choice, mx_visible))
+            else:
+                v_idx = visible_choices_map[visible_choice]
+                mx_visible = visible_choices[v_idx][1]
+            hidden_choice_tup = tuple(hidden_choice)
+            if hidden_choice_tup not in hidden_expected_map.keys():
+                hidden_expected = CustomFraction(sum((x + 1) * y for x, y in enumerate(hidden_choice)), n_dice_hidden)
+                hidden_expected_map[hidden_choice_tup] = hidden_expected
+            else: hidden_expected = hidden_expected_map[hidden_choice_tup]
+            #alice_choices[d_idx][1].add(len(alice_choices[d_idx][0]))
+            alice_choices[d_idx][0].append((v_idx, (mx_visible, hidden_expected)))
+            if max(mx_visible, hidden_expected) < mnmx:
+                continue
+            mnmx = max(mnmx, min(mx_visible, hidden_expected))
+            alice_choices[d_idx][1].add(len(alice_choices[d_idx][0]) - 1)
+        for idx in list(alice_choices[d_idx][1]):
+            if max(alice_choices[d_idx][0][idx][1]) < mnmx:
+                alice_choices[d_idx][1].remove(idx)
     
+    print("dice rolls:")
+    print(dice_rolls)
+    print("visible choices:")
+    print(visible_choices)
+    print("hidden expected map:")
+    print(hidden_expected_map)
+    print("alice choices:")
+    print(alice_choices)
+
+    return CustomFraction(0, 1)
+    """
     alice_choice_map = []
     alice_choice_map_inv = {}
     bob_choice_map = []
@@ -2006,13 +2060,18 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
             dice_roll=dice_roll,
             n_hidden=n_dice_hidden,
         ):
+            if dice_roll[0] != n_dice and dice_roll[0] - hidden_dice_choice[0] == n_dice - n_dice_hidden:
+                # All dice visible have the smallest possible value
+                # It is never advantageous to Alice to get this situation as Bob will always choose the hidden
+                # die as it cannot be less than those visible
+                continue
             val = (dice_roll_tup, tuple(hidden_dice_choice))
             idx = len(alice_choice_map)
             alice_choice_map.append(val)
             alice_choice_map_inv[val] = idx
     if n_dice_hidden < n_dice:
         for dice_roll, _ in diceRollsGenerator(die_n_faces=die_n_faces, n_dice=n_dice - n_dice_hidden):
-            if dice_roll[-1] or dice_roll[0] == n_dice - n_dice_hidden:
+            if dice_roll[-1] or (dice_roll[0] == n_dice - n_dice_hidden):
                 continue
             val = tuple(dice_roll)
             idx = len(bob_choice_map)
@@ -2051,6 +2110,8 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
                 print(f"alice choice = {alice_choice}, max visible = {mx_visible}, expected hidden = {hidden_expected}")
                 if bob_choice_map:
                     bob_choice_idx = bob_idx0 + bob_choice_map_inv[tuple(visible_dice)]
+                    print(f"bob_choice_idx = {bob_choice_idx}")
+                    print("hi")
                     vec[bob_choice_idx] -= f * (hidden_expected - mx_visible)
             continue
         #elif max()
@@ -2064,8 +2125,10 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
                 # bob will always choose the largest die value if it is available
                 vec[alice_choice_idx] -= f * die_n_faces
             elif visible_dice[0] == (n_dice - n_dice_hidden):
-                # bob will always choose the hidden die if all other values are the smallest possible
-                vec[alice_choice_idx] -= f * hidden_expected
+                # bob will always choose the hidden die if all other values are the smallest possible and alice will never choose to bring about this scenario
+                #vec[alice_choice_idx] -= f * hidden_expected
+                if dice_roll[0] != n_dice:
+                    continue
             else:
                 for mx_visible in reversed(range(len(visible_dice))):
                     if visible_dice[mx_visible]: break
@@ -2133,12 +2196,28 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
         print(row)
     print("vector:")
     print(vec)
-
+    """
+    """
+    sol2 = [CustomFraction(1, 1), CustomFraction(1, 1), CustomFraction(1, 1), CustomFraction(1, 1),\
+            CustomFraction(1, 1), CustomFraction(1, 1), CustomFraction(1, 1), CustomFraction(0, 1),\
+            CustomFraction(1, 1), CustomFraction(1, 2), CustomFraction(1, 2), CustomFraction(0, 1),\
+            CustomFraction(1, 1), CustomFraction(1, 1), CustomFraction(0, 1), CustomFraction(1, 1), CustomFraction(1, 1),\
+            CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(0, 1),\
+            CustomFraction(0, 1), CustomFraction(0, 1), CustomFraction(1, 1), CustomFraction(1, 1)]
+    vec2 = []
+    for i1, row in enumerate(mat):
+        vec2.append(sum(x * y for x, y in zip(row, sol2)))
+    print("proposed solution multiplied through matrix:")
+    print(vec2)
+    """
+    """
     prob_lst = gaussianEliminationFraction(mat, vec)
     #prob_lst = [CustomFraction(1, 1), CustomFraction(0, 1), CustomFraction(1, 1), CustomFraction(1, 1), 0, 0, 0, CustomFraction(0, 1)]
     #prob_lst[1] = CustomFraction(0, 1)
     #prob_lst[2] = CustomFraction(1, 1)
     #prob_lst[-1] = CustomFraction(0, 1)
+    #prob_lst[1] = CustomFraction(1, 2)
+    #prob_lst[2] = CustomFraction(1, 2)
     print(f"probability list = {prob_lst}")
     if not prob_lst: return CustomFraction(-1, 1)
     res = 0
@@ -2173,7 +2252,8 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
         for alice_choice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
             
             visible_dice = list([x - y for x, y in zip(dice_roll, alice_choice)])
-            
+            if dice_roll[0] != n_dice and visible_dice[0] == n_dice - n_dice_hidden:
+                continue
             
             for mx_visible in reversed(range(len(visible_dice))):
                 if visible_dice[mx_visible]: break
@@ -2199,6 +2279,7 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
     print(f"res = {res}")
     if isinstance(res, int): res = CustomFraction(res, 1)
     return res / (die_n_faces ** n_dice)
+    """
     """
     #alice_target = CustomFraction(die_n_faces + 1, 2)
     bob_cutoff = CustomFraction(1, 2) * die_n_faces + 1
@@ -2271,7 +2352,7 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
             p_visible_dice += p_dice_vals
             #for idx, p in alice_choices.items():
                 
-            return {}
+        return {}
 
     
     
@@ -2400,7 +2481,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
 
     if 982 in eval_nums:
         since = time.time()
-        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=3, n_dice=3, n_dice_hidden=1)
+        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=6, n_dice=2, n_dice_hidden=1)
         print(f"Solution to Project Euler #982 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
