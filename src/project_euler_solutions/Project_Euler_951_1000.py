@@ -1984,6 +1984,274 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
         yield from recur(0, remain_hidden=n_hidden, remain_tot=n_dice)
         return
 
+    
+
+    dice_rolls_lst = []
+    dice_rolls_dict = {}
+    visible_dice_lst = []
+    visible_dice_dict = {}
+    hidden_dice_expected = {}
+    for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+        dice_roll_tup = tuple(dice_roll)
+        idx = len(dice_rolls_lst)
+        dice_rolls_dict[dice_roll_tup] = idx
+        dice_rolls_lst.append((dice_roll_tup, f))
+    for dice_roll, _ in diceRollsGenerator(die_n_faces, n_dice - n_dice_hidden):
+        dice_roll_tup = tuple(dice_roll)
+        idx = len(visible_dice_lst)
+        for mx in reversed(range(1, die_n_faces + 1)):
+            if dice_roll[mx - 1]: break
+        visible_dice_dict[dice_roll_tup] = (idx, mx)
+        visible_dice_lst.append(dice_roll_tup)
+    for dice_roll, _ in diceRollsGenerator(die_n_faces, n_dice_hidden):
+        dice_roll_tup = tuple(dice_roll)
+        tot = sum(num * cnt for num, cnt in enumerate(dice_roll, start=1))
+        hidden_dice_expected[dice_roll_tup] = CustomFraction(tot, n_dice_hidden)
+
+    
+    print("dice roll list:")
+    print(dice_rolls_lst)
+    print("visible dice list:")
+    print(visible_dice_lst)
+    print("visible dice dict:")
+    print(visible_dice_dict)
+
+    def aliceOptimalStrategyGivenBobStrategy(bob_strategy: List[CustomFraction]) -> Tuple[List[Dict[int, CustomFraction]], CustomFraction]:
+        #if dice_vals_sorted[0] == dice_vals_sorted[-1]: return {0: CustomFraction(1, 1)}
+        res = []
+        tot_exp = CustomFraction(0, 1)
+        tot_n_dice_roll = 0
+        for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+            best = (CustomFraction(die_n_faces + 1, 1), [])
+            #print(f"dice roll = {dice_roll}, f = {f}")
+            for hidden_dice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+                hidden_exp = hidden_dice_expected[tuple(hidden_dice)]
+                visible_dice = tuple(x - y for x, y in zip(dice_roll, hidden_dice))
+                vis_idx, vis_mx = visible_dice_dict[visible_dice]
+                exp = bob_strategy[vis_idx] * (hidden_exp - vis_mx) + vis_mx
+                #print(f"visible choice = {visible_dice}, expected result = {exp}")
+                if exp == best[0]: best[1].append(vis_idx)
+                elif exp < best[0]: best = (exp, [vis_idx])
+            res.append({})
+            n_choice = len(best[1])
+            for vis_idx in best[1]:
+                res[-1][vis_idx] = CustomFraction(1, n_choice)
+            tot_exp += f * best[0]
+            tot_n_dice_roll += f
+        #print(f"total number of dice rolls = {tot_n_dice_roll}")
+        return (res, tot_exp / tot_n_dice_roll)
+
+    def bobOptimalStrategyGivenAliceStrategy(alice_strategy: List[Dict[int, CustomFraction]]) -> Tuple[List[CustomFraction], CustomFraction]:
+        #if dice_vals_sorted[0] == dice_vals_sorted[-1]: return {0: CustomFraction(1, 1)}
+        res = []
+        exp_contrib = [[CustomFraction(0, 1), CustomFraction(0, 1)] for _ in range(len(visible_dice_lst))]
+        tot_exp = CustomFraction(0, 1)
+        tot_n_dice_roll = 0
+        for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+            best = (CustomFraction(0, 1), [])
+            dice_idx = dice_rolls_dict[tuple(dice_roll)]
+            #print(f"dice roll = {dice_roll}, f = {f}")
+            for hidden_dice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+                hidden_exp = hidden_dice_expected[tuple(hidden_dice)]
+                visible_dice = tuple(x - y for x, y in zip(dice_roll, hidden_dice))
+                vis_idx, vis_mx = visible_dice_dict[visible_dice]
+                p = alice_strategy[dice_idx].get(vis_idx, 0)
+                if p > 0:
+                    exp_contrib[vis_idx][0] += f * p * hidden_exp
+                    exp_contrib[vis_idx][1] += f * p * vis_mx
+            res.append({})
+            n_choice = len(best[1])
+            for vis_idx in best[1]:
+                res[-1][vis_idx] = CustomFraction(1, n_choice)
+            tot_exp += f * best[0]
+            tot_n_dice_roll += f
+        #print(f"total number of dice rolls = {tot_n_dice_roll}")
+        bob_strat = []
+        exp_mx = CustomFraction(0, 1)
+        for pair in exp_contrib:
+            if pair[0] == pair[1]:
+                bob_strat.append(CustomFraction(1, 2))
+                exp_mx += pair[0]
+            elif pair[0] > pair[1]:
+                bob_strat.append(CustomFraction(1, 1))
+                exp_mx += pair[0]
+            else:
+                bob_strat.append(CustomFraction(0, 1))
+                exp_mx += pair[1]
+        return (bob_strat, exp_mx / tot_n_dice_roll)
+
+    def aliceImprovedStrategyGivenBobStrategy(bob_strategy: List[CustomFraction], alice_strategy_prev: List[Dict[int, CustomFraction]]) -> Tuple[List[Dict[int, CustomFraction]], bool]:
+        #if dice_vals_sorted[0] == dice_vals_sorted[-1]: return {0: CustomFraction(1, 1)}
+        res = []
+        #tot_exp = CustomFraction(0, 1)
+        #tot_n_dice_roll = 0
+        #alice_strat = [dict(x) for x in alice_strategy_prev]
+        dice_inds = list(range(len(dice_rolls_lst)))
+        chng_candidates = [CustomFraction(0, 1), []]
+        #random.shuffle(dice_inds)
+        for dice_idx in dice_inds:
+            dice_roll, f = dice_rolls_lst[dice_idx]
+            best = (CustomFraction(die_n_faces + 1, 1), [])
+            #exp_chng = CustomFraction(0, 1)
+            exp_prev = CustomFraction(0, 1)
+            #print(f"dice roll = {dice_roll}, f = {f}")
+            for hidden_dice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+                hidden_exp = hidden_dice_expected[tuple(hidden_dice)]
+                visible_dice = tuple(x - y for x, y in zip(dice_roll, hidden_dice))
+                vis_idx, vis_mx = visible_dice_dict[visible_dice]
+                exp = bob_strategy[vis_idx] * (hidden_exp - vis_mx) + vis_mx
+                exp_prev += exp * alice_strategy_prev[dice_idx].get(vis_idx, 0)
+                #print(f"visible choice = {visible_dice}, expected result = {exp}")
+                if exp == best[0]: best[1].append(vis_idx)
+                elif exp < best[0]: best = (exp, [vis_idx])
+            exp_diff = best[0] - exp_prev
+            if exp_diff > chng_candidates[0]: continue
+            n_choice = len(best[1])
+            new_dict = {x: CustomFraction(1, n_choice) for x in best[1]}
+            for x, p in new_dict.items():
+                if alice_strategy_prev[dice_idx].get(x, 0) != p:
+                    break
+            else:
+                continue
+            if exp_diff < chng_candidates[0]:
+                chng_candidates = [exp_diff, []]
+            chng_candidates[1].append((dice_idx, new_dict))
+            #for vis_idx in best[1]:
+            #    if alice_strat[dice_idx][vis_idx] != alice_strategy_prev[dice_idx].get(vis_idx, 0):
+            #        return (alice_strat, True)
+        #print(f"total number of dice rolls = {tot_n_dice_roll}")
+        print(f"alice change candidates (expected change {chng_candidates[0]}) = {chng_candidates[1]}")
+        if not chng_candidates[1]: return (alice_strategy_prev, False)
+        alice_strat = [dict(x) for x in alice_strategy_prev]
+        dice_pair = random.choice(chng_candidates[1])
+        alice_strat[dice_pair[0]] = dice_pair[1]
+        print(f"new alice strat = {alice_strat}")
+        return (alice_strat, True)
+
+    def bobImprovedStrategyGivenAliceStrategy(alice_strategy: List[Dict[int, CustomFraction]], bob_strategy_prev: List[CustomFraction]) -> Tuple[List[CustomFraction], CustomFraction]:
+        #if dice_vals_sorted[0] == dice_vals_sorted[-1]: return {0: CustomFraction(1, 1)}
+        exp_contrib = [[CustomFraction(0, 1), CustomFraction(0, 1)] for _ in range(len(visible_dice_lst))]
+        tot_exp = CustomFraction(0, 1)
+        tot_n_dice_roll = 0
+
+        for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+            best = (CustomFraction(0, 1), [])
+            dice_idx = dice_rolls_dict[tuple(dice_roll)]
+            #print(f"dice roll = {dice_roll}, f = {f}")
+            for hidden_dice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+                hidden_exp = hidden_dice_expected[tuple(hidden_dice)]
+                visible_dice = tuple(x - y for x, y in zip(dice_roll, hidden_dice))
+                vis_idx, vis_mx = visible_dice_dict[visible_dice]
+                #print(alice_strategy)
+                p = alice_strategy[dice_idx].get(vis_idx, 0)
+                if p > 0:
+                    exp_contrib[vis_idx][0] += f * p * hidden_exp
+                    exp_contrib[vis_idx][1] += f * p * vis_mx
+            tot_exp += f * best[0]
+            tot_n_dice_roll += f
+        #print(f"total number of dice rolls = {tot_n_dice_roll}")
+        
+        #exp_mx = CustomFraction(0, 1)
+        visible_inds = list(range(len(exp_contrib)))
+        #random.shuffle(visible_inds)
+        chng_candidates = [CustomFraction(0, 1), []]
+        for idx in visible_inds:
+            pair = exp_contrib[idx]
+            chng = max(pair) - (bob_strategy_prev[idx] * pair[0] + (1 - bob_strategy_prev[idx]) * pair[1])
+            if chng > chng_candidates[0]:
+                chng_candidates = [chng, [idx]]
+            elif chng == chng_candidates[0]:
+                if pair[0] == pair[1]:
+                    if bob_strategy_prev[idx] == CustomFraction(1, 2): continue
+                elif pair[0] > pair[1]:
+                    if bob_strategy_prev[idx] == CustomFraction(1, 1): continue
+                else:
+                    if bob_strategy_prev[idx] == CustomFraction(0, 1): continue
+                chng_candidates[1].append(idx)
+        #print(f"bob change candidates (expected change = {chng_candidates[0]}): {chng_candidates[1]}")
+        if not chng_candidates[1]:
+            return (bob_strategy_prev, False)
+        bob_strat = list(bob_strategy_prev)
+        idx = random.choice(chng_candidates[1])
+        pair = exp_contrib[idx]
+        if pair[0] == pair[1]:
+            bob_strat[idx] = CustomFraction(1, 2)
+        elif pair[0] > pair[1]:
+            bob_strat[idx] = CustomFraction(1, 1)
+        else:
+            bob_strat[idx] = CustomFraction(0, 1)
+        print(f"new bob strat = {bob_strat}")
+        return (bob_strat, True)
+
+    def strategiesExpectedValue(alice_strategy: List[Dict[int, CustomFraction]], bob_strategy: List[CustomFraction]) -> CustomFraction:
+        tot_exp = CustomFraction(0, 1)
+        tot_n_dice_roll = 0
+
+        for dice_roll, f in diceRollsGenerator(die_n_faces, n_dice):
+            dice_idx = dice_rolls_dict[tuple(dice_roll)]
+            for hidden_dice in aliceHiddenChoicesGenerator(n_dice, dice_roll, n_dice_hidden):
+                hidden_exp = hidden_dice_expected[tuple(hidden_dice)]
+                visible_dice = tuple(x - y for x, y in zip(dice_roll, hidden_dice))
+                vis_idx, vis_mx = visible_dice_dict[visible_dice]
+                p1 = alice_strategy[dice_idx].get(vis_idx, 0)
+                tot_exp += f * p1 * (hidden_exp * bob_strategy[vis_idx] + vis_mx * (1 - bob_strategy[vis_idx]))
+            tot_n_dice_roll += f
+        return tot_exp / tot_n_dice_roll
+
+    bob_cutoff = CustomFraction(n_dice - 1, n_dice) * die_n_faces + 1
+    bob_strat_init = [CustomFraction(0, 1) for _ in range(len(visible_dice_lst))]
+    for dice_roll, (vis_idx, mx) in visible_dice_dict.items():
+        #print(vis_idx, len(visible_dice_lst))
+        bob_strat_init[vis_idx] = CustomFraction(0, 1) if mx >= bob_cutoff else CustomFraction(1, 1)
+    alice_strat_init, _ = aliceOptimalStrategyGivenBobStrategy(bob_strat_init)
+    print("bob strat init:")
+    print(bob_strat_init)
+    print("alice_strat_init:")
+    print(alice_strat_init)
+    
+    
+    bob_strat = bob_strat_init
+    alice_strat = alice_strat_init
+    while True:
+        bob_strat, chng1 = bobImprovedStrategyGivenAliceStrategy(alice_strat, bob_strat)
+        #print(f"bob strat: {bob_strat}")
+        #print(f"expected value = {strategiesExpectedValue(alice_strat, bob_strat)}")
+        expect = strategiesExpectedValue(alice_strat, bob_strat)
+        print(f"expected value = {expect} (approx {expect.numerator / expect.denominator})")
+        alice_strat, chng2 = aliceImprovedStrategyGivenBobStrategy(bob_strat, alice_strat)
+        #print(f"improved alice strat: {alice_strat}")
+        expect = strategiesExpectedValue(alice_strat, bob_strat)
+        print(f"expected value = {expect} (approx {expect.numerator / expect.denominator})")
+        if not chng1 and not chng2: break
+        
+    res = strategiesExpectedValue(alice_strat, bob_strat)
+    return res
+    """
+    curr_exp = CustomFraction(die_n_faces, 1)
+    while True:
+        prev_exp = curr_exp
+        alice_strat, curr_exp = aliceOptimalStrategyGivenBobStrategy(bob_strat)
+        if curr_exp == prev_exp:
+            break
+        print(f"after Alice optimisation expected value = {curr_exp}")
+        print(f"alice strat: {alice_strat}")
+        prev_exp = curr_exp
+        bob_strat, curr_exp = bobOptimalStrategyGivenAliceStrategy(alice_strat)
+        if curr_exp == prev_exp:
+            break
+        print(f"after Bob optimisation expected value = {curr_exp}")
+        print(f"bob strat: {bob_strat}")
+    
+    print(f"Nash equilibrium found (expected value = {curr_exp}):")
+    #alice_strat, mn_exp = aliceOptimalStrategyGivenBobStrategy(bob_strat_init)
+    print(f"alice strat:")
+    print(alice_strat)
+    #bob_strat, mx_exp = bobOptimalStrategyGivenAliceStrategy(alice_strat)
+    print(f"bob strat:")
+    print(bob_strat)
+    return curr_exp
+    """
+    """
     dice_rolls = []
     dice_rolls_map = {}
     visible_choices = []
@@ -2037,6 +2305,7 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
     print(alice_choices)
 
     return CustomFraction(0, 1)
+    """
     """
     alice_choice_map = []
     alice_choice_map_inv = {}
@@ -2481,7 +2750,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
 
     if 982 in eval_nums:
         since = time.time()
-        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=6, n_dice=2, n_dice_hidden=1)
+        res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=6, n_dice=3, n_dice_hidden=1)
         print(f"Solution to Project Euler #982 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
