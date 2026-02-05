@@ -2926,7 +2926,29 @@ def stoneGamePlayerTwoWinningConfigurationsSum(
     return res
 
 # Problem 261
-def distinctPivotalSquareSums(k_max: int) -> List[int]:
+def distinctSquarePivots(k_max: int) -> List[int]:
+    """
+    Finds all the strictly positive integers no greater than
+    k_max that are square-pivots.
+
+    A strictly positive integer k is a square pivot if and only
+    if there exists an ordered pair of integer (m, n) for which
+    m is strictly positive and n is no less than k such that
+    the sum of the squares of the (m + 1) consecutive integers
+    between (k - m) and k inclusive is equal to the sum of the
+    squares of the m consecutive integers between (n + 1) and
+    (n + m) inclusive.
+
+    Args:
+        Required positional:
+        k_max (int): Integer giving the inclusive upper bound
+                on the value of integers that are square-pivots
+                to be included in the result.
+    
+    Returns:
+    List of integers (int) giving every distinct integer no greater
+    than k_max that is a square-pivot in strictly increasing order.
+    """
     res = set()
     m_max = (isqrt(1 + 2 * k_max) - 1) >> 1
     ps = PrimeSPFsieve(m_max + 1)
@@ -3077,11 +3099,33 @@ def distinctPivotalSquareSums(k_max: int) -> List[int]:
     return sorted(res)
     """
 
-def distinctPivotalSquareSumsTotal(k_max: int=10 ** 10) -> int:
+def distinctSquarePivotsSum(k_max: int=10 ** 10) -> int:
     """
     Solution to Project Euler #261
+
+    Finds the sum of all the strictly positive integers no greater
+    than k_max that are square-pivots.
+
+    A strictly positive integer k is a square pivot if and only
+    if there exists an ordered pair of integer (m, n) for which
+    m is strictly positive and n is no less than k such that
+    the sum of the squares of the (m + 1) consecutive integers
+    between (k - m) and k inclusive is equal to the sum of the
+    squares of the m consecutive integers between (n + 1) and
+    (n + m) inclusive.
+
+    Args:
+        Optional named:
+        k_max (int): Integer giving the inclusive upper bound
+                on the value of integers that are square-pivots
+                to be included in the sum.
+            Default: 10 ** 10
+    
+    Returns:
+    Integer (int) giving the sum of every distinct integer no greater
+    than k_max that is a square-pivot.
     """
-    res = sum(distinctPivotalSquareSums(k_max))
+    res = sum(distinctSquarePivots(k_max))
     return res
 
 # Problem 263
@@ -3949,7 +3993,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 261 in eval_nums:
         since = time.time()
-        res = distinctPivotalSquareSumsTotal(k_max=10 ** 10)
+        res = distinctSquarePivotsSum(k_max=10 ** 10)
         print(f"Solution to Project Euler #261 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 263 in eval_nums:
@@ -3995,7 +4039,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {260}
+    eval_nums = {261}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
