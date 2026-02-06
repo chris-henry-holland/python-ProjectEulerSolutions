@@ -22,6 +22,7 @@ import random
 import time
 
 import numpy as np
+import mystic.solvers as ms
 
 from collections import deque, defaultdict
 from sortedcontainers import SortedDict, SortedList, SortedSet
@@ -2016,6 +2017,19 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
     print("visible dice dict:")
     print(visible_dice_dict)
 
+    def isNashEquilibrium(alice_strategy: List[Dict[int, CustomFraction]], bobStrategy: List[CustomFraction]) -> bool:
+        for p in bobStrategy:
+            if p < 0 or p > 1: return False
+        for choices in alice_strategy:
+            p_sum = 0
+            for p in choices.values():
+                if p < 0 or p > 1: return False
+                p_sum += p
+                if p_sum > 1: return False
+            if p_sum != 1: return False
+        #for dice_idx, dice_roll in enumerate(dice_rolls_lst):
+
+
     def aliceOptimalStrategyGivenBobStrategy(bob_strategy: List[CustomFraction]) -> Tuple[List[Dict[int, CustomFraction]], CustomFraction]:
         #if dice_vals_sorted[0] == dice_vals_sorted[-1]: return {0: CustomFraction(1, 1)}
         res = []
@@ -2661,14 +2675,27 @@ def diceGameNashEquilibriumExpectedPayoutFraction(
     return res
     """
 
+def diceGameNashEquilibriumExpectedPayoutNumerical(
+    die_n_faces: int,
+    n_dice: int,
+    n_dice_hidden: int,
+) -> float:
+    return 0
+
 def diceGameNashEquilibriumExpectedPayoutFloat(
     die_n_faces: int=6,
     n_dice: int=3,
     n_dice_hidden: int=1,
-) -> CustomFraction:
-    res = diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces, n_dice, n_dice_hidden)
-    print(res)
-    return res.numerator / res.denominator
+) -> float:
+    #res = diceGameNashEquilibriumExpectedPayoutFraction(die_n_faces, n_dice, n_dice_hidden)
+    #print(res)
+    #return res.numerator / res.denominator
+    res = diceGameNashEquilibriumExpectedPayoutNumerical(
+        die_n_faces,
+        n_dice,
+        n_dice_hidden,
+    )
+    return res
 
 ##############
 project_euler_num_range = (951, 1000)

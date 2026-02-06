@@ -38,8 +38,9 @@ Requires-Dist: numpy>=1.26.0
 Requires-Dist: scipy>=1.11.3
 Requires-Dist: sympy>=1.11.1
 Requires-Dist: gmpy2>=2.2.0
-Requires-Dist: data_structures_and_algorithms@ git+https://github.com/chris-henry-holland/python-DataStructuresAndAlgorithms
-Requires-Dist: graph_classes@ git+https://github.com/chris-henry-holland/python-GraphClasses
+Requires-Dist: mystic
+Requires-Dist: data_structures_and_algorithms @ git+https://github.com/chris-henry-holland/python-DataStructuresAndAlgorithms
+Requires-Dist: graph_classes @ git+https://github.com/chris-henry-holland/python-GraphClasses
 Dynamic: license-file
 
 <h1>Project Euler</h1>
