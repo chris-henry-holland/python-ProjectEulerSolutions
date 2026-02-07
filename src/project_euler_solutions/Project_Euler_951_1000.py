@@ -22,7 +22,6 @@ import random
 import time
 
 import numpy as np
-import mystic.solvers as ms
 
 from collections import deque, defaultdict
 from sortedcontainers import SortedDict, SortedList, SortedSet
