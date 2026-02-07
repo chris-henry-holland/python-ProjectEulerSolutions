@@ -3128,6 +3128,132 @@ def distinctSquarePivotsSum(k_max: int=10 ** 10) -> int:
     res = sum(distinctSquarePivots(k_max))
     return res
 
+# Problem 262
+def mountainRangeDistance(res_eps: float=1e-4) -> float:
+
+    # Review- try to make more general (starting with arbitrary start and end points)
+    def h(x: float, y: float):
+        return (5000 - 0.005 * (x * x + y * y + x * y) + 12.5 * (x + y) ) * math.exp(-abs(0.000001 * (x * x + y * y) - 0.0015 * (x + y) + 0.7))
+    
+    def h_y_deriv(x: float, y: float):
+        exp_num = 0.000001 * (x * x + y * y) - 0.0015 * (x + y) + 0.7
+        exp_num_deriv = 0.000002 * y - 0.0015
+        mult = 5000 - 0.005 * (x * x + y * y + x * y) + 12.5 * (x + y)
+        mult_deriv = -0.005 * (2 * y + x) + 12.5
+        e = math.exp(-exp_num)
+        if exp_num >= 0:
+            return (mult_deriv - mult * exp_num_deriv) * e
+        return (mult_deriv + mult * exp_num_deriv) * e
+
+    def h_plus_const_over_h_y_deriv(x: float, y: float, h0: float=0):
+        #print((x, y), h0)
+        res0 = (h(x, y) + h0) / h_y_deriv(x, y)
+        #print(h(x, y) / h_y_deriv(x, y), h0 / h_y_deriv(x, y))
+        #return (h(x, y) + h0) / h_y_deriv(x, y)
+        
+        exp_num = 0.000001 * (x * x + y * y) - 0.0015 * (x + y) + 0.7
+        exp_num_deriv = 0.000002 * y - 0.0015
+        mult = 5000 - 0.005 * (x * x + y * y + x * y) + 12.5 * (x + y)
+        mult_deriv = -0.005 * (2 * y + x) + 12.5
+        #if exp_num >= 0:
+        #    res = (mult_deriv / mult - exp_num_deriv)
+        #res = (mult_deriv / mult + exp_num_deriv)
+        #res = 1 / res
+        res = mult / (mult_deriv - mult * exp_num_deriv) if exp_num >= 0 else mult / (mult_deriv + mult * exp_num_deriv)
+        #print(f"res0 = {res0}, res without const = {res}")
+        if not h0: return res
+        e = math.exp(-abs(exp_num))
+        #print(mult_deriv, mult, exp_num_deriv, exp_num, e)
+        add_term = h0 / ((mult_deriv - mult * exp_num_deriv) * e) if exp_num >= 0 else h0 / ((mult_deriv + mult * exp_num_deriv) * e)
+        
+        #print(f"res0 = {res0}, res without add term = {res}, add term = {add_term}")
+        res += add_term
+        return res
+        
+
+    def h_y_deriv_over_h_y_deriv2(x: float, y: float):
+        exp_num = 0.000001 * (x * x + y * y) - 0.0015 * (x + y) + 0.7
+        exp_num_deriv = 0.000002 * y - 0.0015
+        exp_num_deriv2 = 0.000002
+        mult = 5000 - 0.005 * (x * x + y * y + x * y) + 12.5 * (x + y)
+        mult_deriv = -0.005 * (2 * y + x) + 12.5
+        mult_deriv2 = -0.01
+        if exp_num >= 0:
+            #(mult_deriv - mult * exp_num_deriv)
+            #(-2 * mult_deriv * exp_num_deriv + mult * exp_num_deriv ** 2 + mult_deriv2 - mult * exp_num_deriv2)
+            res = (-2 * mult_deriv * exp_num_deriv + mult * exp_num_deriv ** 2 + mult_deriv2 - mult * exp_num_deriv2) / (mult_deriv - mult * exp_num_deriv)
+        else: res = (2 * mult_deriv * exp_num_deriv + mult * exp_num_deriv ** 2 + mult_deriv2 + mult * exp_num_deriv2) / (mult_deriv + mult * exp_num_deriv)
+        return 1 / res
+
+    def newtonRaphsonY(f_over_f_y_deriv: Callable[[float, float], float], x: float, y0: float, eps: float=res_eps) -> float:
+        y = y0
+        y0 = float("inf")
+        while 2 * abs(y - y0) > eps:
+            #print(f"y = {y}, f_over_f_y_deriv = {f_over_f_y_deriv(x, y)}")
+            y0 = y
+            y = y - f_over_f_y_deriv(x, y)
+        return y
+    
+    y_h_max_for_zero_x = newtonRaphsonY(h_y_deriv_over_h_y_deriv2, x=0, y0=800, eps=res_eps)
+    #print(f"max h for x = 0 is at y = {y_h_max_for_zero_x}")
+    f_min = h(0, y_h_max_for_zero_x)
+
+    print((0, y_h_max_for_zero_x), f_min)
+
+    h2_plus_const_over_h2_y_deriv = functools.partial(h_plus_const_over_h_y_deriv, h0=-f_min)
+    #print(h2_plus_const_over_h2_y_deriv)
+    #print("hi", h2_plus_const_over_h2_y_deriv(0, 0))
+    print(h_plus_const_over_h_y_deriv(0, y_h_max_for_zero_x, h0=f_min))
+    #print(h0, h1, h2)
+    #print(h(100, 100))
+    res = 0
+    target = [200, 200]
+    x_step = res_eps
+    x_step_sq = x_step * x_step
+    y0 = y_h_max_for_zero_x - 1
+    x0 = 0
+    x = x0 + x_step
+    y = newtonRaphsonY(h2_plus_const_over_h2_y_deriv, x, y0, eps=res_eps)
+    y0 = y_h_max_for_zero_x
+    while True:
+        grad = (y - y0) / x_step
+        if math.floor(x) != math.floor(x0): print(x, y, h(x, y), y0 + (target[0] - x0) * grad, res)
+        
+        if y0 + (target[0] - x0) * grad >= target[1]:
+            res += math.sqrt((target[0] - x0) ** 2 + (target[1] - y0) ** 2)
+            break
+        res += math.sqrt(x_step_sq + (y - y0) ** 2)
+        x0 = x
+        x += x_step
+        y0 = y
+        y = newtonRaphsonY(h2_plus_const_over_h2_y_deriv, x, y0, eps=res_eps)
+    print(f"branch 1 has length {res}")
+    res2 = 0
+    target = [1400, 1400]
+    x_step = res_eps
+    x_step_sq = x_step * x_step
+    y0 = y_h_max_for_zero_x + 1
+    x0 = 0
+    x = x0 + x_step
+    y = newtonRaphsonY(h2_plus_const_over_h2_y_deriv, x, y0, eps=res_eps)
+    y0 = y_h_max_for_zero_x
+    while True:
+        grad = (y - y0) / x_step
+        if math.floor(x) != math.floor(x0): print(x, y, h(x, y), y0 + (target[0] - x0) * grad, res2)
+        
+        if y0 + (target[0] - x0) * grad <= target[1]:
+            res2 += math.sqrt((target[0] - x0) ** 2 + (target[1] - y0) ** 2)
+            break
+        res2 += math.sqrt(x_step_sq + (y - y0) ** 2)
+        x0 = x
+        x += x_step
+        y0 = y
+        y = newtonRaphsonY(h2_plus_const_over_h2_y_deriv, x, y0, eps=res_eps)
+    print(f"branch 2 has length {res2}")
+
+    return res + res2
+
+
 # Problem 263
 def calculatePrimeFactorisation(
     num: int,
@@ -3996,6 +4122,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = distinctSquarePivotsSum(k_max=10 ** 10)
         print(f"Solution to Project Euler #261 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 262 in eval_nums:
+        since = time.time()
+        res = mountainRangeDistance(res_eps=1e-4)
+        print(f"Solution to Project Euler #263 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 263 in eval_nums:
         since = time.time()
         res = engineersParadiseSum(n_incl=3, ps=None)
@@ -4039,7 +4170,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {261}
+    eval_nums = {262}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
