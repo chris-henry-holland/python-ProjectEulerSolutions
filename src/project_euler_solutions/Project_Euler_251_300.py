@@ -4080,6 +4080,8 @@ def findSumOfSquaresEqualToSquareFreeProductBruteForce(p_max: int) -> List[List[
     return res
 
 def sumOfSquaresSmallerSquareSum(p_max: int=149) -> int:
+
+    # Using Gaussian integers
     ps = SimplePrimeSieve()
     p_lst = []
     for num in range(5, p_max + 1, 4):
@@ -4087,9 +4089,57 @@ def sumOfSquaresSmallerSquareSum(p_max: int=149) -> int:
             p_lst.append(num)
     n_p = len(p_lst)
     print(f"the primes are (total of {n_p}): {p_lst}")
-    mx = 1
-    for p in p_lst: mx *= p
-    print(f"max number = {mx}")
+    #mx = 1
+    #for p in p_lst: mx *= p
+    #print(f"max number = {mx}")
+    curr = []
+    res = 0
+    
+    for p in p_lst[:-1]:
+        print(f"p = {p}")
+        # Primes of the form p = 4k + 1 are guaranteed to have exactly one
+        # ordered pair of stricltly poitive integers (a, b) for which
+        # a <= b and a ** 2 + b ** 2 = p
+        for a in range(isqrt(p >> 1) + 1):
+            b_sq = p - a ** 2
+            b = isqrt(b_sq)
+            if b ** 2 == b_sq:
+                pair = (a, b)
+                break
+        else:
+            # Should not happen
+            continue
+        n_pair0 = len(curr)
+        #print(p, pair)
+        #print(f"n_pair0 = {n_pair0}")
+        res += pair[0]
+        curr.append(pair)
+        for i in range(n_pair0):
+            for pair2 in [curr[i], (curr[i][1], curr[i][0])]:
+                pair3 = tuple(sorted((abs(pair[0] * pair2[0] - pair[1] * pair2[1]), pair[0] * pair2[1] + pair[1] * pair2[0])))
+                #print(p, pair, pair2, pair3)
+                res += pair3[0]
+                curr.append(pair3)
+    p = p_lst[-1]
+    print(f"p = {p}")
+    pair = None
+    for a in range(isqrt(p >> 1) + 1):
+        b_sq = p - a ** 2
+        b = isqrt(b_sq)
+        if b ** 2 == b_sq:
+            pair = (a, b)
+            break
+    if pair is not None:
+        #print(p, pair)
+        n_pair0 = len(curr)
+        #print(f"n_pair0 = {n_pair0}")
+        res += pair[0]
+        for i in range(n_pair0):
+            for pair2 in [curr[i], (curr[i][1], curr[i][0])]:
+                pair3 = tuple(sorted((abs(pair[0] * pair2[0] - pair[1] * pair2[1]), pair[0] * pair2[1] + pair[1] * pair2[0])))
+                #print(p, pair, pair2, pair3)
+                res += pair3[0]
+    return res
 
 ##############
 project_euler_num_range = (251, 300)
