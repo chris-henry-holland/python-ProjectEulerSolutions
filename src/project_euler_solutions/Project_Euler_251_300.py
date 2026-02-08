@@ -4044,6 +4044,53 @@ def sumOfNontrivialCubicRootsOfUnityModuloN(
     res = sum(cubicRootsOfUnityModuloNGenerator(n, ps=ps)) - 1
     return res
 
+# Problem 273
+def findSumOfSquaresEqualToSquareFreeProductBruteForce(p_max: int) -> List[List[Tuple[int, List[Tuple[int, int]]]]]:
+
+    ps = SimplePrimeSieve()
+    p_lst = []
+    for num in range(5, p_max + 1, 4):
+        if ps.isPrime(num):
+            p_lst.append(num)
+    n_p = len(p_lst)
+    print(f"the primes are (total of {n_p}): {p_lst}")
+    res = [[] for _ in range(n_p + 1)]
+    res[0].append((1, [(0, 1)]))
+    for bm in range(1, 1 << n_p):
+        p_cnt = bm.bit_count()
+        num = 1
+        bm2 = bm
+        for i, p in enumerate(p_lst):
+            if bm2 & 1:
+                num *= p
+                if bm2 == 1: break
+            bm2 >>= 1
+        res[p_cnt].append((num, []))
+        for a in range(isqrt(num >> 1) + 1):
+            num2 = num - a ** 2
+            b = isqrt(num2)
+            if b ** 2 == num2:
+                res[p_cnt][-1][1].append((a, b))
+        if not res[p_cnt][-1][1]:
+            res[p_cnt].pop()
+    for p_cnt in range(n_p):
+        print(f"products of {p_cnt} primes of the form 4k + 1:")
+        for num, ab_lst in res[p_cnt]:
+            print(f"{num}: {ab_lst}")
+    return res
+
+def sumOfSquaresSmallerSquareSum(p_max: int=149) -> int:
+    ps = SimplePrimeSieve()
+    p_lst = []
+    for num in range(5, p_max + 1, 4):
+        if ps.isPrime(num):
+            p_lst.append(num)
+    n_p = len(p_lst)
+    print(f"the primes are (total of {n_p}): {p_lst}")
+    mx = 1
+    for p in p_lst: mx *= p
+    print(f"max number = {mx}")
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -4167,10 +4214,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #271 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 273 in eval_nums:
+        since = time.time()
+        res = sumOfSquaresSmallerSquareSum(p_max=149)
+        print(f"Solution to Project Euler #271 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {262}
+    eval_nums = {273}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -4285,3 +4337,5 @@ for tup in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(5):
     cnt += 1
     if cnt >= 20: break
 """
+
+#findSumOfSquaresEqualToSquareFreeProductBruteForce(p_max=70)
