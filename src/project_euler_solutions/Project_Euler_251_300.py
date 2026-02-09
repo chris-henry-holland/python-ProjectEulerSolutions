@@ -3948,6 +3948,94 @@ def numbersDivisibleByAtLeastNOfInitialPrimesCount(
     res = recur(0, 1, 0)
     return res
 
+# Problem 270
+def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 ** 8) -> int:
+    """
+    Solution to Project Euler #270
+    """
+    modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    modMult = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+    n_sides = len(side_lengths)
+
+    #def reflectPosition(pos: Tuple[int, int]) -> Tuple[int, int]:
+    #    return (3 - )
+    getSideLength = lambda idx, rev: side_lengths[~idx] if rev else side_lengths[idx]
+
+    memo1 = {}
+    def recur1(start: Tuple[int, int], end: Tuple[int, int], rev: bool=False) -> int:
+        if start[0] == end[0] or (end[0] == (start[0] + 1) % n_sides and not end[1]) or (start[0] == (end[0] + 1) % n_sides and not start[1]):
+            return 1
+        args = (start, end, rev)
+        if args in memo1.keys():
+            return memo1[args]
+        side_len0 = getSideLength(start[0], rev)
+        start_nxt = (start[0], start[1] + 1) if start[1] < side_len0 - 1 else ((start[0] + 1) % n_sides, 0)
+        res = 0
+        begin_idx = 1
+        
+        for side_idx in range((start[0] + 1) % n_sides, end[0]):
+            side_len = getSideLength(side_idx, rev)
+            for idx in range(begin_idx, side_len):
+                res = modAdd(res, recur1(start_nxt, (side_idx, idx), rev))
+            begin_idx = 0
+
+        side_idx = end[0]
+        for idx in range(begin_idx, end[1] + 1):
+            res = modAdd(res, recur1(start_nxt, (side_idx, idx), rev))
+        begin_idx = 0
+
+        memo1[args] = res
+        return res
+    
+    """
+    memo2 = {}
+    def recur2(start: Tuple[int, int], end: Tuple[int, int]) -> int:
+        args = (start, end)
+        
+        if args in memo2.keys():
+            return memo2[args]
+        res = 0
+
+
+        memo2[args] = res
+        return res
+    """
+    res = 0
+    start1 = (0, 1)
+    start2 = (n_sides - 1, side_lengths[-1] - 1)
+    # TODO- account for the first or last edge (or both) having length 1
+    for end_side1_idx in range(1, n_sides - 1):
+        side1_begin_idx = 1 if end_side1_idx == 1 else 0
+        side_len1 = getSideLength(end_side1_idx, rev=False)
+        end_side2_idx = 1
+        side_len2 = getSideLength(end_side2_idx, rev=True)
+        for end_side2_idx in range(1, n_sides - end_side1_idx - 1):
+            side_len2 = getSideLength(end_side2_idx, rev=True)
+            side2_begin_idx = 1 if end_side2_idx == 1 else 0
+            for idx1 in range(side1_begin_idx, side_len1):
+                for idx2 in range(side2_begin_idx, side_len2):
+                    cnt = modMult(recur1(start1, (end_side1_idx, idx1), rev=False), recur1(start2, (end_side2_idx, idx2), rev=True))
+                    res = modAdd(res, cnt)
+                    print(f"count for end1 = ({end_side1_idx}, {idx1}), end2 = ({end_side2_idx}, {idx2}) equals {cnt}")
+        end_side2_idx = n_sides - end_side1_idx - 1
+        side2_begin_idx = 1 if end_side2_idx == 1 else 0
+        for idx1 in range(side1_begin_idx, side_len1):
+            for idx2 in range(side2_begin_idx, side_len1 - idx1):
+                cnt = modMult(recur1(start1, (end_side1_idx, idx1), rev=False), recur1(start2, (end_side2_idx, idx2), rev=True))
+                res = modAdd(res, cnt)
+                print(f"count for end1 = ({end_side1_idx}, {idx1}), end2 = ({end_side2_idx}, {idx2}) equals {cnt}")
+    
+    end_side1_idx = n_sides - 1
+    side1_begin_idx = 1 if end_side1_idx == 1 else 0
+    side_len1 = getSideLength(end_side1_idx, rev=False)
+    for idx1 in range(side1_begin_idx, side_len1):
+        cnt = recur1(start1, (end_side1_idx, idx1), rev=False)
+        res = modAdd(res, cnt)
+        print(f"total count for end1 = ({end_side1_idx}, {idx1}) equals {cnt}")
+
+    return res % res_md
+
 # Problem 271
 def carmichaelLambdaFunctionPrimeFactorisation(
     n_pf: Dict[int, int],
@@ -4400,6 +4488,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #268 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 270 in eval_nums:
+        since = time.time()
+        res = countPolygonCuts(side_lengths=[1] * 4, res_md=10 ** 8)
+        print(f"Solution to Project Euler #270 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 271 in eval_nums:
         since = time.time()
         res = sumOfNontrivialCubicRootsOfUnityModuloN(
@@ -4429,7 +4522,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {272}
+    eval_nums = {270}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
