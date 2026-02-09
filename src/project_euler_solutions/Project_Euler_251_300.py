@@ -4040,8 +4040,132 @@ def sumOfNontrivialCubicRootsOfUnityModuloN(
     n: int=13082761331670030,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
-
+    """
+    Solution to Project Euler #271
+    """
     res = sum(cubicRootsOfUnityModuloNGenerator(n, ps=ps)) - 1
+    return res
+
+# Problem 272
+def integersNForWhichThereAreGivenNumberOfNontrivialCubicRootsOfUnityModuloNSum(
+    n_max: int,
+    nontrivial_root_count: int,
+) -> int:
+    """
+    Solution to Project Euler #272
+    """
+    m2 = nontrivial_root_count + 1
+    # Solution counts are always a power of three
+    exp = 0
+    while True:
+        m2, r = divmod(m2, 3)
+        if r: break
+        exp += 1
+    print(f"m2 = {m2}, r = {r}, exp = {exp}")
+    if m2 or r != 1: return []
+    #mn_p_1mod3_prod = 1
+    mn_p_1mod3_lst = []
+    ps = SimplePrimeSieve()
+    if exp:
+        for p in ps.endlessPrimeGenerator():
+            if p % 3 != 1: continue
+            #mn_p_1mod3_prod *= p
+            mn_p_1mod3_lst.append(p)
+            if len(mn_p_1mod3_lst) == max(2, exp): break
+    mn_p_1mod3_prod0 = 1
+    for p in mn_p_1mod3_lst[:-2]:
+        mn_p_1mod3_prod0 *= p
+    mn_p_1mod3_prod1 = mn_p_1mod3_prod0 * mn_p_1mod3_lst[-2]
+    mn_p_1mod3_prod2 = mn_p_1mod3_prod1 * mn_p_1mod3_lst[-1]
+    print(f"minimum p that are 1 modulo 3 product of {exp - 1} terms = {mn_p_1mod3_prod1}, of {exp} terms = {mn_p_1mod3_prod2}")
+    print(n_max // (9 * mn_p_1mod3_prod1), n_max // mn_p_1mod3_prod2)
+    # The integers up to n_max // min(9 * mn_p_1mod3_prod1, mn_p_1mod3_prod2) who have no prime factors that are not of the form (3k + 2)
+    p_2mod3_factors_lst = [1]
+    p_2mod3_mx1 = n_max // min(9 * mn_p_1mod3_prod1, mn_p_1mod3_prod2)
+    #print(p_2mod3_mx1)
+    prev_p = -1
+    for p in ps.endlessPrimeGenerator():
+        if p > p_2mod3_mx1: break
+        elif p % 3 != 2:
+            continue
+        if (prev_p // 10000) != (p // 10000):
+            print(f"p = {p}, p max = {p_2mod3_mx1}")
+        prev_p = p
+        #print(f"p = {p}, p_2mod3_mx1 = {p_2mod3_mx1}, count = {len(p_2mod3_factors_lst)}")
+        #p_2mod3_factors_lst.append(p)
+        for i in itertools.count(0):
+            if i >= len(p_2mod3_factors_lst): break
+            num = p * p_2mod3_factors_lst[i]
+            if num > p_2mod3_mx1: continue
+            p_2mod3_factors_lst.append(num)
+    p_2mod3_factors_lst.sort()
+    p_2mod3_factors_lst_cumu = [0]
+    for num in p_2mod3_factors_lst:
+        p_2mod3_factors_lst_cumu.append(p_2mod3_factors_lst_cumu[-1] + num)
+    #print(len(p_2mod3_factors_lst), p_2mod3_factors_lst[-1])
+    #print(p_2mod3_factors_lst, p_2mod3_factors_lst_cumu)
+
+    p_1mod3_lst = []
+    p_1mod3_mx1 = n_max // min(mn_p_1mod3_prod1, mn_p_1mod3_prod0 * 9)
+    for p in ps.endlessPrimeGenerator():
+        if p > p_1mod3_mx1: break
+        elif p % 3 != 1: continue
+        p_1mod3_lst.append(p)
+    #print(p_1mod3_lst)
+
+
+    def calculateSum(n_p_1mod3: int, mx: int) -> int:
+        if n_p_1mod3 < 0: return 0
+        def recur(p_1mod3_idx: int, remain_p_1mod3: int, mx: int) -> int:
+            if p_1mod3_idx + remain_p_1mod3 > len(p_1mod3_lst): return 0
+            if not remain_p_1mod3:
+                i = bisect.bisect_right(p_2mod3_factors_lst, mx)
+                return p_2mod3_factors_lst_cumu[i]
+            res = 0
+            
+            for idx in range(p_1mod3_idx, len(p_1mod3_lst)):
+                p = p_1mod3_lst[idx]
+                if p ** remain_p_1mod3 > mx: break
+                mx2 = mx // p
+                mult = p
+                while mx2 > 0:
+                    res += recur(idx + 1, remain_p_1mod3 - 1, mx2) * mult
+                    mx2 //= p
+                    mult *= p
+            return res
+        return recur(0, n_p_1mod3, mx)
+
+    res = 0
+    n_mx2 = n_max
+    mult = 1
+    for _ in range(2):
+        mult2 = mult * 3
+        print(f"calculating for numbers that are multiples of {mult} but not {mult2}")
+        #print(exp, n_mx2)
+        tot = calculateSum(exp, n_mx2) * mult
+        print(f"sum for these numbers = {tot}")
+        res += tot
+        n_mx2 //= 3
+        mult = mult2
+
+    # Numbers that are multiples of 3 but not 9
+    #print("calculating for numbers that are multiples of 3 but not 9")
+    #res += calculateSum(exp, n_max // 3)
+
+    # Numbers that are multiples of 9
+    #print("calculating for numbers that are multiples of 9")
+    #n_mx2 = n_max // 9
+    #mult = 9
+    while n_mx2 > 0:
+        mult2 = mult * 3
+        print(f"calculating for numbers that are multiples of {mult} but not {mult2}")
+        print(exp - 1, n_mx2)
+        tot = calculateSum(exp - 1, n_mx2) * mult
+        print(f"sum for these numbers = {tot}")
+        res += tot
+        n_mx2 //= 3
+        mult = mult2
+
     return res
 
 # Problem 273
@@ -4080,7 +4204,9 @@ def findSumOfSquaresEqualToSquareFreeProductBruteForce(p_max: int) -> List[List[
     return res
 
 def sumOfSquaresSmallerSquareSum(p_max: int=149) -> int:
-
+    """
+    Solution to Project Euler #273
+    """
     # Using Gaussian integers
     ps = SimplePrimeSieve()
     p_lst = []
@@ -4148,6 +4274,9 @@ def calculateOsculator(num: int, base: int=10) -> int:
     return (num * k + 1) // base
 
 def calculateCoprimePrimeOsculatorSum(p_max: int=10 ** 7 - 1, base: int=10) -> int:
+    """
+    Solution to Project Euler #274
+    """
     res = 0
     ps = SimplePrimeSieve(p_max)
     for p in ps.p_lst:
@@ -4279,6 +4408,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #271 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 272 in eval_nums:
+        since = time.time()
+        res = integersNForWhichThereAreGivenNumberOfNontrivialCubicRootsOfUnityModuloNSum(
+            n_max=10 ** 11,
+            nontrivial_root_count=242,
+        )
+        print(f"Solution to Project Euler #272 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 273 in eval_nums:
         since = time.time()
         res = sumOfSquaresSmallerSquareSum(p_max=149)
@@ -4292,7 +4429,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {274}
+    eval_nums = {272}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
