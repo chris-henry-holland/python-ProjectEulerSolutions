@@ -4141,6 +4141,21 @@ def sumOfSquaresSmallerSquareSum(p_max: int=149) -> int:
                 res += pair3[0]
     return res
 
+# Problem 274
+def calculateOsculator(num: int, base: int=10) -> int:
+    k = solveLinearCongruence(num, base - 1, base)
+    if k < 0: return -1
+    return (num * k + 1) // base
+
+def calculateCoprimePrimeOsculatorSum(p_max: int=10 ** 7 - 1, base: int=10) -> int:
+    res = 0
+    ps = SimplePrimeSieve(p_max)
+    for p in ps.p_lst:
+        if not base % p: continue
+        elif p > p_max: break
+        res += calculateOsculator(p, base=base)
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -4267,12 +4282,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 273 in eval_nums:
         since = time.time()
         res = sumOfSquaresSmallerSquareSum(p_max=149)
-        print(f"Solution to Project Euler #271 = {res}, calculated in {time.time() - since:.4f} seconds")
+        print(f"Solution to Project Euler #273 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 274 in eval_nums:
+        since = time.time()
+        res = calculateCoprimePrimeOsculatorSum(p_max=10 ** 7 - 1, base=10)
+        print(f"Solution to Project Euler #274 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {273}
+    eval_nums = {274}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
