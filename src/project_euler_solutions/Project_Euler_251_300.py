@@ -3953,6 +3953,7 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
     """
     Solution to Project Euler #270
     """
+    print(f"side lengths = {side_lengths}")
     modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     modMult = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
 
@@ -3963,31 +3964,89 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
     getSideLength = lambda idx, rev: side_lengths[~idx] if rev else side_lengths[idx]
 
     memo1 = {}
-    def recur1(start: Tuple[int, int], end: Tuple[int, int], rev: bool=False) -> int:
-        if start[0] == end[0] or (end[0] == (start[0] + 1) % n_sides and not end[1]) or (start[0] == (end[0] + 1) % n_sides and not start[1]):
+    def recur1(start: Tuple[int, int], end_rng: Tuple[Tuple[int, int],Tuple[int, int]]) -> int:
+        #print(start, end_rng)
+        if end_rng[0] == end_rng[1]:
             return 1
-        args = (start, end, rev)
+        if start[0] == end_rng[1][0] and start[1] <= end_rng[1][1]:# or (end[0] == (start[0] + 1) % n_sides and not end[1]) or (start[0] == (end[0] + 1) % n_sides and not start[1]):
+            #print("hi1")
+            return int(end_rng[0][1] - start[1] <= 1)
+        elif end_rng[1][1] == 0 and (start[0] + 1) % n_sides == end_rng[1][0]:
+            return int(start[1] == getSideLength(start[0], False) - 1)
+        if end_rng[1][0] == end_rng[0][0] or (end_rng[1][1] == 0 and (end_rng[0][0] + 1) % n_sides == end_rng[1][0]):
+            return 1
+        side_len0 = getSideLength(start[0], False)
+        if end_rng[0] == start:
+            start_nxt = (start[0], start[1] + 1) if start[1] < side_len0 - 1 else ((start[0] + 1) % n_sides, 0)
+        else: start_nxt = end_rng[0]
+        #if not start_nxt[1] and (start_nxt[0] == end[0] or (not end[1] and (start_nxt[0] + 1) % n_sides == end[0])):
+        #    #print("hi2")
+        #    return 1
+        args = (start, end_rng)
+        
         if args in memo1.keys():
             return memo1[args]
-        side_len0 = getSideLength(start[0], rev)
-        start_nxt = (start[0], start[1] + 1) if start[1] < side_len0 - 1 else ((start[0] + 1) % n_sides, 0)
+        #print(args)
+        ref = ((0, 0), ((2, 1), (3, 1)))
+        is_ref = (args == ref)
+
         res = 0
-        begin_idx = 1
+        if (end_rng[0][0] == start[0] and end_rng[0][1] >= start[1]) or (end_rng[0][1] == 0 and end_rng[0][0] == (start[0] + 1) % n_sides):
+            side_idx0 = (start[0] + 1) % n_sides
+            begin_idx = 1
+        else:
+            side_idx0 = end_rng[0][0]
+            begin_idx = end_rng[0][1] + 1
+            if begin_idx == getSideLength(side_idx0, False):
+                side_idx0 = (side_idx0 + 1) % n_sides
+                begin_idx = 0
         
-        for side_idx in range((start[0] + 1) % n_sides, end[0]):
-            side_len = getSideLength(side_idx, rev)
-            for idx in range(begin_idx, side_len):
-                res = modAdd(res, recur1(start_nxt, (side_idx, idx), rev))
+        for side_idx in range(side_idx0, end_rng[1][0]):
+            side_len = getSideLength(side_idx, False)
+            end_idx = side_len
+            if side_idx == start[0]: end_idx = min(end_idx, 2)
+            if side_idx == (start[0] + 1) % n_sides: begin_idx = max(begin_idx, 1)
+            #print(f"side_dx = {side_idx}, idx_rng = [{begin_idx}, {end_idx})")
+            for idx in range(begin_idx, end_idx):
+                #print(f"hi1.1 from {args}")
+                term1 = recur1(start_nxt, (start_nxt, (side_idx, idx)))
+                #print(f"hi1.2 from {args}")
+                # (3, 0), ((3, 0), (3, 1))
+                term2 = recur1(start, ((side_idx, idx), end_rng[1]))
+                term = modMult(term1, term2)
+                if is_ref:
+                    print(f"for start = {args[0]}, end range = {args[1]}, term type 1 ({side_idx}, {idx}) equals {term}")
+                res = modAdd(res, term)
             begin_idx = 0
 
-        side_idx = end[0]
-        for idx in range(begin_idx, end[1] + 1):
-            res = modAdd(res, recur1(start_nxt, (side_idx, idx), rev))
+        side_idx = end_rng[1][0]
+        end_idx = end_rng[1][1]
+        if side_idx == start[0]:
+            end_idx = min(end_idx, 2)
+        if side_idx == (start[0] + 1) % n_sides: begin_idx = max(begin_idx, 1)
+        #print(f"side_dx = {side_idx}, idx_rng = [{begin_idx}, {end_idx})")
+        for idx in range(begin_idx, end_idx):
+            #print(f"hi2.1 from {args}")
+            term1 = recur1(start_nxt, (start_nxt, (side_idx, idx)))
+            #print(f"hi2.2 from {args}")
+            term2 = recur1(start, ((side_idx, idx), end_rng[1]))
+            term = modMult(term1, term2)
+            if is_ref:
+                print(f"for start = {args[0]}, end range = {args[1]}, term type 2 ({side_idx}, {idx}) equals {term}")
+            res = modAdd(res, term)
         begin_idx = 0
-
+        #print(f"hi3 from {args}")
+        if end_rng[0] == start:
+            term = recur1(start_nxt, (start_nxt, end_rng[1]))
+            if is_ref:
+                print(f"for start = {args[0]}, end range = {args[1]}, term type 3 ({side_idx}, {idx}) equals {term}")
+            res += term
         memo1[args] = res
         return res
-    
+    #print("hi0")
+    res = recur1((0, 0), ((0, 0), (n_sides - 1, side_lengths[-1] - 1)))
+    print(memo1)
+    return res
     """
     memo2 = {}
     def recur2(start: Tuple[int, int], end: Tuple[int, int]) -> int:
@@ -4001,9 +4060,10 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
         memo2[args] = res
         return res
     """
+    """
     res = 0
-    start1 = (0, 1)
-    start2 = (n_sides - 1, side_lengths[-1] - 1)
+    start1 = (0, 1) if getSideLength(0, False) > 1 else (1, 0)
+    start2 = (0, 1) if getSideLength(0, True) > 1 else (1, 0)
     # TODO- account for the first or last edge (or both) having length 1
     for end_side1_idx in range(1, n_sides - 1):
         side1_begin_idx = 1 if end_side1_idx == 1 else 0
@@ -4015,26 +4075,33 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
             side2_begin_idx = 1 if end_side2_idx == 1 else 0
             for idx1 in range(side1_begin_idx, side_len1):
                 for idx2 in range(side2_begin_idx, side_len2):
-                    cnt = modMult(recur1(start1, (end_side1_idx, idx1), rev=False), recur1(start2, (end_side2_idx, idx2), rev=True))
+                    cnt = modMult(modMult(recur1(start1, (end_side1_idx, idx1), rev=False), recur1(start2, (end_side2_idx, idx2), rev=True)), recur1((end_side1_idx, idx1), (), rev=False))
                     res = modAdd(res, cnt)
                     print(f"count for end1 = ({end_side1_idx}, {idx1}), end2 = ({end_side2_idx}, {idx2}) equals {cnt}")
         end_side2_idx = n_sides - end_side1_idx - 1
         side2_begin_idx = 1 if end_side2_idx == 1 else 0
         for idx1 in range(side1_begin_idx, side_len1):
-            for idx2 in range(side2_begin_idx, side_len1 - idx1):
+            print(f"idx1 = {idx1}")
+            for idx2 in range(side2_begin_idx, min(side_len1 - idx1 + 1, side_len1)):
+                print(f"idx2 = {idx2}")
                 cnt = modMult(recur1(start1, (end_side1_idx, idx1), rev=False), recur1(start2, (end_side2_idx, idx2), rev=True))
                 res = modAdd(res, cnt)
                 print(f"count for end1 = ({end_side1_idx}, {idx1}), end2 = ({end_side2_idx}, {idx2}) equals {cnt}")
+            if not idx1:
+                cnt = modMult(recur1(start1, (end_side1_idx, idx1), rev=False), recur1(start2, (end_side2_idx + 1, 0), rev=True))
+                res = modAdd(res, cnt)
+                print(f"count for end1 = ({end_side1_idx}, {idx1}), end2 = ({end_side2_idx + 1}, 0) equals {cnt}")
     
     end_side1_idx = n_sides - 1
     side1_begin_idx = 1 if end_side1_idx == 1 else 0
     side_len1 = getSideLength(end_side1_idx, rev=False)
-    for idx1 in range(side1_begin_idx, side_len1):
-        cnt = recur1(start1, (end_side1_idx, idx1), rev=False)
-        res = modAdd(res, cnt)
-        print(f"total count for end1 = ({end_side1_idx}, {idx1}) equals {cnt}")
-
+    idx1 = side_len1 - 1
+    cnt = recur1(start1, (end_side1_idx, idx1), rev=False)
+    res = modAdd(res, cnt)
+    print(f"total count for end1 = ({end_side1_idx}, {idx1}) equals {cnt}")
+    print(memo1)
     return res % res_md
+    """
 
 # Problem 271
 def carmichaelLambdaFunctionPrimeFactorisation(
@@ -4490,7 +4557,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 270 in eval_nums:
         since = time.time()
-        res = countPolygonCuts(side_lengths=[1] * 4, res_md=10 ** 8)
+        res = countPolygonCuts(side_lengths=[2, 2, 2, 2], res_md=10 ** 8)
         print(f"Solution to Project Euler #270 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 271 in eval_nums:
