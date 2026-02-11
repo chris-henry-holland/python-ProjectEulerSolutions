@@ -3949,10 +3949,15 @@ def numbersDivisibleByAtLeastNOfInitialPrimesCount(
     return res
 
 # Problem 270
-def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 ** 8) -> int:
+def countPolygonCuts(
+    side_lengths: List[int]=[30] * 4,
+    res_md: Optional[int]=10 ** 8,
+) -> int:
     """
     Solution to Project Euler #270
     """
+    # Review- look into the solutions on the Project Euler forum, which generally appear to
+    # take a very different approach- especially those utilising Catalan numbers
     print(f"side lengths = {side_lengths}")
     modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     modMult = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
@@ -3963,6 +3968,8 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
     #    return (3 - )
     getSideLength = lambda idx, rev: side_lengths[~idx] if rev else side_lengths[idx]
 
+    ref = None#((1, 0), ((1, 0), (2, 2)))
+
     memo1 = {}
     def recur1(start: Tuple[int, int], end_rng: Tuple[Tuple[int, int],Tuple[int, int]]) -> int:
         #print(start, end_rng)
@@ -3970,11 +3977,18 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
             return 1
         if start[0] == end_rng[1][0] and start[1] <= end_rng[1][1]:# or (end[0] == (start[0] + 1) % n_sides and not end[1]) or (start[0] == (end[0] + 1) % n_sides and not start[1]):
             #print("hi1")
-            return int(end_rng[0][1] - start[1] <= 1)
+            return int(end_rng[1][1] - start[1] <= 1)
         elif end_rng[1][1] == 0 and (start[0] + 1) % n_sides == end_rng[1][0]:
             return int(start[1] == getSideLength(start[0], False) - 1)
         if end_rng[1][0] == end_rng[0][0] or (end_rng[1][1] == 0 and (end_rng[0][0] + 1) % n_sides == end_rng[1][0]):
             return 1
+        #if end_rng[1][0] == end_rng[0][0]:
+        #    if start[0] != end_rng[1][0]: return 1
+        #    return int(start == end_rng[0] and end_rng[1][1] <= start[1] + 1)
+        #elif (end_rng[1][1] == 0 and (end_rng[0][0] + 1) % n_sides == end_rng[1][0]):
+        #    if start[0] != end_rng[0][0]: return 1
+        #    return int(start == end_rng[0] and start[1] == getSideLength(start[0], False) - 1)
+
         side_len0 = getSideLength(start[0], False)
         if end_rng[0] == start:
             start_nxt = (start[0], start[1] + 1) if start[1] < side_len0 - 1 else ((start[0] + 1) % n_sides, 0)
@@ -3987,8 +4001,11 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
         if args in memo1.keys():
             return memo1[args]
         #print(args)
-        ref = ((0, 0), ((2, 1), (3, 1)))
+        #ref = None#((0, 0), ((2, 1), (3, 1)))#((0, 0), ((0, 0), (3, 0)))#((0, 0), ((2, 0), (3, 1)))
         is_ref = (args == ref)
+
+        if is_ref:
+            print(f"calculating {ref}")
 
         res = 0
         if (end_rng[0][0] == start[0] and end_rng[0][1] >= start[1]) or (end_rng[0][1] == 0 and end_rng[0][0] == (start[0] + 1) % n_sides):
@@ -4021,9 +4038,17 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
 
         side_idx = end_rng[1][0]
         end_idx = end_rng[1][1]
-        if side_idx == start[0]:
-            end_idx = min(end_idx, 2)
-        if side_idx == (start[0] + 1) % n_sides: begin_idx = max(begin_idx, 1)
+        side_len = getSideLength(side_idx, False)
+        if (side_idx == start[0] and end_idx < start[1]) or (start[1] == 0 and (side_idx + 1) % n_sides == start[0]):
+            begin_idx = end_idx
+            end_idx = end_idx
+            #if (start[1] if start[1] else side_len) - end_idx == 1:
+            #    begin_idx = end_idx
+            #    end_idx = end_idx + 1
+
+        #if side_idx == start[0]:
+        #    end_idx = min(end_idx, 2)
+        #if side_idx == (start[0] + 1) % n_sides: begin_idx = max(begin_idx, 1)
         #print(f"side_dx = {side_idx}, idx_rng = [{begin_idx}, {end_idx})")
         for idx in range(begin_idx, end_idx):
             #print(f"hi2.1 from {args}")
@@ -4034,18 +4059,17 @@ def countPolygonCuts(side_lengths: List[int]=[30] * 4, res_md: Optional[int]=10 
             if is_ref:
                 print(f"for start = {args[0]}, end range = {args[1]}, term type 2 ({side_idx}, {idx}) equals {term}")
             res = modAdd(res, term)
-        begin_idx = 0
+        #begin_idx = 0
         #print(f"hi3 from {args}")
-        if end_rng[0] == start:
-            term = recur1(start_nxt, (start_nxt, end_rng[1]))
-            if is_ref:
-                print(f"for start = {args[0]}, end range = {args[1]}, term type 3 ({side_idx}, {idx}) equals {term}")
-            res += term
+        term = recur1(start_nxt, (start_nxt, end_rng[1]))
+        if is_ref:
+            print(f"for start = {args[0]}, end range = {args[1]}, term type 3 ({start_nxt[0]}, {start_nxt[1]}) equals {term}")
+        res = modAdd(res, term)
         memo1[args] = res
         return res
     #print("hi0")
     res = recur1((0, 0), ((0, 0), (n_sides - 1, side_lengths[-1] - 1)))
-    print(memo1)
+    #print(memo1)
     return res
     """
     memo2 = {}
@@ -4440,6 +4464,59 @@ def calculateCoprimePrimeOsculatorSum(p_max: int=10 ** 7 - 1, base: int=10) -> i
         res += calculateOsculator(p, base=base)
     return res
 
+# Problem 277
+def modifiedCollatzSequenceSmallestStartWithSequence(n_min: int=10 ** 15 + 1, seq: str="UDDDUdddDDUDDddDdDddDDUDDdUUDd") -> int:
+
+    # Review- Look into solutions on the Project Euler forum which calculate directly
+    def reversedStep(num: CustomFraction, l: int) -> CustomFraction:
+        if l == "D":
+            return num * 3
+        elif l == "U":
+            return (num * 3 - 2) / 4
+        elif l == "d":
+            return (num * 3 + 1) / 2
+
+    curr = CustomFraction(1, 1)
+    for l in reversed(seq):
+        curr = reversedStep(curr, l)
+    
+    lo, hi = 1, 1
+    while True:
+        lo = hi
+        hi <<= 1
+        curr = hi
+        for l in reversed(seq):
+            curr = reversedStep(curr, l)
+        if curr >= n_min: break
+    
+    while lo < hi:
+        mid = lo + ((hi - lo) >> 1)
+        curr = mid
+        for l in reversed(seq):
+            curr = reversedStep(curr, l)
+        if curr >= n_min: hi = mid
+        else: lo = mid + 1
+
+    #r = n_min / curr
+    #print(curr, r, r.numerator / r.denominator)
+    #curr = r
+    #lb = ((r.numerator - 1) // r.denominator) + 1
+    lb = lo
+    print(f"lower bound finish = {lb}")
+    curr = CustomFraction(lb, 1)
+    for l in reversed(seq):
+        curr = reversedStep(curr, l)
+    print(curr, curr.numerator / curr.denominator)
+
+    for num in itertools.count(lb):
+        #print(f"trying {num}")
+        curr = CustomFraction(num, 1)
+        for l in reversed(seq):
+            curr = reversedStep(curr, l)
+            if curr.denominator != 1: break
+        else: break
+    return curr.numerator
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -4557,7 +4634,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 270 in eval_nums:
         since = time.time()
-        res = countPolygonCuts(side_lengths=[2, 2, 2, 2], res_md=10 ** 8)
+        res = countPolygonCuts(side_lengths=[30, 30, 30, 30], res_md=10 ** 8)
         print(f"Solution to Project Euler #270 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 271 in eval_nums:
@@ -4586,10 +4663,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateCoprimePrimeOsculatorSum(p_max=10 ** 7 - 1, base=10)
         print(f"Solution to Project Euler #274 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 277 in eval_nums:
+        since = time.time()
+        res = modifiedCollatzSequenceSmallestStartWithSequence(n_min=10 ** 15 + 1, seq="UDDDUdddDDUDDddDdDddDDUDDdUUDd")
+        print(f"Solution to Project Euler #277 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {270}
+    eval_nums = {277}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
