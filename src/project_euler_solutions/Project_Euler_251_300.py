@@ -3573,12 +3573,38 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
     orthocentre_x: int,
     perimeter_max: Optional[int]=None,
-) -> Generator[Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]], None, None]:
+) -> Generator[Tuple[float, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]], None, None]:
+    if perimeter_max is None:
+        perimeter_max = float("inf")
     x0 = orthocentre_x
+    
+    # Right-angled triangles
+    # These correspond to the integer points (a, b) where b > 0 and
+    # a ** 2 + b ** 2 = orthocentre_x ** 2, with the triangle corresponding
+    # to such a point (a, b) being the triangle with vertices at (orthocentre_x, 0),
+    # (a, b) and (-a, -b).
+    print(f"orthocentre_x = {orthocentre_x}")
+    #ps = SimplePrimeSieve()
+    h = []
+    for a_, b_ in sumOfTwoSquaresSolutionGenerator(x0 ** 2, ps=None):
+        
+        #if not a_ or not b_: continue
+        print(a_, b_)
+        # Should not be possible for a_ and b_ to be equal as sqrt(2) is irrational
+        pair_lst1 = [(a_, b_)] if not a_ else [(a_, b_), (b_, a_)]
+        for (a0, b0) in pair_lst1:
+            perim = math.sqrt(4 * (a0 ** 2 + b0 ** 2)) + math.sqrt((x0 - a0) ** 2 + b0 ** 2) + math.sqrt((x0 + a0) ** 2 + b0 ** 2)
+            if perim > perimeter_max: continue
+            pair_lst2 = [(a0, b0), (-a0, b0)] if a0 else [(a0, b0)]
+            for (a, b) in pair_lst2:
+                heapq.heappush(h, (perim, ((x0, 0), (a, b), (-a, -b))))
+    
+
+    # Acute-angled triangles
     xA_maximiser = (x0 + math.sqrt(x0 ** 2 + 4)) / 2
     k_sq_max = math.floor(4 * ((xA_maximiser ** 2 + 1) / ((xA_maximiser - x0) ** 2 + 1))) - 1
     k_max = isqrt(k_sq_max)
-    # Remember the possible extra solutions for right angled triangles
+
     for k in range(1, k_max + 1):
         div = (k ** 2 - 3)
         sub = (div + 4) * x0
@@ -3600,8 +3626,29 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
                 if r: continue
                 yC, r = divmod(-yA - t * (x0 - xA), 2)
                 if r: continue
-                yield ((xA, yA), (xB, yB), (xC, yC))
+                perim = math.sqrt((xA - xB) ** 2 + (yA - yB) ** 2) + math.sqrt((xB - xC) ** 2 + (yB - yC) ** 2) + math.sqrt((xC - xA) ** 2 + (yC - yA) ** 2)
+                if perim > perimeter_max: continue
+                heapq.heappush(h, (perim, ((xA, yA), (xB, yB), (xC, yC))))
+                heapq.heappush(h, (perim, ((xA, -yA), (xB, -yB), (xC, -yC))))
+    
+    while h:
+        yield heapq.heappop(h)
     return
+
+def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
+    orthocentre_x: int=5,
+    perimeter_max: int=10 ** 5,
+) -> float:
+    """
+    Solution to Project Euler #264
+    """
+    res = 0
+    for tup in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
+        orthocentre_x,
+        perimeter_max=perimeter_max,
+    ):
+        res += tup[0]
+    return res
 
 # Problem 265
 def findAllBinaryCircles(n: int) -> List[int]:
@@ -4605,6 +4652,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = engineersParadiseSum(n_incl=3, ps=None)
         print(f"Solution to Project Euler #263 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 264 in eval_nums:
+        since = time.time()
+        res = trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
+            orthocentre_x=5,
+            perimeter_max=50,
+        )
+        print(f"Solution to Project Euler #264 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 265 in eval_nums:
         since = time.time()
         res = allBinaryCirclesSum(n=5)
@@ -4671,120 +4726,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {277}
+    eval_nums = {264}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
-n_max = 1000
-for n in range(1, n_max + 1):
-    res = func(n)
-    res2 = func2(n)
-    if res != res2:
-        print(n, res, res2)
-"""
-"""
-for k in range(1, 101):
-    #num = 8 * a ** 3 + 15 * a ** 2 + 6 * a - 1
-    #if not num % 27:
-    #    print(a, num // 27)
-    num = 8 * k - 3
-    print(k, 3 * k - 1, num, k ** 2 * num)
-"""
-"""
-def upperBoundDigitSumCoarse(max_dig_count: int, base: int=10) -> Tuple[int, int]:
-    num_max = math.factorial(base - 1) * (max_dig_count + 1) - 1
-    n_dig = 0
-    num2 = num_max
-    while num2 >= base:
-        num2 //= base
-        n_dig += 1
-    #n_dig = max(n_dig, mx_non_max_dig_n_dig)
-    return num_max, n_dig * (base - 1) + num2
-
-prev = -1
-for i in range(1, 10 ** 9):
-    n_dig = upperBoundDigitSumCoarse(i, base=10)[1]
-    if n_dig > prev:
-        print(i, n_dig)
-        prev = n_dig
-"""
-"""
-print(calculateNumberOfIterationsOfHeronsMethodForIntegers(4321))
-for n_dig in range(1, 9):
-    f_dict = {}
-    for num in range(2 ** (n_dig - 1), 2 ** n_dig):
-        n_iter = calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=10)
-        #print(num, n_iter)
-        #if n_iter == 1: print(num)
-        f_dict[n_iter] = f_dict.get(n_iter, 0) + 1
-    print(n_dig, f_dict)
-    tot, cnt = 0, 0
-    for num, f in f_dict.items():
-        tot += f * num
-        cnt += f
-    print(tot, cnt, tot / cnt)
-"""
-"""
-mx_n_dig = 5
-n_iter_prev = calculateNumberOfIterationsOfHeronsMethodForIntegers(1, base=10)
-curr_rng_start = 1
-for num in range(2, 10 ** mx_n_dig):
-    n_iter = calculateNumberOfIterationsOfHeronsMethodForIntegers(num, base=10)
-    if n_iter == n_iter_prev: continue
-    print((curr_rng_start, num - 1), num - curr_rng_start, n_iter_prev)
-    curr_rng_start = num
-    n_iter_prev = n_iter
-    #if n_iter == 1: print(num)
-"""
-#print(meanNumberOfIterationsOfHeronsMethodForIntegersFraction(7, 2606, base=10))
-
-"""
-num = 219869980
-for add in (-8, -4, 0, 4, 8):
-    print(num + add, isPractical(num + add, ps=None))
-"""
-
-#for pair in sumOfTwoSquaresSolutionGenerator(target=4225, ps=None):
-#    print(pair)
-"""
-for triangle in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
+for triangle_pts in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
     orthocentre_x=5,
     perimeter_max=50,
 ):
-    print(triangle)
+    print(triangle_pts)
 """
-"""
-#print(isTatamiFree(100, 101))
-known_non_tatami = set()
-for w in range(1, 21):
-    h_rng = (w + 1, ((w ** 2 - 4 * w - 1) >> 1) if w & 1 else ((w * (w - 5)) >> 1))
-    for h in range(h_rng[0], h_rng[1] + 1):
-        if w & 1 and h & 1: continue
-        if isTatamiFree(w, h):
-            print(w, h, w * h)
-"""
-"""
-sz = 6683040
-cnt = 0
-for w in range(1, isqrt(sz) + 1):
-    h, r = divmod(sz, w)
-    if r: continue
-    cnt += isTatamiFree(w, h)
-print(f"sz = {sz}, Tatami-free count = {cnt}")
-"""
-"""
-for num, num_pf in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(
-    n_factors=400,
-):
-    if num > 10 ** 8: break
-    print(num, num_pf)
-"""
-"""
-cnt = 0
-for tup in integersWithAtLeastNFactorsPrimeFactorisationsGenerator(5):
-    print(tup)
-    cnt += 1
-    if cnt >= 20: break
-"""
-
-#findSumOfSquaresEqualToSquareFreeProductBruteForce(p_max=70)
