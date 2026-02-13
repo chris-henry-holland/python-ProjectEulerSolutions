@@ -4564,6 +4564,59 @@ def modifiedCollatzSequenceSmallestStartWithSequence(n_min: int=10 ** 15 + 1, se
         else: break
     return curr.numerator
 
+# Problem 278
+def calculateDistinctPrimeCombinationsFrobeniusNumber(p_lst: List[int]) -> int:
+    res = 1
+    n = len(p_lst)
+    tail_prod = [1] * (n + 1)
+    for i in reversed(range(n)):
+        tail_prod[i] = p_lst[i] * tail_prod[i + 1]
+    res = (n - 1) * tail_prod[0]
+    curr = 1
+    #print(tail_prod)
+    for i in range(n):
+        #print(i, curr, tail_prod[i + 1])
+        res -= curr * tail_prod[i + 1]
+        curr *= p_lst[i]
+    return res
+
+def calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p: int=3, p_max: int=4999) -> int:
+    """
+    Solution to Project Euler #278
+    """
+    # Review- Try to find an equation for the number of occurrences
+    # of the different prime combinations
+    def orderedPrimeListGenerator(
+        n_p: int,
+        p_max: int,
+        p_distinct: bool=True,
+        ps: Optional[SimplePrimeSieve]=None,
+    ) -> Generator[List[int], None, None]:
+        if ps is None:
+            ps = SimplePrimeSieve()
+        ps.extendSieve(p_max)
+
+        curr = [0] * n_p
+        def recur(idx: int, p_max: int):
+            if idx < 0:
+                yield list(curr)
+                return
+            for p in ps.endlessPrimeGenerator():
+                if p > p_max: break
+                curr[idx] = p
+                yield from recur(idx - 1, p - p_distinct)
+            return
+        yield from recur(n_p - 1, p_max)
+        return
+    res = 0
+    largest_p = 0
+    for p_lst in orderedPrimeListGenerator(n_p, p_max, p_distinct=True, ps=None):
+        if p_lst[-1] != largest_p:
+            largest_p = p_lst[-1]
+            print(f"adding terms whose largest prime is {largest_p}")
+        res += calculateDistinctPrimeCombinationsFrobeniusNumber(p_lst)
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -4723,10 +4776,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = modifiedCollatzSequenceSmallestStartWithSequence(n_min=10 ** 15 + 1, seq="UDDDUdddDDUDDddDdDddDDUDDdUUDd")
         print(f"Solution to Project Euler #277 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 278 in eval_nums:
+        since = time.time()
+        res = calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p=3, p_max=4999)
+        print(f"Solution to Project Euler #278 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {264}
+    eval_nums = {278}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -4736,3 +4794,6 @@ for triangle_pts in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrth
 ):
     print(triangle_pts)
 """
+#print(calculateDistinctPrimeCombinationsFrobeniusNumber([5, 7]))
+#print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 3, 5]))
+#print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 7, 11]))
