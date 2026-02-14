@@ -3995,6 +3995,165 @@ def numbersDivisibleByAtLeastNOfInitialPrimesCount(
     res = recur(0, 1, 0)
     return res
 
+# Problem 269
+def countNonnegativeCoefficientPolynomialsWithIntegerZero(
+    polynomial_num_max: int=10 ** 16,
+    base: int=10,
+) -> int:
+    """
+    Solution to Project Euler #269
+    """
+    # Using digit dynamic programming
+    # Also using the fact that for any polynomial with integer
+    # coefficients, if a polynomial factor exists with integer
+    # coefficients, its complementary factor (i.e. the polynomial
+    # that multiplies with the factor polynomial to give the
+    # original polynomial) must also have integer coefficients.
+    # Consequently, any integer root must be a factor of the
+    # constant term, and thus for any polynomial whose constant
+    # term is non-zero, any integer root can be no larger than
+    # the constant term.
+    # Furthermore, for any polynomial with no negative terms,
+    # any real (and so integer) root must be non-positive, with
+    # zero being a root if and only if the constant coefficient
+    # is zero
+
+
+    # All polynomials that do not have zero as a root (corresponding
+    # to the polynomials with non-zero constant coefficient)
+    num_mx_digs = []
+    num2 = polynomial_num_max
+    while num2:
+        num2, d = divmod(num2, base)
+        num_mx_digs.append(d)
+    n_dig_max = len(num_mx_digs)
+    # Consider reversing
+    remain_mx_lsts = []
+    remain_mn_lsts = []
+    for d in range(1, base):
+        remain_mx_lsts.append([0, base - 1])
+        # in the list below, 1 is used rather than 0 as
+        # we are considering the polynomials with non-zero constant
+        # coefficient
+        remain_mn_lsts.append([0, 1])
+        mult = d
+        for i in range(2, n_dig_max, 2):
+            mult *= d
+            remain_mx_lsts[d - 1].append((base - 1) * mult)
+            remain_mn_lsts[d - 1].append(0)
+            if i == n_dig_max - 1: continue
+            mult *= d
+            remain_mx_lsts[d - 1].append(0)
+            remain_mn_lsts[d - 1].append(-(base - 1) * mult)
+        #remain_mx_lsts.append(0)
+        #remain_mn_lsts.append(0)
+        for i in range(1, n_dig_max):
+            remain_mx_lsts[d - 1][i] += remain_mx_lsts[d - 1][i - 1]
+            remain_mn_lsts[d - 1][i] += remain_mn_lsts[d - 1][i - 1]
+    print(remain_mn_lsts)
+    print(remain_mx_lsts)
+    def positiveDistinctIntegerCombinationsGenerator(
+        prod_mx: int,
+    ) -> Generator[List[int], None, None]:
+        
+        curr_incl = []
+        def recur(num: int, curr_prod: int=1) -> Generator[List[int], None, None]:
+            if not num:
+                if curr_incl: yield curr_incl[::-1]
+                return
+            yield from recur(num - 1, curr_prod=curr_prod)
+            curr_prod *= num
+            if curr_prod > prod_mx: return
+            curr_incl.append(num)
+            yield from recur(num - 1, curr_prod=curr_prod)
+            curr_incl.pop()
+            return
+
+        yield from recur(prod_mx, curr_prod=1)
+    
+    ref = [1]
+    def countPolynomialsWithNegativeRoots(
+        poly_coeffs: List[int],
+        neg_roots: List[int],
+    ) -> int:
+        
+
+        n_roots = len(neg_roots)
+
+        curr_bals = [0] * n_roots
+        memo = {}
+        def recur(idx: int, tight: bool=True) -> int:
+            if not idx:
+                st = set(curr_bals)
+                # All balances should be guaranteed to be between 1 and base - 1 inclusive
+                # at this point
+                return int(len(st) == 1 and (not tight or curr_bals[0] <= poly_coeffs[0]))
+            args = (idx, tuple(curr_bals), tight)
+            if args in memo.keys(): return memo[args]
+            res = 0
+            # Consider splitting into even idx and odd idx paths
+            d_mn = 0 # review based on the next remain
+            d_mx = poly_coeffs[idx] if tight else base - 1
+            mults = [(-rt) ** idx for rt in neg_roots]
+            if idx & 1:
+                # Odd powers (subtracted)
+                for i in range(n_roots):
+                    # mults[i] * d + curr_bals[i] >= -remain_mx_lsts[neg_roots[i] - 1][idx]- note mults[i] negative
+                    d_mx2 = ((remain_mx_lsts[neg_roots[i] - 1][idx] + curr_bals[i]) // (-mults[i]))
+                    d_mx = min(d_mx, d_mx2)
+                    # mults[i] * d + curr_bals[i] <= -remain_mn_lsts[neg_roots[i] - 1][idx]- note mults[i] negative
+                    d_mn2 = -((-(remain_mn_lsts[neg_roots[i] - 1][idx] + curr_bals[i])) // (-mults[i]))
+                    d_mn = max(d_mn, d_mn2)
+                    if neg_roots == ref:
+                        print(f"neg_roots = {neg_roots}, idx = {idx}, i = {i}, balance = {curr_bals[i]}, d_mn2 = {d_mn2}, d_mx2 = {d_mx2}, d_mn = {d_mn}, d_mx = {d_mx}")
+
+            else:
+                # Even powers (added)
+                for i in range(n_roots):
+                    # mults[i] * d + curr_bals[i] >= -remain_mx_lsts[neg_roots[i] - 1][idx]
+                    d_mn2 = -((remain_mx_lsts[neg_roots[i] - 1][idx] + curr_bals[i]) // mults[i])
+                    d_mn = max(d_mn, d_mn2)
+                    # mults[i] * d + curr_bals[i] <= -remain_mn_lsts[neg_roots[i] - 1][idx]
+                    d_mx2 = (-(remain_mn_lsts[neg_roots[i] - 1][idx] + curr_bals[i])) // mults[i]
+                    d_mx = min(d_mx, d_mx2)
+                    if neg_roots == ref:
+                        print(f"neg_roots = {neg_roots}, idx = {idx}, i = {i}, balance = {curr_bals[i]}, d_mn2 = {d_mn2}, d_mx2 = {d_mx2}, d_mn = {d_mn}, d_mx = {d_mx}")
+            tight2 = (tight and d_mx == poly_coeffs[idx])
+            curr_bals0 = list(curr_bals)
+            for d in range(d_mn, d_mx - tight2 + 1):
+                for i in range(n_roots):
+                    curr_bals[i] = curr_bals0[i] + d * mults[i]
+                res += recur(idx - 1, tight=False)
+            if tight2:
+                for i in range(n_roots):
+                    curr_bals[i] = curr_bals0[i] + poly_coeffs[idx] * mults[i]
+                res += recur(idx - 1, tight=True)
+            for i in range(n_roots):
+                curr_bals[i] = curr_bals0[i]
+            
+            memo[args] = res
+            return res
+        
+        res = recur(n_dig_max - 1, tight=True)
+        if neg_roots == ref:
+            print(memo)
+        return res
+
+    res = 0
+    for root_comb in positiveDistinctIntegerCombinationsGenerator(base - 1):
+        
+        cnt = countPolynomialsWithNegativeRoots(num_mx_digs, root_comb)
+        print(f"for root combination {root_comb}, count = {cnt}")
+        # Using inclusion/exclusion
+        res += cnt if len(root_comb) & 1 else -cnt
+
+    # Number of polynomials that have 0 as a root
+    # This is equal to he total count of numbers that end in
+    # zero when represented in the chosen base no greater
+    # than polynomial_num_max
+    res += polynomial_num_max // base
+    return res
+
 # Problem 270
 def countPolygonCuts(
     side_lengths: List[int]=[30] * 4,
@@ -4740,6 +4899,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #268 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 269 in eval_nums:
+        since = time.time()
+        res = countNonnegativeCoefficientPolynomialsWithIntegerZero(
+            polynomial_num_max=10 ** 5,
+            base=10,
+        )
+        print(f"Solution to Project Euler #269 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 270 in eval_nums:
         since = time.time()
         res = countPolygonCuts(side_lengths=[30, 30, 30, 30], res_md=10 ** 8)
@@ -4784,7 +4951,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {278}
+    eval_nums = {269}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
