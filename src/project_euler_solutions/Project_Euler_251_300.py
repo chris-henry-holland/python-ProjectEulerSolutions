@@ -4036,22 +4036,22 @@ def countNonnegativeCoefficientPolynomialsWithIntegerZero(
         # we are considering the polynomials with non-zero constant
         # coefficient
         remain_mn_lsts.append([0, 1])
-        mult = d
+        mult = 1
         for i in range(2, n_dig_max, 2):
-            mult *= d
-            remain_mx_lsts[d - 1].append((base - 1) * mult)
-            remain_mn_lsts[d - 1].append(0)
-            if i == n_dig_max - 1: continue
             mult *= d
             remain_mx_lsts[d - 1].append(0)
             remain_mn_lsts[d - 1].append(-(base - 1) * mult)
+            if i == n_dig_max - 1: continue
+            mult *= d
+            remain_mx_lsts[d - 1].append((base - 1) * mult)
+            remain_mn_lsts[d - 1].append(0)
         #remain_mx_lsts.append(0)
         #remain_mn_lsts.append(0)
         for i in range(1, n_dig_max):
             remain_mx_lsts[d - 1][i] += remain_mx_lsts[d - 1][i - 1]
             remain_mn_lsts[d - 1][i] += remain_mn_lsts[d - 1][i - 1]
-    print(remain_mn_lsts)
-    print(remain_mx_lsts)
+    #print(remain_mn_lsts)
+    #print(remain_mx_lsts)
     def positiveDistinctIntegerCombinationsGenerator(
         prod_mx: int,
     ) -> Generator[List[int], None, None]:
@@ -4071,7 +4071,7 @@ def countNonnegativeCoefficientPolynomialsWithIntegerZero(
 
         yield from recur(prod_mx, curr_prod=1)
     
-    ref = [1]
+    ref = None#[1]
     def countPolynomialsWithNegativeRoots(
         poly_coeffs: List[int],
         neg_roots: List[int],
@@ -4085,9 +4085,12 @@ def countNonnegativeCoefficientPolynomialsWithIntegerZero(
         def recur(idx: int, tight: bool=True) -> int:
             if not idx:
                 st = set(curr_bals)
-                # All balances should be guaranteed to be between 1 and base - 1 inclusive
+                # All balances that are not tight should be guaranteed to be between 1 and base - 1 inclusive
                 # at this point
-                return int(len(st) == 1 and (not tight or curr_bals[0] <= poly_coeffs[0]))
+                res = int(len(st) == 1 and (not tight or 1 <= -curr_bals[0] <= poly_coeffs[0]))
+                if neg_roots == ref:
+                    print(f"solution for ({idx}, {tuple(curr_bals)}, {tight}) = {res}")
+                return res
             args = (idx, tuple(curr_bals), tight)
             if args in memo.keys(): return memo[args]
             res = 0
@@ -4125,9 +4128,13 @@ def countNonnegativeCoefficientPolynomialsWithIntegerZero(
                     curr_bals[i] = curr_bals0[i] + d * mults[i]
                 res += recur(idx - 1, tight=False)
             if tight2:
+                #print(f"tight2 is True")
+                #print(f"mults = {mults}")
                 for i in range(n_roots):
                     curr_bals[i] = curr_bals0[i] + poly_coeffs[idx] * mults[i]
-                res += recur(idx - 1, tight=True)
+                ans = recur(idx - 1, tight=True)
+                res += ans
+                #print(f"tight2 contributed {ans}")
             for i in range(n_roots):
                 curr_bals[i] = curr_bals0[i]
             
@@ -4902,7 +4909,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 269 in eval_nums:
         since = time.time()
         res = countNonnegativeCoefficientPolynomialsWithIntegerZero(
-            polynomial_num_max=10 ** 5,
+            polynomial_num_max=10 ** 16,
             base=10,
         )
         print(f"Solution to Project Euler #269 = {res}, calculated in {time.time() - since:.4f} seconds")
