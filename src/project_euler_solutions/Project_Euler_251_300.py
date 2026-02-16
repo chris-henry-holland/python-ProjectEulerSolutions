@@ -3269,6 +3269,12 @@ def calculatePrimeFactorisation(
         Required positional:
         num (int): The strictly positive integer whose prime
                 factorisation is to be calculated.
+
+        Optional named:
+        ps (PrimeSPFsieve object or None): If given, a smallest
+                prime factor prime sieve object used to calculate
+                the prime factorisation. If given as None, the
+                factorisation is performed through direct division.
     
     Returns:
     Dictionary (dict) giving the prime factorisation of num, whose
@@ -3473,7 +3479,10 @@ def sumOfTwoSquaresEqualToPrime(p: int) -> Optional[Tuple[int, int]]:
     return (a, b)
     
 
-def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=None) -> Generator[Tuple[int, int], None, None]:
+def sumOfTwoSquaresSolutionGenerator(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> Generator[Tuple[int, int], None, None]:
     pf = calculatePrimeFactorisation(target, ps=ps)
     gaussian_pf = {}
     mult = 1
@@ -3573,6 +3582,7 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
     orthocentre: Tuple[int, int],
     perimeter_max: Optional[int]=None,
+    ps: Optional[PrimeSPFsieve]=None,
 ) -> Generator[Tuple[float, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]], None, None]:
     if perimeter_max is None:
         perimeter_max = float("inf")
@@ -3591,6 +3601,7 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
         d = orthocentre_dist
         return math.sqrt(max(0, 3 * r ** 2 + 2 * d * r - d ** 2)) + 2 * math.sqrt(max(0, 3 * r ** 2 - d * r))
     ub = None #float("inf")
+    #ps = PrimeSPFsieve()
     if perimeter_max is not None:
         lo, hi = 1, 1
         while calculatePerimeterLowerBound(hi) <= perimeter_max:
@@ -3608,7 +3619,8 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
     rad_sq_iter = itertools.count(1) if ub is None else range(1, ub + 1)
     if ub is not None:
         print(f"radius squared upper bound = {ub}")
-    ps = None
+        if ps is not None: ps.extendSieve(ub)
+    
     h = []
     for rad_sq in rad_sq_iter:
         if not rad_sq % 10 ** 4:
@@ -3720,6 +3732,7 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
     orthocentre: Tuple[int]=(5, 0),
     perimeter_max: int=10 ** 5,
+    ps: Optional[PrimeSPFsieve]=None,
 ) -> float:
     """
     Solution to Project Euler #264
@@ -3728,6 +3741,7 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeter
     for tup in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
         orthocentre,
         perimeter_max=perimeter_max,
+        ps=ps,
     ):
         print(tup)
         res += tup[0]
@@ -4959,6 +4973,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
             orthocentre=(5, 0),
             perimeter_max=10 ** 5,
+            ps=None,
         )
         print(f"Solution to Project Euler #264 = {res}, calculated in {time.time() - since:.4f} seconds")
 
