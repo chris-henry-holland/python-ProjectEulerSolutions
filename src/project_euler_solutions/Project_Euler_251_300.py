@@ -3522,7 +3522,7 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
         if idx == n_p:
             ans = tuple(sorted(abs(x) for x in curr))
             if ans in seen:
-                print(f"repeat seen: {ans}")
+                #print(f"repeat seen: {ans}")
                 return
             seen.add(ans)
             yield ans
@@ -3571,13 +3571,94 @@ def sumOfTwoSquaresSolutionGenerator(target: int, ps: Optional[PrimeSPFsieve]=No
     return
 
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
-    orthocentre_x: int,
+    orthocentre: Tuple[int, int],
     perimeter_max: Optional[int]=None,
 ) -> Generator[Tuple[float, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]], None, None]:
     if perimeter_max is None:
         perimeter_max = float("inf")
-    x0 = orthocentre_x
+    #x0 = orthocentre_x
     
+    orthocentre_dist_sq = orthocentre[0] ** 2 + orthocentre[1] ** 2
+    orthocentre_dist = math.sqrt(orthocentre_dist_sq)
+
+    def calculatePerimeter(pt1: Tuple[int, int], pt2: Tuple[int, int], pt3: Tuple[int, int]) -> float:
+        return math.sqrt((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2) +\
+                math.sqrt((pt1[0] - pt3[0]) ** 2 + (pt1[1] - pt3[1]) ** 2) +\
+                math.sqrt((pt2[0] - pt3[0]) ** 2 + (pt2[1] - pt3[1]) ** 2)
+
+    def calculatePerimeterLowerBound(r_sq: int) -> float:
+        r = math.sqrt(r_sq)
+        d = orthocentre_dist
+        return math.sqrt(max(0, 3 * r ** 2 + 2 * d * r - d ** 2)) + 2 * math.sqrt(max(0, 3 * r ** 2 - d * r))
+    ub = None #float("inf")
+    if perimeter_max is not None:
+        lo, hi = 1, 1
+        while calculatePerimeterLowerBound(hi) <= perimeter_max:
+            lo = hi + 1
+            hi <<= 1
+        while lo < hi:
+            mid = hi - ((hi - lo) >> 1)
+            if calculatePerimeterLowerBound(mid) <= perimeter_max:
+                lo = mid
+            else: hi = mid - 1
+        ub = lo
+        #print(f"radius squared upper bound = {lo}")
+    #else:
+    #    rad_sq_iter = itertools.count(1)
+    rad_sq_iter = itertools.count(1) if ub is None else range(1, ub + 1)
+    if ub is not None:
+        print(f"radius squared upper bound = {ub}")
+    ps = None
+    h = []
+    for rad_sq in rad_sq_iter:
+        if not rad_sq % 10 ** 4:
+            suff_str = "" if ub is None else f" of {ub}"
+            print(f"rad_sq = {rad_sq}{suff_str}")
+        if h:
+            perim_lb = calculatePerimeterLowerBound(rad_sq)
+            while h and h[0][0] <= perim_lb:
+                yield heapq.heappop(h)
+        seen_lst = []
+        seen_dict = {}
+        for sq_pair1 in sumOfTwoSquaresSolutionGenerator(rad_sq, ps=ps):
+            #print(sq_pair1)
+            pt1_lst = sorted({sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
+                            (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0]), (-sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], -sq_pair1[0])})
+            for i, sq_pair2 in enumerate(seen_lst):
+                for pt1 in pt1_lst:
+                    pt2_lst = sorted({sq_pair2, (sq_pair2[0], -sq_pair2[1]), (-sq_pair2[0], sq_pair2[1]), (-sq_pair2[0], -sq_pair2[1]),\
+                                (sq_pair2[1], sq_pair2[0]), (sq_pair2[1], -sq_pair2[0]), (-sq_pair2[1], sq_pair2[0]), (-sq_pair2[1], -sq_pair2[0])})
+                    for pt2 in pt2_lst:
+                        pt3 = (orthocentre[0] - pt1[0] - pt2[0], orthocentre[1] - pt1[1] - pt2[1])
+                        
+                        j = seen_dict.get(tuple(sorted([abs(pt3[0]), abs(pt3[1])])), float("inf"))
+                        #print(pt1, pt2, pt3, j)
+                        if j > i or (j == i and pt3 >= pt2): continue
+                        perim = calculatePerimeter(pt1, pt2, pt3)
+                        if perim > perimeter_max: continue
+                        heapq.heappush(h, (perim, (pt1, pt2, pt3)))
+            tup = tuple(sorted(sq_pair1))
+            i = len(seen_dict)
+            seen_dict[tup] = i
+            seen_lst.append(tup)
+            for idx1 in range(1, len(pt1_lst)):
+                pt1 = pt1_lst[idx1]
+                for idx2 in range(idx1):
+                    pt2 = pt1_lst[idx2]
+                    pt3 = (orthocentre[0] - pt1[0] - pt2[0], orthocentre[1] - pt1[1] - pt2[1])
+                    j = seen_dict.get(tuple(sorted([abs(pt3[0]), abs(pt3[1])])), float("inf"))
+                    #print(pt1, pt2, pt3, j)
+                    if j > i or (j == i and pt3 >= pt2): continue
+                    perim = calculatePerimeter(pt1, pt2, pt3)
+                    if perim > perimeter_max: continue
+                    heapq.heappush(h, (perim, (pt1, pt2, pt3)))
+            
+    
+    while h:
+        yield heapq.heappop(h)
+    return
+
+    """
     # Right-angled triangles
     # These correspond to the integer points (a, b) where b > 0 and
     # a ** 2 + b ** 2 = orthocentre_x ** 2, with the triangle corresponding
@@ -3601,6 +3682,7 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
     
 
     # Acute-angled triangles
+    
     xA_maximiser = (x0 + math.sqrt(x0 ** 2 + 4)) / 2
     k_sq_max = math.floor(4 * ((xA_maximiser ** 2 + 1) / ((xA_maximiser - x0) ** 2 + 1))) - 1
     k_max = isqrt(k_sq_max)
@@ -3630,13 +3712,13 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
                 if perim > perimeter_max: continue
                 heapq.heappush(h, (perim, ((xA, yA), (xB, yB), (xC, yC))))
                 heapq.heappush(h, (perim, ((xA, -yA), (xB, -yB), (xC, -yC))))
-    
+    """
     while h:
         yield heapq.heappop(h)
     return
 
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
-    orthocentre_x: int=5,
+    orthocentre: Tuple[int]=(5, 0),
     perimeter_max: int=10 ** 5,
 ) -> float:
     """
@@ -3644,9 +3726,10 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeter
     """
     res = 0
     for tup in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
-        orthocentre_x,
+        orthocentre,
         perimeter_max=perimeter_max,
     ):
+        print(tup)
         res += tup[0]
     return res
 
@@ -4874,8 +4957,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 264 in eval_nums:
         since = time.time()
         res = trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
-            orthocentre_x=5,
-            perimeter_max=50,
+            orthocentre=(5, 0),
+            perimeter_max=10 ** 5,
         )
         print(f"Solution to Project Euler #264 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -4958,7 +5041,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {269}
+    eval_nums = {264}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
