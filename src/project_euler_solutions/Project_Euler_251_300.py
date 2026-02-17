@@ -4880,6 +4880,44 @@ def calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p: int=3, p_max: int=
         res += calculateDistinctPrimeCombinationsFrobeniusNumber(p_lst)
     return res
 
+# Problem 281
+def countPizzaToppings(n_topping_types: int, n_slices_per_topping: int) -> int:
+    # Using Burnside's Lemma
+    gcd_cnts = {}
+    for n in range(1, n_slices_per_topping + 1):
+        g = gcd(n, n_slices_per_topping)
+        gcd_cnts[g] = gcd_cnts.get(g, 0) + 1
+    
+    def multinomialEqual(m: int, k: int) -> int:
+        n = m * k
+        
+        res = math.comb(n, k)
+        for n2 in reversed(range(k, n, k)):
+            res *= math.comb(n2, k)
+        return res
+
+    res = 0
+    for g, f in gcd_cnts.items():
+        res += multinomialEqual(n_topping_types, g) * f
+    return res // (n_topping_types * n_slices_per_topping)
+
+def pizzaToppingsSum(max_count: int=10 ** 15) -> int:
+    """
+    Solution to Project Euler #281
+    """
+    res = 0
+    for m in itertools.count(2):
+        cnt = countPizzaToppings(m, 1)
+        if cnt > max_count: break
+        res += cnt
+        for n in itertools.count(2):
+            cnt = countPizzaToppings(m, n)
+            if cnt > max_count:
+                print(f"for m = {m}, n < {n}")
+                break
+            res += cnt
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -5053,10 +5091,16 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p=3, p_max=4999)
         print(f"Solution to Project Euler #278 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+
+    if 281 in eval_nums:
+        since = time.time()
+        res = pizzaToppingsSum(max_count=10 ** 15)
+        print(f"Solution to Project Euler #281 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {264}
+    eval_nums = {281}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -5069,3 +5113,5 @@ for triangle_pts in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrth
 #print(calculateDistinctPrimeCombinationsFrobeniusNumber([5, 7]))
 #print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 3, 5]))
 #print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 7, 11]))
+
+#print(countPizzaToppings(3, 1))
