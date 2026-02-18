@@ -4880,6 +4880,513 @@ def calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p: int=3, p_max: int=
         res += calculateDistinctPrimeCombinationsFrobeniusNumber(p_lst)
     return res
 
+# Problem 280
+def antRandomWalkExpectedNumberOfStepsFraction(
+    n_rows: int,
+    n_cols: int,
+    start: Tuple[int, int],
+) -> CustomFraction:
+    
+    def seedPositionBitmaskGenerator(n_seeds: int) -> Generator[int, None, None]:
+
+        def nextBitmask(bm: int) -> int:
+            if not bm: return 0
+            lowest_bit = bm & (-bm)
+            res = bm + lowest_bit
+            lowest_bit2 = res & (-res)
+            while lowest_bit:
+                lowest_bit >>= 1
+                lowest_bit2 >>= 1
+            trail_ones = lowest_bit2 - 1
+            return res | trail_ones
+
+        curr = (1 << n_seeds) - 1
+        ub = 1 << (n_cols << 1)
+        print(curr, ub)
+        while curr < ub:
+            yield curr
+            curr = nextBitmask(curr)
+        return
+    
+    n_seed_states = math.comb(n_cols << 1, n_cols - 1) + math.comb(n_cols << 1, n_cols) - 1
+    print(f"n_seed_states = {n_seed_states}")
+
+    m = (n_cols * n_rows) * n_seed_states
+    print(f"m = {m}")
+
+    seed_bm_lst = []
+    seed_bm_dict = {}
+    print("hi1")
+    for i, s_bm in enumerate(seedPositionBitmaskGenerator(n_cols - 1)):
+        seed_bm_lst.append(s_bm)
+        seed_bm_dict[s_bm] = i
+    print("hi2")
+    for i, (_, s_bm) in enumerate(zip(range(math.comb(n_cols << 1, n_cols) - 1), seedPositionBitmaskGenerator(n_cols)), start=len(seed_bm_lst)):
+        seed_bm_lst.append(s_bm)
+        seed_bm_dict[s_bm] = i
+    print("hi3")
+    def stateEncoding(pos: Tuple[int, int], s_bm: int) -> int:
+        return (pos[0] + n_cols * pos[1]) * n_seed_states + seed_bm_dict[s_bm]
+
+    mat = []
+    vec = []
+    for i in range(m):
+        print(f"i = {i}")
+        mat.append([CustomFraction(0, 1) for _ in range(m)])
+        vec.append(CustomFraction(0, 1))
+    #mat = [[CustomFraction(0, 1) for _ in range(m)] for _ in range(m)]
+    #vec = [CustomFraction(0, 1) for _ in range(m)]
+
+    print("hi4")
+    # Lowest row
+    idx1 = 0
+    print(f"idx1 = {idx1}")
+    idx2 = 0
+    bm2 = 1 << idx2
+    for s_bm in seed_bm_lst:
+        i1 = stateEncoding((idx1, idx2), s_bm)
+        mat[i1][i1] = CustomFraction(1, 1)
+        
+        if s_bm.bit_count() == n_cols and s_bm & bm2:
+            # Forced to pick up the seed
+            i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+            mat[i1][i2] = CustomFraction(-1, 1)
+        else:
+            vec[i1] = CustomFraction(1, 1)
+            neg_p = CustomFraction(-1, 2)
+            for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2)]:
+                i2 = stateEncoding(pos2, s_bm)
+                mat[i1][i2] = neg_p
+    for idx2 in range(1, n_cols - 1):
+        bm2 = 1 << idx2
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            if s_bm.bit_count() == n_cols and s_bm & bm2:
+                # Forced to pick up the seed
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = CustomFraction(-1, 1)
+            else:
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 3)
+                for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    idx2 = n_cols - 1
+    bm2 = 1 << idx2
+    for s_bm in seed_bm_lst:
+        i1 = stateEncoding((idx1, idx2), s_bm)
+        mat[i1][i1] = CustomFraction(1, 1)
+        if s_bm.bit_count() == n_cols and s_bm & bm2:
+            # Forced to pick up the seed
+            i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+            mat[i1][i2] = CustomFraction(-1, 1)
+        else:
+            vec[i1] = CustomFraction(1, 1)
+            neg_p = CustomFraction(-1, 2)
+            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1), (idx1 + 1, idx2)]:
+                i2 = stateEncoding(pos2, s_bm)
+                mat[i1][i2] = neg_p
+
+    # Rows that are not the lowest or highest
+    for idx1 in range(1, n_rows - 1):
+        print(f"idx1 = {idx1}")
+        idx2 = 0
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            vec[i1] = CustomFraction(1, 1)
+            neg_p = CustomFraction(-1, 3)
+            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2)]:
+                i2 = stateEncoding(pos2, s_bm)
+                mat[i1][i2] = neg_p
+        for idx2 in range(1, n_cols - 1):
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = CustomFraction(1, 1)
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 4)
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+        idx2 = n_cols - 1
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            vec[i1] = CustomFraction(1, 1)
+            neg_p = CustomFraction(-1, 3)
+            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1), (idx1 + 1, idx2)]:
+                i2 = stateEncoding(pos2, s_bm)
+                mat[i1][i2] = neg_p
+
+    # Highest row
+    target_s_bm = ((1 << n_cols) - 1) << n_cols
+    idx1 = n_rows - 1
+    print(f"idx1 = {idx1}")
+    idx2 = 0
+    bm2 = 1 << (idx2 + n_cols)
+    for s_bm in seed_bm_lst:
+        i1 = stateEncoding((idx1, idx2), s_bm)
+        mat[i1][i1] = CustomFraction(1, 1)
+        if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+            # Forced to drop off seed
+            if s_bm ^ bm2 != target_s_bm:
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = CustomFraction(-1, 1)
+        else:
+            vec[i1] = CustomFraction(1, 1)
+            neg_p = CustomFraction(-1, 2)
+            for pos2 in [(idx1 + 1, idx2), (idx1, idx2 + 1)]:
+                i2 = stateEncoding(pos2, s_bm)
+                mat[i1][i2] = neg_p
+    for idx2 in range(1, n_cols - 1):
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                # Forced to drop off seed
+                if s_bm ^ bm2 != target_s_bm:
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = CustomFraction(-1, 1)
+            else:
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 3)
+                for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    idx2 = n_cols - 1
+    for s_bm in seed_bm_lst:
+        i1 = stateEncoding((idx1, idx2), s_bm)
+        mat[i1][i1] = CustomFraction(1, 1)
+        if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+            # Forced to drop off seed
+            if s_bm ^ bm2 != target_s_bm:
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = CustomFraction(-1, 1)
+        else:
+            vec[i1] = CustomFraction(1, 1)
+            neg_p = CustomFraction(-1, 2)
+            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1)]:
+                i2 = stateEncoding(pos2, s_bm)
+                mat[i1][i2] = neg_p
+
+    return CustomFraction(0, 1)
+
+
+def antRandomWalkExpectedNumberOfStepsFloat(
+    n_rows: int=5,
+    n_cols: int=5,
+    start: Tuple[int, int]=(2, 2),
+) -> float:
+    res = antRandomWalkExpectedNumberOfStepsFraction(
+        n_rows,
+        n_cols,
+        start,
+    )
+    return res.numerator / res.denominator
+
+def antRandomWalkExpectedNumberOfStepsFloatDirect(
+    n_rows: int,
+    n_cols: int,
+    start: Tuple[int, int],
+) -> CustomFraction:
+    
+    def seedPositionBitmaskGenerator(n_seeds: int) -> Generator[int, None, None]:
+        if not n_seeds:
+            yield 0
+            return
+
+        def nextBitmask(bm: int) -> int:
+            lowest_bit = bm & (-bm)
+            res = bm + lowest_bit
+            lowest_bit2 = res & (-res)
+            while lowest_bit:
+                lowest_bit >>= 1
+                lowest_bit2 >>= 1
+            trail_ones = lowest_bit2 - 1
+            return res | trail_ones
+
+        curr = (1 << n_seeds) - 1
+        ub = 1 << (n_cols << 1)
+        #print(curr, ub)
+        while curr < ub:
+            yield curr
+            curr = nextBitmask(curr)
+        return
+    
+    n_seed_states = math.comb(n_cols << 1, n_cols - 1) + math.comb(n_cols << 1, n_cols) - 1
+    #print(f"n_seed_states = {n_seed_states}")
+
+    m = (n_cols * n_rows) * n_seed_states
+    #print(f"m = {m}")
+
+    seed_bm_lst = []
+    seed_bm_dict = {}
+    #print("hi1")
+    for i, s_bm in enumerate(seedPositionBitmaskGenerator(n_cols - 1)):
+        seed_bm_lst.append(s_bm)
+        seed_bm_dict[s_bm] = i
+    #print("hi2")
+    for i, (_, s_bm) in enumerate(zip(range(math.comb(n_cols << 1, n_cols) - 1), seedPositionBitmaskGenerator(n_cols)), start=len(seed_bm_lst)):
+        seed_bm_lst.append(s_bm)
+        seed_bm_dict[s_bm] = i
+    #print("hi3")
+    #print(seed_bm_lst)
+    #print(seed_bm_dict)
+
+    def stateEncoding(pos: Tuple[int, int], s_bm: int) -> int:
+        #print(pos, s_bm, format(s_bm, "b"))
+        return (pos[0] + n_rows * pos[1]) * n_seed_states + seed_bm_dict[s_bm]
+
+    #mat = []
+    #vec = []
+    #for i in range(m):
+    #    print(f"i = {i}")
+    #    mat.append([CustomFraction(0, 1) for _ in range(m)])
+    #    vec.append(CustomFraction(0, 1))
+    mat = np.zeros((m, m), dtype=float)
+    vec = np.zeros((m,), dtype=float)
+    #mat = [[CustomFraction(0, 1) for _ in range(m)] for _ in range(m)]
+    #vec = [CustomFraction(0, 1) for _ in range(m)]
+
+    #print("hi4")
+    # Lowest row
+    idx1 = 0
+    #print(f"idx1 = {idx1}")
+    idx2 = 0
+    bm2 = 1 << idx2
+    if n_cols == 1:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = 1
+            
+            if s_bm.bit_count() == n_cols and s_bm & bm2:
+                # Forced to pick up the seed
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = -1
+            else:
+                vec[i1] = 1
+                neg_p = -1
+                for pos2 in [(idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    else:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = 1
+            
+            if s_bm.bit_count() == n_cols and s_bm & bm2:
+                # Forced to pick up the seed
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = -1
+            else:
+                vec[i1] = 1
+                neg_p = -1 / 2
+                for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+        for idx2 in range(1, n_cols - 1):
+            bm2 = 1 << idx2
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = 1
+                if s_bm.bit_count() == n_cols and s_bm & bm2:
+                    # Forced to pick up the seed
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = -1
+                else:
+                    vec[i1] = 1
+                    neg_p = -1 / 3
+                    for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                        i2 = stateEncoding(pos2, s_bm)
+                        mat[i1][i2] = neg_p
+        idx2 = n_cols - 1
+        bm2 = 1 << idx2
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = 1
+            if s_bm.bit_count() == n_cols and s_bm & bm2:
+                # Forced to pick up the seed
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = -1
+            else:
+                vec[i1] = 1
+                neg_p = -1 / 2
+                for pos2 in [(idx1, idx2 - 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+
+    # Rows that are not the lowest or highest
+    for idx1 in range(1, n_rows - 1):
+        #print(f"idx1 = {idx1}")
+        idx2 = 0
+        if n_cols == 1:
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = 1
+                vec[i1] = 1
+                neg_p = -1 / 2
+                for pos2 in [(idx1 - 1, idx2), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+        else:
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = 1
+                vec[i1] = 1
+                neg_p = -1 / 3
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+            for idx2 in range(1, n_cols - 1):
+                for s_bm in seed_bm_lst:
+                    i1 = stateEncoding((idx1, idx2), s_bm)
+                    mat[i1][i1] = 1
+                    vec[i1] = 1
+                    neg_p = -1 / 4
+                    for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                        i2 = stateEncoding(pos2, s_bm)
+                        mat[i1][i2] = neg_p
+            idx2 = n_cols - 1
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = 1
+                vec[i1] = 1
+                neg_p = -1 / 3
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+
+    # Highest row
+    target_s_bm = ((1 << n_cols) - 1) << n_cols
+    #print(f"target_s_bm = {target_s_bm}")
+    idx1 = n_rows - 1
+    #print(f"idx1 = {idx1}")
+    idx2 = 0
+    bm2 = 1 << (idx2 + n_cols)
+    if n_cols == 1:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = 1
+            if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                # Forced to drop off seed
+                if s_bm ^ bm2 != target_s_bm:
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = -1
+            else:
+                vec[i1] = 1
+                neg_p = -1
+                for pos2 in [(idx1 - 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    else:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = 1
+            if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                # Forced to drop off seed
+                if s_bm ^ bm2 != target_s_bm:
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = -1
+            else:
+                vec[i1] = 1
+                neg_p = -1 / 2
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+        for idx2 in range(1, n_cols - 1):
+            bm2 = 1 << (idx2 + n_cols)
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = 1
+                if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                    # Forced to drop off seed
+                    if s_bm ^ bm2 != target_s_bm:
+                        i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                        mat[i1][i2] = -1
+                else:
+                    vec[i1] = 1
+                    neg_p = -1 / 3
+                    for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                        i2 = stateEncoding(pos2, s_bm)
+                        mat[i1][i2] = neg_p
+        idx2 = n_cols - 1
+        bm2 = 1 << (idx2 + n_cols)
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = 1
+            #print(f"idx1 = {idx1}, idx2 = {idx2}, s_bm = {format(s_bm, 'b')}, bm2 = {format(bm2, 'b')}, s_bm & bm2 = {s_bm & bm2}")
+            if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                
+                # Forced to drop off seed
+                if s_bm ^ bm2 != target_s_bm:
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = -1
+            else:
+                vec[i1] = 1
+                neg_p = -1 / 2
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    #print("hi5")
+    
+    #print(f"cnt = {cnt}")
+    #print("matrix:")
+    #for row, val in zip(mat, vec): print([float(x) for x in row], float(sum(row)), float(val))
+    #print("vector:")
+    #print([float(x) for x in vec])
+    print(f"finished creating matrix and vector. Solving matrix equation.")
+    sol = np.linalg.solve(mat, vec)
+    #print("solution:")
+    #print([float(x) for x in sol])
+    #mat_inv = np.linalg.inv(mat)
+
+    state_lst2 = [None for _ in range(m)]
+    cnt = 0
+    for idx1 in range(n_rows):
+        for idx2 in range(n_cols):
+            for s_bm in seed_bm_lst:
+                i = stateEncoding((idx1, idx2), s_bm)
+                state_lst2[i] = ((idx1, idx2), format(s_bm, "b"))
+                cnt += 1
+    print(state_lst2)
+    print("solution:")
+    print([float(x) for x in sol])
+    
+    start_state_idx = stateEncoding(start, (1 << n_cols) - 1)
+    print(max(sol))
+    cnts1 = [0, 0, 0]
+    cnts2 = [0, 0, 0]
+    for num in vec:
+        if abs(num) <= 1e-5:
+            cnts1[0] += 1
+        elif abs(num - 1) <= 1e-5:
+            cnts1[1] += 1
+        else: cnts1[2] += 1
+    for num in np.matmul(mat, sol):
+        if abs(num) <= 1e-5:
+            cnts2[0] += 1
+        elif abs(num - 1) <= 1e-5:
+            cnts2[1] += 1
+        else: cnts2[2] += 1
+    
+    
+    #print(set(np.matmul(mat, sol)))
+    #print(set(vec))
+    print(cnts1)
+    print(cnts2)
+    #print(sol)
+    print(all(abs(x - y) <= 1e-5 for x, y in zip(vec, np.matmul(mat, sol))))
+    #print("inverse matrix:")
+    #for row in mat_inv: print([float(x) for x in row])
+    #print(np.linalg.det(mat))
+
+    #print(np.linalg.matmul(mat, sol))
+
+    #print(sol)
+    #print(np.linalg.matmul(mat_inv, vec))
+    return sol[start_state_idx]
+
 # Problem 281
 def countPizzaToppings(n_topping_types: int, n_slices_per_topping: int) -> int:
     # Using Burnside's Lemma
@@ -5091,6 +5598,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p=3, p_max=4999)
         print(f"Solution to Project Euler #278 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 280 in eval_nums:
+        since = time.time()
+        res = antRandomWalkExpectedNumberOfStepsFloatDirect(
+            n_rows=5,
+            n_cols=5,
+            start=(1, 1),
+        )
+        print(f"Solution to Project Euler #280 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 281 in eval_nums:
         since = time.time()
@@ -5100,7 +5615,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {281}
+    eval_nums = {280}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
