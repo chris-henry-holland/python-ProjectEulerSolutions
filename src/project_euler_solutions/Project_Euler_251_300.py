@@ -3483,23 +3483,57 @@ def sumOfTwoSquaresSolutionGenerator(
     target: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> Generator[Tuple[int, int], None, None]:
-    pf = calculatePrimeFactorisation(target, ps=ps)
-    gaussian_pf = {}
-    mult = 1
-    for p, f in pf.items():
-        if p == 2:
+    if ps is not None:
+        pf = calculatePrimeFactorisation(target, ps=ps)
+        gaussian_pf = {}
+        mult = 1
+        for p, f in pf.items():
+            if p == 2:
+                gaussian_pf[(1, 1)] = f
+                continue
+            residue = p % 4
+            if residue == 3:
+                if f & 1:
+                    #print(p, f)
+                    return
+                mult *= p ** (f >> 1)
+                continue
+            pair = sumOfTwoSquaresEqualToPrime(p)
+            gaussian_pf[pair] = f
+    else:
+        gaussian_pf = {}
+        mult = 1
+        num = target
+        f = 0
+        while not num & 1:
+            f += 1
+            num >>= 1
+        if f:
             gaussian_pf[(1, 1)] = f
-            continue
-        residue = p % 4
-        if residue == 3:
-            if f & 1:
-                #print(p, f)
-                return
-            mult *= p ** (f >> 1)
-            continue
-        pair = sumOfTwoSquaresEqualToPrime(p)
-        gaussian_pf[pair] = f
-    
+        odd_pf = {}
+        #print(num)
+        for p in range(3, isqrt(num) + 1, 2):
+            if p * p > num: break
+            f = 0
+            num2, r = divmod(num, p)
+            while not r:
+                num = num2
+                f += 1
+                num2, r = divmod(num, p)
+            if not f: continue
+            if p & 3 == 3:
+                if f & 1: return
+                mult *= p ** (f >> 1)
+                continue
+            odd_pf[p] = f
+        if num > 1:
+            if num & 3 == 3: return
+            odd_pf[num] = 1
+        #print(target, odd_pf, mult)
+        for p, f in odd_pf.items():
+            pair = sumOfTwoSquaresEqualToPrime(p)
+            gaussian_pf[pair] = f
+    #print(target, gaussian_pf)
     def multiplyComplex(num1: Tuple[int, int], num2: Tuple[int, int]) -> Tuple[int, int]:
         #print(num1, num2)
         return (
@@ -3600,6 +3634,10 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
         r = math.sqrt(r_sq)
         d = orthocentre_dist
         return math.sqrt(max(0, 3 * r ** 2 + 2 * d * r - d ** 2)) + 2 * math.sqrt(max(0, 3 * r ** 2 - d * r))
+    
+    
+
+
     ub = None #float("inf")
     #ps = PrimeSPFsieve()
     if perimeter_max is not None:
@@ -3616,26 +3654,56 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
         #print(f"radius squared upper bound = {lo}")
     #else:
     #    rad_sq_iter = itertools.count(1)
-    rad_sq_iter = itertools.count(1) if ub is None else range(1, ub + 1)
+    rad_sq_step = 1
+    
+    #if not orthocentre[1]:
+    #    if not orthocentre[0]:
+    #        # The orthocentre and circumcentre only coincide when the
+    #        # triangle is equilateral- there are no equilateral triangles
+    #        # whose vertices are all on lattice points in a square lattice
+    #        return
+    #    rad_sq_step = orthocentre[0]
+    #elif not orthocentre[0]:
+    #    rad_sq_step = orthocentre[1]
+    
+    y_sym = not orthocentre[1]
+    x_sym = not orthocentre[0]
+    
+
+    rad_sq_iter = itertools.count(rad_sq_step, step=rad_sq_step) if ub is None else range(rad_sq_step, ub + 1, rad_sq_step)
     if ub is not None:
         print(f"radius squared upper bound = {ub}")
         if ps is not None: ps.extendSieve(ub)
     
+    #perim_chk_rad_sq_cutoff = ((perimeter_max ** 2 - 1) // 27) + 1 if perimeter_max is not None else 0
+    #x_sym = False
+    #y_sym = False
     h = []
     for rad_sq in rad_sq_iter:
-        if not rad_sq % 10 ** 4:
+        if not rad_sq % 10 ** 5:
+            if h:
+                perim_lb = calculatePerimeterLowerBound(rad_sq)
+                while h and h[0][0] <= perim_lb:
+                    yield heapq.heappop(h)
             suff_str = "" if ub is None else f" of {ub}"
             print(f"rad_sq = {rad_sq}{suff_str}")
-        if h:
-            perim_lb = calculatePerimeterLowerBound(rad_sq)
-            while h and h[0][0] <= perim_lb:
-                yield heapq.heappop(h)
         seen_lst = []
         seen_dict = {}
         for sq_pair1 in sumOfTwoSquaresSolutionGenerator(rad_sq, ps=ps):
             #print(sq_pair1)
-            pt1_lst = sorted({sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
-                            (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0]), (-sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], -sq_pair1[0])})
+            x_dbl = False
+            y_dbl = False
+            if x_sym or not sq_pair1[0]:
+                x_dbl = bool(sq_pair1[0])
+                pt1_lst = {sq_pair1, (sq_pair1[0], -sq_pair1[1]), (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0])}
+            elif y_sym or not sq_pair1[1]:
+                y_dbl = bool(sq_pair1[1])
+                pt1_lst = {sq_pair1, (-sq_pair1[0], sq_pair1[1]), (sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], sq_pair1[0])}
+            else:
+                pt1_lst = {sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
+                            (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0]), (-sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], -sq_pair1[0])}
+            pt1_lst = sorted(pt1_lst)
+            #print(pt1_lst)
             for i, sq_pair2 in enumerate(seen_lst):
                 for pt1 in pt1_lst:
                     pt2_lst = sorted({sq_pair2, (sq_pair2[0], -sq_pair2[1]), (-sq_pair2[0], sq_pair2[1]), (-sq_pair2[0], -sq_pair2[1]),\
@@ -3649,21 +3717,36 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
                         perim = calculatePerimeter(pt1, pt2, pt3)
                         if perim > perimeter_max: continue
                         heapq.heappush(h, (perim, (pt1, pt2, pt3)))
+                        if x_dbl:
+                            heapq.heappush(h, (perim, ((-pt1[0], pt1[1]), (-pt2[0], pt2[1]), (-pt3[0], pt3[1]))))
+                        if y_dbl:
+                            heapq.heappush(h, (perim, ((pt1[0], -pt1[1]), (pt2[0], -pt2[1]), (pt3[0], -pt3[1]))))
             tup = tuple(sorted(sq_pair1))
             i = len(seen_dict)
             seen_dict[tup] = i
             seen_lst.append(tup)
+            #pt2_lst = pt1_lst if not x_sym and not y_sym else sorted({sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
+            #                (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0]), (-sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], -sq_pair1[0])})
+            #print(pt2_lst)
             for idx1 in range(1, len(pt1_lst)):
                 pt1 = pt1_lst[idx1]
                 for idx2 in range(idx1):
-                    pt2 = pt1_lst[idx2]
-                    pt3 = (orthocentre[0] - pt1[0] - pt2[0], orthocentre[1] - pt1[1] - pt2[1])
-                    j = seen_dict.get(tuple(sorted([abs(pt3[0]), abs(pt3[1])])), float("inf"))
-                    #print(pt1, pt2, pt3, j)
-                    if j > i or (j == i and pt3 >= pt2): continue
-                    perim = calculatePerimeter(pt1, pt2, pt3)
-                    if perim > perimeter_max: continue
-                    heapq.heappush(h, (perim, (pt1, pt2, pt3)))
+                    pt2_0 = pt1_lst[idx2]
+                    if x_dbl: pt2_set = {pt2_0, (-pt2_0[0], pt2_0[1])}
+                    elif y_dbl: pt2_set = {pt2_0, (pt2_0[0], -pt2_0[1])}
+                    else: pt2_set = {pt2_0}
+                    for pt2 in pt2_set:
+                        pt3 = (orthocentre[0] - pt1[0] - pt2[0], orthocentre[1] - pt1[1] - pt2[1])
+                        j = seen_dict.get(tuple(sorted([abs(pt3[0]), abs(pt3[1])])), float("inf"))
+                        #print(pt1, pt2, pt3, j)
+                        if j > i or (j == i and pt3 >= pt2): continue
+                        perim = calculatePerimeter(pt1, pt2, pt3)
+                        if perim > perimeter_max: continue
+                        heapq.heappush(h, (perim, (pt1, pt2, pt3)))
+                        if x_dbl:
+                            heapq.heappush(h, (perim, ((-pt1[0], pt1[1]), (-pt2[0], pt2[1]), (-pt3[0], pt3[1]))))
+                        if y_dbl:
+                            heapq.heappush(h, (perim, ((pt1[0], -pt1[1]), (pt2[0], -pt2[1]), (pt3[0], -pt3[1]))))
             
     
     while h:
@@ -5517,7 +5600,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
             orthocentre=(5, 0),
-            perimeter_max=10 ** 5,
+            perimeter_max=10 ** 4,
             ps=None,
         )
         print(f"Solution to Project Euler #264 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -5615,7 +5698,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {280}
+    eval_nums = {264}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
