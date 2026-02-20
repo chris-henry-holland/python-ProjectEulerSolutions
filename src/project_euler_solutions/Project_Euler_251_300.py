@@ -3826,8 +3826,9 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeter
         perimeter_max=perimeter_max,
         ps=ps,
     ):
-        print(tup)
+        
         res += tup[0]
+        print(f"solution found: {tup}, current total = {res}")
     return res
 
 # Problem 265
@@ -4964,6 +4965,65 @@ def calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p: int=3, p_max: int=
     return res
 
 # Problem 280
+def antRandomWalkSimulation(
+    n_rows: int,
+    n_cols: int,
+    start: Tuple[int, int],
+) -> int:
+    
+    res = 0
+    pos = start
+    seed_bm = (1 << n_cols) - 1
+    target = ((1 << n_cols) - 1) << n_cols
+    has_seed = False
+    while True:
+        #print(pos, has_seed, format(seed_bm, "b"))
+        pos_opts = []
+        if pos[0] > 0:
+            pos_opts.append((pos[0] - 1, pos[1]))
+        if pos[0] < n_rows - 1:
+            pos_opts.append((pos[0] + 1, pos[1]))
+        if pos[1] > 0:
+            pos_opts.append((pos[0], pos[1] - 1))
+        if pos[1] < n_cols - 1:
+            pos_opts.append((pos[0], pos[1] + 1))
+        pos = random.choice(pos_opts)
+        res += 1
+        bm2 = (1 << pos[1])
+        if not has_seed:
+            if pos[0] == 0 and seed_bm & bm2:
+                has_seed = True
+                seed_bm ^= bm2
+        elif pos[0] == n_rows - 1:
+            bm2 <<= n_cols
+            #print("hi")
+            if not seed_bm & bm2:
+                #print("hi2")
+                has_seed = False
+                seed_bm ^= bm2
+                if seed_bm == target:
+                    break
+    return res
+
+def antRandomWalkExpectedNumberOfStepsSimulation(
+    n_rows: int,
+    n_cols: int,
+    start: Tuple[int, int],
+    n_sim: int,
+) -> Tuple[float, float]:
+    mean = 0
+    var = 0
+    for i in range(n_sim):
+        #print(f"simulation {i}")
+        num = antRandomWalkSimulation(n_rows, n_cols, start)
+        mean += num
+        var += num ** 2
+    mean /= n_sim
+    var /= n_sim
+    var -= mean ** 2
+    var *= (n_sim - 1) / n_sim
+    return (mean, math.sqrt(var * (n_sim - 1)) / n_sim)
+
 def antRandomWalkExpectedNumberOfStepsFraction(
     n_rows: int,
     n_cols: int,
@@ -4992,38 +5052,38 @@ def antRandomWalkExpectedNumberOfStepsFraction(
         return
     
     n_seed_states = math.comb(n_cols << 1, n_cols - 1) + math.comb(n_cols << 1, n_cols) - 1
-    print(f"n_seed_states = {n_seed_states}")
+    #print(f"n_seed_states = {n_seed_states}")
 
     m = (n_cols * n_rows) * n_seed_states
-    print(f"m = {m}")
+    #print(f"m = {m}")
 
     seed_bm_lst = []
     seed_bm_dict = {}
-    print("hi1")
+    #print("hi1")
     for i, s_bm in enumerate(seedPositionBitmaskGenerator(n_cols - 1)):
         seed_bm_lst.append(s_bm)
         seed_bm_dict[s_bm] = i
-    print("hi2")
+    #print("hi2")
     for i, (_, s_bm) in enumerate(zip(range(math.comb(n_cols << 1, n_cols) - 1), seedPositionBitmaskGenerator(n_cols)), start=len(seed_bm_lst)):
         seed_bm_lst.append(s_bm)
         seed_bm_dict[s_bm] = i
-    print("hi3")
+    #print("hi3")
     def stateEncoding(pos: Tuple[int, int], s_bm: int) -> int:
         return (pos[0] + n_cols * pos[1]) * n_seed_states + seed_bm_dict[s_bm]
 
     mat = []
     vec = []
     for i in range(m):
-        print(f"i = {i}")
+        #print(f"i = {i}")
         mat.append([CustomFraction(0, 1) for _ in range(m)])
         vec.append(CustomFraction(0, 1))
     #mat = [[CustomFraction(0, 1) for _ in range(m)] for _ in range(m)]
     #vec = [CustomFraction(0, 1) for _ in range(m)]
 
-    print("hi4")
+    #print("hi4")
     # Lowest row
     idx1 = 0
-    print(f"idx1 = {idx1}")
+    #print(f"idx1 = {idx1}")
     idx2 = 0
     bm2 = 1 << idx2
     for s_bm in seed_bm_lst:
@@ -5119,7 +5179,7 @@ def antRandomWalkExpectedNumberOfStepsFraction(
         else:
             vec[i1] = CustomFraction(1, 1)
             neg_p = CustomFraction(-1, 2)
-            for pos2 in [(idx1 + 1, idx2), (idx1, idx2 + 1)]:
+            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1)]:
                 i2 = stateEncoding(pos2, s_bm)
                 mat[i1][i2] = neg_p
     for idx2 in range(1, n_cols - 1):
@@ -5134,7 +5194,7 @@ def antRandomWalkExpectedNumberOfStepsFraction(
             else:
                 vec[i1] = CustomFraction(1, 1)
                 neg_p = CustomFraction(-1, 3)
-                for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                for pos2 in [(idx1, idx2 + 1), (idx1 - 1, idx2), (idx1, idx2 - 1)]:
                     i2 = stateEncoding(pos2, s_bm)
                     mat[i1][i2] = neg_p
     idx2 = n_cols - 1
@@ -5173,7 +5233,11 @@ def antRandomWalkExpectedNumberOfStepsFloatDirect(
     n_cols: int,
     start: Tuple[int, int],
 ) -> CustomFraction:
-    
+    """
+    Solution to Project Euler #280
+    """
+    # Review- look into the solutions given on the Project Euler forum
+    # with multiple matrix equation solving steps
     def seedPositionBitmaskGenerator(n_seeds: int) -> Generator[int, None, None]:
         if not n_seeds:
             yield 0
@@ -5390,7 +5454,7 @@ def antRandomWalkExpectedNumberOfStepsFloatDirect(
                 else:
                     vec[i1] = 1
                     neg_p = -1 / 3
-                    for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                    for pos2 in [(idx1, idx2 + 1), (idx1 - 1, idx2), (idx1, idx2 - 1)]:
                         i2 = stateEncoding(pos2, s_bm)
                         mat[i1][i2] = neg_p
         idx2 = n_cols - 1
@@ -5600,7 +5664,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
             orthocentre=(5, 0),
-            perimeter_max=10 ** 4,
+            perimeter_max=10 ** 5,
             ps=None,
         )
         print(f"Solution to Project Euler #264 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -5686,7 +5750,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = antRandomWalkExpectedNumberOfStepsFloatDirect(
             n_rows=5,
             n_cols=5,
-            start=(1, 1),
+            start=(2, 2),
         )
         print(f"Solution to Project Euler #280 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -5698,7 +5762,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {264}
+    eval_nums = {280}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -5711,5 +5775,24 @@ for triangle_pts in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrth
 #print(calculateDistinctPrimeCombinationsFrobeniusNumber([5, 7]))
 #print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 3, 5]))
 #print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 7, 11]))
-
+"""
 #print(countPizzaToppings(3, 1))
+n_rows = 5
+n_cols = 5
+start = (2, 2)
+n_sim = 10 ** 5
+res = antRandomWalkExpectedNumberOfStepsFloatDirect(
+    n_rows=n_rows,
+    n_cols=n_cols,
+    start=start,
+)
+#print(res)
+
+res2 = antRandomWalkExpectedNumberOfStepsSimulation(
+    n_rows=n_rows,
+    n_cols=n_cols,
+    start=start,
+    n_sim=n_sim,
+)
+print(res, res2)
+"""
