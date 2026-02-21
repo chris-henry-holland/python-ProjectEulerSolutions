@@ -3830,7 +3830,7 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
     return
 
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
-    orthocentre: Tuple[int]=(5, 0),
+    orthocentre: Tuple[int, int]=(5, 0),
     perimeter_max: int=10 ** 5,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> float:
@@ -3847,6 +3847,67 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeter
         res += tup[0]
         print(f"solution found: {tup}, current total = {res}")
     return res
+
+def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum2(
+    orthocentre: Tuple[int, int]=(5, 0),
+    perimeter_max: int=10 ** 5,
+) -> float:
+    # Rotate around origin a multiple of pi / 2 radians and/or reflect through the x- or y-axis
+    # the orthocentre to be in the first quadrant with an angle no greater than pi / 4 with the x axis
+    # These transformations only alter the orientation of the possible triangles, leaving the
+    # total perimeter unchanged
+    orthocentre = tuple(sorted([abs(x) for x in orthocentre], reverse=True))
+    centroid = tuple(CustomFraction(x, 3) for x in orthocentre)
+
+    if not orthocentre[0]:
+        # Any triangle whose orthocentre and circumcentre coincide is an equilateral, and
+        # it is not possible for the vertices of an equilateral triangle to all lie on
+        # lattice points for a square lattice
+        return 0
+
+    # Checking whether the Euler line is on the x-axis, in which case this symmetry
+    # may be used to reduce the number of calculations
+    x_sym = not (orthocentre[1])
+
+    def calculateOtherVerticesIfLatticePoints(
+        v1: Tuple[int, int],
+    ) -> Optional[Tuple[Tuple[int, int], Tuple[int, int]]]:
+        r_sq = sum(x * x for x in v1)
+        vec = tuple((x - y) / 2 for x, y in zip(centroid, v1))
+        bisector = tuple(x + y for x, y in zip(centroid, vec))
+        if bisector[0].denominator > 2 or bisector[1].denominator > 2:
+            return None
+        d_sq = sum(x * x for x in bisector)
+        a_hlf_sq = r_sq - d_sq
+        if a_hlf_sq <= 0: return None
+        sin_sq = vec[1] * vec[1] / sum(x * x for x in vec)
+        a_hlf_x_sq = a_hlf_sq * sin_sq
+        #print(v1, vec, bisector, r_sq, d_sq, a_hlf_x_sq, sin_sq)
+        a_hlf_x = CustomFraction(isqrt(a_hlf_x_sq.numerator), isqrt(a_hlf_x_sq.denominator))
+        if a_hlf_x * a_hlf_x != a_hlf_x_sq or a_hlf_x.denominator != bisector[0].denominator:
+            return None
+        a_hlf_y_sq = a_hlf_sq - a_hlf_x_sq
+        a_hlf_y = CustomFraction(isqrt(a_hlf_y_sq.numerator), isqrt(a_hlf_y_sq.denominator))
+        if a_hlf_y * a_hlf_y != a_hlf_y_sq or a_hlf_y.denominator != bisector[1].denominator:
+            return None
+        if (vec[0] >= 0) == (vec[1] >= 0):
+            v2 = (bisector[0] + a_hlf_x, bisector[1] - a_hlf_y)
+            #if v2[0].denominator != 1 or v2[1].denominator != 1:
+            #    return None
+            v3 = (bisector[0] - a_hlf_x, bisector[1] + a_hlf_y)
+        else:
+            v2 = (bisector[0] + a_hlf_x, bisector[1] + a_hlf_y)
+            v3 = (bisector[0] - a_hlf_x, bisector[1] - a_hlf_y)
+        return (tuple(x.numerator for x in v2), tuple(x.numerator for x in v3))
+
+    for i in range(10):
+        for j in range(10):
+            v1 = (i, j)
+            ans = calculateOtherVerticesIfLatticePoints(v1)
+            if ans is None: continue
+            v2, v3 = ans
+            print(v1, v2, v3)
+    return 0
 
 # Problem 265
 def findAllBinaryCircles(n: int) -> List[int]:
@@ -5920,7 +5981,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {279}
+    eval_nums = {282}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -5970,3 +6031,7 @@ for x0_abs in range(1, 10 ** 5 + 1, 2):
             print(perim, (x0, 0), (x, y), (x, -y))
 print(f"perimeter sum = {res}")
 """
+trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum2(
+    orthocentre=(5, 0),
+    perimeter_max=10 ** 5,
+)
