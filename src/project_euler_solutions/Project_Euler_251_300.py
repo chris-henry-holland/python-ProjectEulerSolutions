@@ -3611,6 +3611,10 @@ def sumOfTwoSquaresSolutionGenerator(
     #print(gaussian_pf)
     #print(f"mult = {mult}")
     yield from recur(0, (mult, 0))
+    #cnt = 0
+    #for ans in recur(0, (mult, 0)):
+    #    cnt += 1
+    #print(f"for {target}, with the number of ways of representing as the sum of squares of two non-negative integers = {cnt}")
     return
 
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
@@ -3618,6 +3622,11 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
     perimeter_max: Optional[int]=None,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> Generator[Tuple[float, Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]], None, None]:
+
+    # Review- look into the possibility mentioned on the Project Euler
+    # forum that if one vertex, the circumcentre and the orthocentre
+    # are known then the two other vertices can be found.
+
     if perimeter_max is None:
         perimeter_max = float("inf")
     #x0 = orthocentre_x
@@ -3656,31 +3665,32 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
     #    rad_sq_iter = itertools.count(1)
     rad_sq_step = 1
     
-    #if not orthocentre[1]:
-    #    if not orthocentre[0]:
-    #        # The orthocentre and circumcentre only coincide when the
-    #        # triangle is equilateral- there are no equilateral triangles
-    #        # whose vertices are all on lattice points in a square lattice
-    #        return
-    #    rad_sq_step = orthocentre[0]
-    #elif not orthocentre[0]:
-    #    rad_sq_step = orthocentre[1]
+    if not orthocentre[1]:
+        if not orthocentre[0]:
+            # The orthocentre and circumcentre only coincide when the
+            # triangle is equilateral- there are no equilateral triangles
+            # whose vertices are all on lattice points in a square lattice
+            return
+        rad_sq_step = orthocentre[0]
+    elif not orthocentre[0]:
+        rad_sq_step = orthocentre[1]
     
-    y_sym = not orthocentre[1]
-    x_sym = not orthocentre[0]
+    x_axis_sym = not orthocentre[1]
+    y_axis_sym = not orthocentre[0]
     
-
     rad_sq_iter = itertools.count(rad_sq_step, step=rad_sq_step) if ub is None else range(rad_sq_step, ub + 1, rad_sq_step)
     if ub is not None:
         print(f"radius squared upper bound = {ub}")
         if ps is not None: ps.extendSieve(ub)
     
     #perim_chk_rad_sq_cutoff = ((perimeter_max ** 2 - 1) // 27) + 1 if perimeter_max is not None else 0
-    #x_sym = False
-    #y_sym = False
+    #x_axis_sym = False
+    #y_axis_sym = False
+    ref = None
+
     h = []
     for rad_sq in rad_sq_iter:
-        if not rad_sq % 10 ** 5:
+        if not rad_sq % 10 ** 6:
             if h:
                 perim_lb = calculatePerimeterLowerBound(rad_sq)
                 while h and h[0][0] <= perim_lb:
@@ -3690,51 +3700,59 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
         seen_lst = []
         seen_dict = {}
         for sq_pair1 in sumOfTwoSquaresSolutionGenerator(rad_sq, ps=ps):
-            #print(sq_pair1)
-            x_dbl = False
-            y_dbl = False
-            if x_sym or not sq_pair1[0]:
-                x_dbl = bool(sq_pair1[0])
-                pt1_lst = {sq_pair1, (sq_pair1[0], -sq_pair1[1]), (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0])}
-            elif y_sym or not sq_pair1[1]:
-                y_dbl = bool(sq_pair1[1])
+            #if rad_sq == ref:
+            #    print(sq_pair1)
+            #x_axis_reflect = False
+            #y_axis_reflect = False
+            if x_axis_sym:# or not sq_pair1[1]:
+                #x_axis_reflect = bool(sq_pair1[1])
                 pt1_lst = {sq_pair1, (-sq_pair1[0], sq_pair1[1]), (sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], sq_pair1[0])}
+            elif y_axis_sym:# or not sq_pair1[1]:
+                #y_axis_reflect = bool(sq_pair1[0])
+                pt1_lst = {sq_pair1, (sq_pair1[0], -sq_pair1[1]), (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0])}
             else:
                 pt1_lst = {sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
                             (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0]), (-sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], -sq_pair1[0])}
             pt1_lst = sorted(pt1_lst)
+            #if rad_sq == ref:
+            #    print(pt1_lst, x_axis_reflect, y_axis_reflect)
             #print(pt1_lst)
             for i, sq_pair2 in enumerate(seen_lst):
                 for pt1 in pt1_lst:
                     pt2_lst = sorted({sq_pair2, (sq_pair2[0], -sq_pair2[1]), (-sq_pair2[0], sq_pair2[1]), (-sq_pair2[0], -sq_pair2[1]),\
                                 (sq_pair2[1], sq_pair2[0]), (sq_pair2[1], -sq_pair2[0]), (-sq_pair2[1], sq_pair2[0]), (-sq_pair2[1], -sq_pair2[0])})
+                    #if rad_sq == ref:
+                    #    print(pt1, pt2_lst)
                     for pt2 in pt2_lst:
                         pt3 = (orthocentre[0] - pt1[0] - pt2[0], orthocentre[1] - pt1[1] - pt2[1])
-                        
-                        j = seen_dict.get(tuple(sorted([abs(pt3[0]), abs(pt3[1])])), float("inf"))
-                        #print(pt1, pt2, pt3, j)
+                        #print(pt1, pt2, pt3)
+                        j = seen_dict.get(tuple(sorted([abs(x) for x in pt3])), float("inf"))
+                        #if rad_sq == ref: print(pt1, pt2, pt3, i, j, sq_pair1)
                         if j > i or (j == i and pt3 >= pt2): continue
                         perim = calculatePerimeter(pt1, pt2, pt3)
                         if perim > perimeter_max: continue
                         heapq.heappush(h, (perim, (pt1, pt2, pt3)))
-                        if x_dbl:
-                            heapq.heappush(h, (perim, ((-pt1[0], pt1[1]), (-pt2[0], pt2[1]), (-pt3[0], pt3[1]))))
-                        if y_dbl:
+                        if x_axis_sym and pt1[1] and pt2[1] and pt3[1]:#and (pt2[0], -pt2[1]) != pt1 and (pt3[0], -pt3[1]) not in {pt1, pt2}:
                             heapq.heappush(h, (perim, ((pt1[0], -pt1[1]), (pt2[0], -pt2[1]), (pt3[0], -pt3[1]))))
-            tup = tuple(sorted(sq_pair1))
-            i = len(seen_dict)
+                        if y_axis_sym and pt1[0] and pt2[0] and pt3[0]:# and (-pt2[0], pt2[1]) != pt1 and (-pt3[0], pt3[1]) not in {pt1, pt2}:
+                            heapq.heappush(h, (perim, ((-pt1[0], pt1[1]), (-pt2[0], pt2[1]), (-pt3[0], pt3[1]))))
+            tup = tuple(sorted([abs(x) for x in sq_pair1]))
+            i = len(seen_lst)
             seen_dict[tup] = i
             seen_lst.append(tup)
-            #pt2_lst = pt1_lst if not x_sym and not y_sym else sorted({sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
+            #pt2_lst = pt1_lst if not x_axis_sym and not y_axis_sym else sorted({sq_pair1, (sq_pair1[0], -sq_pair1[1]), (-sq_pair1[0], sq_pair1[1]), (-sq_pair1[0], -sq_pair1[1]),\
             #                (sq_pair1[1], sq_pair1[0]), (sq_pair1[1], -sq_pair1[0]), (-sq_pair1[1], sq_pair1[0]), (-sq_pair1[1], -sq_pair1[0])})
             #print(pt2_lst)
             for idx1 in range(1, len(pt1_lst)):
                 pt1 = pt1_lst[idx1]
                 for idx2 in range(idx1):
+                    
                     pt2_0 = pt1_lst[idx2]
-                    if x_dbl: pt2_set = {pt2_0, (-pt2_0[0], pt2_0[1])}
-                    elif y_dbl: pt2_set = {pt2_0, (pt2_0[0], -pt2_0[1])}
+                    if x_axis_sym: pt2_set = {pt2_0, (pt2_0[0], -pt2_0[1])}
+                    elif y_axis_sym: pt2_set = {pt2_0, (-pt2_0[0], pt2_0[1])}
                     else: pt2_set = {pt2_0}
+                    #if rad_sq == ref:
+                    #    print(pt1, pt2_set)
                     for pt2 in pt2_set:
                         pt3 = (orthocentre[0] - pt1[0] - pt2[0], orthocentre[1] - pt1[1] - pt2[1])
                         j = seen_dict.get(tuple(sorted([abs(pt3[0]), abs(pt3[1])])), float("inf"))
@@ -3743,12 +3761,11 @@ def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimet
                         perim = calculatePerimeter(pt1, pt2, pt3)
                         if perim > perimeter_max: continue
                         heapq.heappush(h, (perim, (pt1, pt2, pt3)))
-                        if x_dbl:
-                            heapq.heappush(h, (perim, ((-pt1[0], pt1[1]), (-pt2[0], pt2[1]), (-pt3[0], pt3[1]))))
-                        if y_dbl:
+                        if x_axis_sym and pt1[1] and pt2[1] and pt3[1]:# and (pt2[0], -pt2[1]) != pt1 and (pt3[0], -pt3[1]) not in {pt1, pt2}:
                             heapq.heappush(h, (perim, ((pt1[0], -pt1[1]), (pt2[0], -pt2[1]), (pt3[0], -pt3[1]))))
-            
-    
+                        if y_axis_sym and pt1[0] and pt2[0] and pt3[0]:# and (-pt2[0], pt2[1]) != pt1 and (-pt3[0], pt3[1]) not in {pt1, pt2}:
+                            heapq.heappush(h, (perim, ((-pt1[0], pt1[1]), (-pt2[0], pt2[1]), (-pt3[0], pt3[1]))))
+                        
     while h:
         yield heapq.heappop(h)
     return
@@ -4964,6 +4981,92 @@ def calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p: int=3, p_max: int=
         res += calculateDistinctPrimeCombinationsFrobeniusNumber(p_lst)
     return res
 
+# Problem 279
+def integerSidedTrianglesWithIntegerAngleCount(
+    max_perimeter: int=10 ** 8,
+    n_degrees_in_circle: int=360,                  
+) -> int:
+    """
+    Solution to Project Euler #279
+    """
+    # Using Niven's theorem
+    # Note there is no triangle with integer sides whose angles are
+    # all rational multiples of 2 * pi (the only candidate is the
+    # 60, 90, 120 triangle)
+
+    res = 0
+    if not n_degrees_in_circle % 3:
+        # 2 * pi / 3 angle
+        print("counting triangles with 120 degree angle")
+        m_max = (-3 + isqrt(1 + 8 * max_perimeter)) >> 2
+        ans = 0
+        for m in range(2, m_max + 1):
+            n_max = min(m - 1, (-3 * m + isqrt(m ** 2 + 4 * max_perimeter)) >> 1)
+            n_rng = range(1, n_max + 1) if m & 1 else range(1, n_max + 1, 2)
+            for n in n_rng:
+                if not (m - n) % 3 or gcd(m, n) > 1: continue
+                primitive_perim = 2 * m ** 2 + 3 * m * n + n ** 2
+                a, b, c = m ** 2 + m * n + n ** 2, 2 * m * n + n ** 2, m ** 2 - n ** 2
+               
+                if n == 1 and primitive_perim > max_perimeter:
+                    break
+                
+                ans += max_perimeter // primitive_perim
+                #print((a, b, c), primitive_perim, max_perimeter // primitive_perim, res)
+            else: continue
+            break
+        print(f"there are {ans} triangles with integer side length and a 120 degree angle whose perimeter does not exceed {max_perimeter}.")
+        res += ans
+    if not n_degrees_in_circle & 3:
+        # pi / 2 angle
+        # Pythagorean triples
+        print("counting triangles with 90 degree angle (Pythagorean triples)")
+        ans = 0
+        m_max = (-2 + isqrt(4 + 8 * max_perimeter)) >> 2
+        for m in range(2, m_max + 1):
+            n_max = min(m - 1, (max_perimeter // (2 * m)) - m)
+            #n_max = m - 1
+            for n in range(1 + (m & 1), n_max + 1, 2):
+                if gcd(m, n) > 1: continue
+                primitive_perim = 2 * m ** 2 + 2 * m * n
+                #a, b, c = m ** 2 - n ** 2, 2 * m * n, m ** 2 + n ** 2
+                
+                if n == (1 + (m & 1)) and primitive_perim > max_perimeter:
+                    break
+                
+                ans += max_perimeter // primitive_perim
+                #print((a, b, c), primitive_perim, max_perimeter // primitive_perim, res)
+            else: continue
+            break
+        print(f"there are {ans} triangles with integer side length and a 90 degree angle whose perimeter does not exceed {max_perimeter}.")
+        res += ans
+    if not n_degrees_in_circle % 6:
+        # pi / 3 angle
+        # Eisenstein triples
+        print("counting triangles with 60 degree angle (Eisenstein triples)")
+        ans = 0
+        m_max = 3 * isqrt((4 * max_perimeter) // 9)#(-1 + isqrt(9 + 8 * max_perimeter)) >> 2
+        #for m in range(2, m_max + 1):
+        for m in range(2, m_max + 1):
+            #discr = 9 * m ** 2 - 4 * max_perimeter
+            n_max = m >> 1
+            #if discr >= 0: n_max = min(n_max, (m + isqrt(discr)) >> 1)
+            n_rng = range(1, n_max + 1) if m & 1 else range(1, n_max + 1, 2)
+            for n in n_rng:
+                if gcd(m, n) > 1: continue
+                div = 1 if (m + n) % 3 else 3
+                primitive_perim = (2 * m ** 2 + m * n - n ** 2) // div
+                #a, b, c = (m ** 2 - m * n + n ** 2) // div, (2 * m * n - n ** 2) // div, (m ** 2 - n ** 2) // div
+                
+                if primitive_perim > max_perimeter:
+                    continue
+                ans += max_perimeter // primitive_perim
+                #print((m, n), div, (a, b, c), primitive_perim, max_perimeter // primitive_perim, res)
+            else: continue
+            break
+        print(f"there are {ans} triangles with integer side length and at least one 60 degree angle whose perimeter does not exceed {max_perimeter}.")
+        res += ans
+    return res
 # Problem 280
 def antRandomWalkSimulation(
     n_rows: int,
@@ -5086,21 +5189,52 @@ def antRandomWalkExpectedNumberOfStepsFraction(
     #print(f"idx1 = {idx1}")
     idx2 = 0
     bm2 = 1 << idx2
-    for s_bm in seed_bm_lst:
-        i1 = stateEncoding((idx1, idx2), s_bm)
-        mat[i1][i1] = CustomFraction(1, 1)
-        
-        if s_bm.bit_count() == n_cols and s_bm & bm2:
-            # Forced to pick up the seed
-            i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
-            mat[i1][i2] = CustomFraction(-1, 1)
-        else:
-            vec[i1] = CustomFraction(1, 1)
-            neg_p = CustomFraction(-1, 2)
-            for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2)]:
-                i2 = stateEncoding(pos2, s_bm)
-                mat[i1][i2] = neg_p
-    for idx2 in range(1, n_cols - 1):
+    if n_cols == 1:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            
+            if s_bm.bit_count() == n_cols and s_bm & bm2:
+                # Forced to pick up the seed
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = CustomFraction(-1, 1)
+            else:
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 1)
+                for pos2 in [(idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    else:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(-1, 1)
+            
+            if s_bm.bit_count() == n_cols and s_bm & bm2:
+                # Forced to pick up the seed
+                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                mat[i1][i2] = CustomFraction(-1, 1)
+            else:
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 2)
+                for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+        for idx2 in range(1, n_cols - 1):
+            bm2 = 1 << idx2
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = CustomFraction(1, 1)
+                if s_bm.bit_count() == n_cols and s_bm & bm2:
+                    # Forced to pick up the seed
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = CustomFraction(-1, 1)
+                else:
+                    vec[i1] = CustomFraction(1, 1)
+                    neg_p = CustomFraction(-1, 3)
+                    for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                        i2 = stateEncoding(pos2, s_bm)
+                        mat[i1][i2] = neg_p
+        idx2 = n_cols - 1
         bm2 = 1 << idx2
         for s_bm in seed_bm_lst:
             i1 = stateEncoding((idx1, idx2), s_bm)
@@ -5111,78 +5245,60 @@ def antRandomWalkExpectedNumberOfStepsFraction(
                 mat[i1][i2] = CustomFraction(-1, 1)
             else:
                 vec[i1] = CustomFraction(1, 1)
-                neg_p = CustomFraction(-1, 3)
-                for pos2 in [(idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                neg_p = CustomFraction(-1, 2)
+                for pos2 in [(idx1, idx2 - 1), (idx1 + 1, idx2)]:
                     i2 = stateEncoding(pos2, s_bm)
                     mat[i1][i2] = neg_p
-    idx2 = n_cols - 1
-    bm2 = 1 << idx2
-    for s_bm in seed_bm_lst:
-        i1 = stateEncoding((idx1, idx2), s_bm)
-        mat[i1][i1] = CustomFraction(1, 1)
-        if s_bm.bit_count() == n_cols and s_bm & bm2:
-            # Forced to pick up the seed
-            i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
-            mat[i1][i2] = CustomFraction(-1, 1)
-        else:
-            vec[i1] = CustomFraction(1, 1)
-            neg_p = CustomFraction(-1, 2)
-            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1), (idx1 + 1, idx2)]:
-                i2 = stateEncoding(pos2, s_bm)
-                mat[i1][i2] = neg_p
 
     # Rows that are not the lowest or highest
     for idx1 in range(1, n_rows - 1):
-        print(f"idx1 = {idx1}")
+        #print(f"idx1 = {idx1}")
         idx2 = 0
-        for s_bm in seed_bm_lst:
-            i1 = stateEncoding((idx1, idx2), s_bm)
-            mat[i1][i1] = CustomFraction(1, 1)
-            vec[i1] = CustomFraction(1, 1)
-            neg_p = CustomFraction(-1, 3)
-            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2)]:
-                i2 = stateEncoding(pos2, s_bm)
-                mat[i1][i2] = neg_p
-        for idx2 in range(1, n_cols - 1):
+        if n_cols == 1:
             for s_bm in seed_bm_lst:
                 i1 = stateEncoding((idx1, idx2), s_bm)
                 mat[i1][i1] = CustomFraction(1, 1)
                 vec[i1] = CustomFraction(1, 1)
-                neg_p = CustomFraction(-1, 4)
-                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                neg_p = CustomFraction(-1, 2)
+                for pos2 in [(idx1 - 1, idx2), (idx1 + 1, idx2)]:
                     i2 = stateEncoding(pos2, s_bm)
                     mat[i1][i2] = neg_p
-        idx2 = n_cols - 1
-        for s_bm in seed_bm_lst:
-            i1 = stateEncoding((idx1, idx2), s_bm)
-            mat[i1][i1] = CustomFraction(1, 1)
-            vec[i1] = CustomFraction(1, 1)
-            neg_p = CustomFraction(-1, 3)
-            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1), (idx1 + 1, idx2)]:
-                i2 = stateEncoding(pos2, s_bm)
-                mat[i1][i2] = neg_p
+        else:
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = CustomFraction(1, 1)
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 3)
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+            for idx2 in range(1, n_cols - 1):
+                for s_bm in seed_bm_lst:
+                    i1 = stateEncoding((idx1, idx2), s_bm)
+                    mat[i1][i1] = CustomFraction(1, 1)
+                    vec[i1] = CustomFraction(1, 1)
+                    neg_p = CustomFraction(-1, 4)
+                    for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1), (idx1 + 1, idx2), (idx1, idx2 - 1)]:
+                        i2 = stateEncoding(pos2, s_bm)
+                        mat[i1][i2] = neg_p
+            idx2 = n_cols - 1
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = CustomFraction(1, 1)
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 3)
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1), (idx1 + 1, idx2)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
 
     # Highest row
     target_s_bm = ((1 << n_cols) - 1) << n_cols
+    #print(f"target_s_bm = {target_s_bm}")
     idx1 = n_rows - 1
-    print(f"idx1 = {idx1}")
+    #print(f"idx1 = {idx1}")
     idx2 = 0
     bm2 = 1 << (idx2 + n_cols)
-    for s_bm in seed_bm_lst:
-        i1 = stateEncoding((idx1, idx2), s_bm)
-        mat[i1][i1] = CustomFraction(1, 1)
-        if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
-            # Forced to drop off seed
-            if s_bm ^ bm2 != target_s_bm:
-                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
-                mat[i1][i2] = CustomFraction(-1, 1)
-        else:
-            vec[i1] = CustomFraction(1, 1)
-            neg_p = CustomFraction(-1, 2)
-            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1)]:
-                i2 = stateEncoding(pos2, s_bm)
-                mat[i1][i2] = neg_p
-    for idx2 in range(1, n_cols - 1):
+    if n_cols == 1:
         for s_bm in seed_bm_lst:
             i1 = stateEncoding((idx1, idx2), s_bm)
             mat[i1][i1] = CustomFraction(1, 1)
@@ -5193,26 +5309,60 @@ def antRandomWalkExpectedNumberOfStepsFraction(
                     mat[i1][i2] = CustomFraction(-1, 1)
             else:
                 vec[i1] = CustomFraction(1, 1)
-                neg_p = CustomFraction(-1, 3)
-                for pos2 in [(idx1, idx2 + 1), (idx1 - 1, idx2), (idx1, idx2 - 1)]:
+                neg_p = CustomFraction(-1, 1)
+                for pos2 in [(idx1 - 1, idx2)]:
                     i2 = stateEncoding(pos2, s_bm)
                     mat[i1][i2] = neg_p
-    idx2 = n_cols - 1
-    for s_bm in seed_bm_lst:
-        i1 = stateEncoding((idx1, idx2), s_bm)
-        mat[i1][i1] = CustomFraction(1, 1)
-        if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
-            # Forced to drop off seed
-            if s_bm ^ bm2 != target_s_bm:
-                i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
-                mat[i1][i2] = CustomFraction(-1, 1)
-        else:
-            vec[i1] = CustomFraction(1, 1)
-            neg_p = CustomFraction(-1, 2)
-            for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1)]:
-                i2 = stateEncoding(pos2, s_bm)
-                mat[i1][i2] = neg_p
-
+    else:
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                # Forced to drop off seed
+                if s_bm ^ bm2 != target_s_bm:
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = CustomFraction(-1, 1)
+            else:
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 2)
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 + 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+        for idx2 in range(1, n_cols - 1):
+            bm2 = 1 << (idx2 + n_cols)
+            for s_bm in seed_bm_lst:
+                i1 = stateEncoding((idx1, idx2), s_bm)
+                mat[i1][i1] = CustomFraction(1, 1)
+                if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                    # Forced to drop off seed
+                    if s_bm ^ bm2 != target_s_bm:
+                        i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                        mat[i1][i2] = CustomFraction(-1, 1)
+                else:
+                    vec[i1] = CustomFraction(1, 1)
+                    neg_p = CustomFraction(-1, 3)
+                    for pos2 in [(idx1, idx2 + 1), (idx1 - 1, idx2), (idx1, idx2 - 1)]:
+                        i2 = stateEncoding(pos2, s_bm)
+                        mat[i1][i2] = neg_p
+        idx2 = n_cols - 1
+        bm2 = 1 << (idx2 + n_cols)
+        for s_bm in seed_bm_lst:
+            i1 = stateEncoding((idx1, idx2), s_bm)
+            mat[i1][i1] = CustomFraction(1, 1)
+            #print(f"idx1 = {idx1}, idx2 = {idx2}, s_bm = {format(s_bm, 'b')}, bm2 = {format(bm2, 'b')}, s_bm & bm2 = {s_bm & bm2}")
+            if s_bm.bit_count() == n_cols - 1 and not s_bm & bm2:
+                
+                # Forced to drop off seed
+                if s_bm ^ bm2 != target_s_bm:
+                    i2 = stateEncoding((idx1, idx2), s_bm ^ bm2)
+                    mat[i1][i2] = CustomFraction(-1, 1)
+            else:
+                vec[i1] = CustomFraction(1, 1)
+                neg_p = CustomFraction(-1, 2)
+                for pos2 in [(idx1 - 1, idx2), (idx1, idx2 - 1)]:
+                    i2 = stateEncoding(pos2, s_bm)
+                    mat[i1][i2] = neg_p
+    # TODO
     return CustomFraction(0, 1)
 
 
@@ -5237,7 +5387,7 @@ def antRandomWalkExpectedNumberOfStepsFloatDirect(
     Solution to Project Euler #280
     """
     # Review- look into the solutions given on the Project Euler forum
-    # with multiple matrix equation solving steps
+    # splitting the matrix based on the positions of the seeds
     def seedPositionBitmaskGenerator(n_seeds: int) -> Generator[int, None, None]:
         if not n_seeds:
             yield 0
@@ -5664,7 +5814,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum(
             orthocentre=(5, 0),
-            perimeter_max=10 ** 5,
+            perimeter_max=10 ** 3,
             ps=None,
         )
         print(f"Solution to Project Euler #264 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -5745,6 +5895,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateDistinctPrimeCombinationsFrobeniusNumberSum(n_p=3, p_max=4999)
         print(f"Solution to Project Euler #278 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 279 in eval_nums:
+        since = time.time()
+        res = integerSidedTrianglesWithIntegerAngleCount(
+            max_perimeter=10 ** 8,
+            n_degrees_in_circle=360,                  
+        )
+        print(f"Solution to Project Euler #279 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 280 in eval_nums:
         since = time.time()
         res = antRandomWalkExpectedNumberOfStepsFloatDirect(
@@ -5762,7 +5920,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {280}
+    eval_nums = {279}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -5795,4 +5953,20 @@ res2 = antRandomWalkExpectedNumberOfStepsSimulation(
     n_sim=n_sim,
 )
 print(res, res2)
+"""
+"""
+res = 0
+for x0_abs in range(1, 10 ** 5 + 1, 2):
+    r_sq = x0_abs ** 2
+    for x0 in (x0_abs, -x0_abs):
+        x = (5 - x0) >> 1
+        
+        y_sq = r_sq - x ** 2
+        if y_sq <= 0: continue
+        y = isqrt(y_sq)
+        if y ** 2 == y_sq:
+            perim = 2 * (y + math.sqrt((x - x0) ** 2 + y_sq))
+            res += perim
+            print(perim, (x0, 0), (x, y), (x, -y))
+print(f"perimeter sum = {res}")
 """
