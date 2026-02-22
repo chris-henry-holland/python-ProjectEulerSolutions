@@ -4936,6 +4936,37 @@ def calculateCoprimePrimeOsculatorSum(p_max: int=10 ** 7 - 1, base: int=10) -> i
         res += calculateOsculator(p, base=base)
     return res
 
+# Problem 276
+def countPrimitiveTriangles(perim_max: int=10 ** 7) -> int:
+    """
+    Solution to Project Euler #276
+    """
+    # Using Alcuin's sequence
+
+    ps = PrimeSPFsieve(perim_max)
+    print("finished creating prime sieve")
+    tot = 0
+    res = 0
+    nxt_fact = perim_max
+    for i in range(3, perim_max + 1):
+        mn_fact = ((perim_max) // i) + 1
+        if tot:
+            for fact in reversed(range(mn_fact, nxt_fact + 1)):
+                pf = ps.primeFactorisation(fact)
+                if max(pf.values()) > 1: continue
+                neg = len(pf) & 1
+                #for f in pf.values():
+                #    if f & 1: neg = not neg
+                #print(fact, i, neg)
+                #print(i, fact, -tot if neg else tot)
+                res += -tot if neg else tot
+        nxt_fact = min(nxt_fact, mn_fact - 1)
+        # Alcuin's sequence term
+        tot += round(i ** 2 / 12) - (i >> 2) * ((i + 2) >> 2)
+    print(f"tot = {tot}")
+    return tot + res
+
+
 # Problem 277
 def modifiedCollatzSequenceSmallestStartWithSequence(n_min: int=10 ** 15 + 1, seq: str="UDDDUdddDDUDDddDdDddDDUDDdUUDd") -> int:
 
@@ -5946,6 +5977,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateCoprimePrimeOsculatorSum(p_max=10 ** 7 - 1, base=10)
         print(f"Solution to Project Euler #274 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 276 in eval_nums:
+        since = time.time()
+        res = countPrimitiveTriangles(perim_max=10 ** 7)
+        print(f"Solution to Project Euler #276 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 277 in eval_nums:
         since = time.time()
         res = modifiedCollatzSequenceSmallestStartWithSequence(n_min=10 ** 15 + 1, seq="UDDDUdddDDUDDddDdDddDDUDDdUUDd")
@@ -5981,7 +6017,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {282}
+    eval_nums = {276}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -6031,7 +6067,7 @@ for x0_abs in range(1, 10 ** 5 + 1, 2):
             print(perim, (x0, 0), (x, y), (x, -y))
 print(f"perimeter sum = {res}")
 """
-trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum2(
-    orthocentre=(5, 0),
-    perimeter_max=10 ** 5,
-)
+#trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum2(
+#    orthocentre=(5, 0),
+#    perimeter_max=10 ** 5,
+#)
