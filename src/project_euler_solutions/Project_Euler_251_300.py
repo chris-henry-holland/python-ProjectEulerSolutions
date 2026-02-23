@@ -5814,6 +5814,55 @@ def pizzaToppingsSum(max_count: int=10 ** 15) -> int:
             res += cnt
     return res
 
+# Problem 982
+def ackermannFunctionModuloSum(n_max: int=6, md: int=14 ** 8) -> int:
+
+    res = 0
+    if n_max < 0: return res
+    res = (res + 1) % md
+    if n_max < 1: return res
+    res = (res + 3) % md
+    if n_max < 2: return res
+    res = (res + 7) % md
+    if n_max < 3: return res
+    res = (res + (1 << 6) - 3)
+    if n_max < 4: return res
+    print(res)
+    ack = [((1 << 4) - 3) % md]
+    seen = {ack[0]: 0}
+    for i in itertools.count(1):
+        nxt = (pow(2, (ack[-1] + 3), md) - 3) % md
+        if nxt in seen.keys():
+            i0 = seen[nxt]
+            break
+        seen[nxt] = i
+        ack.append(nxt)
+        if (n_max == 4 and i == 4): break
+    md2 = len(ack) - i0
+    res = (res + ack[4 if len(ack) > 4 else i0 + (4 - len(ack)) % md2]) % md
+    print(4, i0, len(ack), ack)
+
+    for j in range(5, n_max):
+        
+        ack_prev = ack
+        ack = [ack_prev[1 if len(ack_prev) > 1 else 0]]
+        seen = {ack[0]: 0}
+        if ack[0]
+        for i in itertools.count(1):
+            nxt = ack_
+            ack.append(ack_prev[])
+            if len(ack_prev) - 1 <= ack[-1]: break
+        md2 = len(ack) - i0
+        res = (res + ack[j if len(ack) > j else i0 + (j - len(ack)) % md2]) % md
+    j = n_max
+    ack = [ack_prev[min(1, len(ack_prev))]]
+    for i in range(1, j + 1):
+        ack.append(ack_prev[min(len(ack_prev) - 1, ack[-1])])
+        if len(ack_prev) - 1 <= ack[-1]: break
+    res = (res + ack[min(j, len(ack) - 1)]) % md
+    #print(j, ack)
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -6014,10 +6063,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = pizzaToppingsSum(max_count=10 ** 15)
         print(f"Solution to Project Euler #281 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 282 in eval_nums:
+        since = time.time()
+        res = ackermannFunctionModuloSum(n_max=6, md=14 ** 8)
+        print(f"Solution to Project Euler #282 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {276}
+    eval_nums = {282}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
