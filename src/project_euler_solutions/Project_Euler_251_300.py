@@ -31,7 +31,7 @@ from sortedcontainers import SortedDict, SortedList, SortedSet
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 
-from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence
+from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 
@@ -5814,9 +5814,11 @@ def pizzaToppingsSum(max_count: int=10 ** 15) -> int:
             res += cnt
     return res
 
-# Problem 982
+# Problem 282
 def ackermannFunctionModuloSum(n_max: int=6, md: int=14 ** 8) -> int:
-
+    """
+    Solution to Project Euler #282
+    """
     res = 0
     if n_max < 0: return res
     res = (res + 1) % md
@@ -5825,42 +5827,50 @@ def ackermannFunctionModuloSum(n_max: int=6, md: int=14 ** 8) -> int:
     if n_max < 2: return res
     res = (res + 7) % md
     if n_max < 3: return res
-    res = (res + (1 << 6) - 3)
+    res = (res + (1 << 6) - 3) % md
     if n_max < 4: return res
     print(res)
-    ack = [((1 << 4) - 3) % md]
-    seen = {ack[0]: 0}
-    for i in itertools.count(1):
-        nxt = (pow(2, (ack[-1] + 3), md) - 3) % md
-        if nxt in seen.keys():
-            i0 = seen[nxt]
-            break
-        seen[nxt] = i
-        ack.append(nxt)
-        if (n_max == 4 and i == 4): break
-    md2 = len(ack) - i0
-    res = (res + ack[4 if len(ack) > 4 else i0 + (4 - len(ack)) % md2]) % md
-    print(4, i0, len(ack), ack)
 
-    for j in range(5, n_max):
-        
-        ack_prev = ack
-        ack = [ack_prev[1 if len(ack_prev) > 1 else 0]]
-        seen = {ack[0]: 0}
-        if ack[0]
-        for i in itertools.count(1):
-            nxt = ack_
-            ack.append(ack_prev[])
-            if len(ack_prev) - 1 <= ack[-1]: break
-        md2 = len(ack) - i0
-        res = (res + ack[j if len(ack) > j else i0 + (j - len(ack)) % md2]) % md
-    j = n_max
-    ack = [ack_prev[min(1, len(ack_prev))]]
-    for i in range(1, j + 1):
-        ack.append(ack_prev[min(len(ack_prev) - 1, ack[-1])])
-        if len(ack_prev) - 1 <= ack[-1]: break
-    res = (res + ack[min(j, len(ack) - 1)]) % md
-    #print(j, ack)
+    
+
+    pow2_md, odd_md = 0, md
+    while not odd_md & 1:
+        odd_md >>= 1
+        pow2_md += 1
+    
+    pf = calculatePrimeFactorisation(odd_md)
+    euler_tot = 1
+    for p, f in pf.items():
+        euler_tot *= (p - 1) * p ** (f - 1)
+
+    (g, (m1, m2)) = extendedEuclideanAlgorithm(pow2_md, odd_md)
+
+    ack_md = [(pow(2, 4, md) - 3) % md]
+    ack_pow2_md = 1 << 16 if pow2_md > 16 else 0
+    ack_odd_md = pow(2, 4, euler_tot)
+    
+    for i in itertools.count(1):
+        a1, a2 = ack_pow2_md, pow(2, ack_odd_md, odd_md)
+        nxt = ((a1 * m2 * odd_md + a2 * m1 * pow2_md) - 3) % md
+        print(nxt)
+        if nxt == ack_md[-1]: break
+        ack_md.append(nxt)
+        if (n_max == 4 and i == 4): break
+        if not ack_pow2_md or ack_pow2_md >= pow2_md: ack_pow2_md = 0
+        else: ack_pow2_md = 1 << ack_pow2_md
+        ack_odd_md = pow(2, ack_odd_md, euler_tot)
+    print(res)
+    #md2 = len(ack) - i0
+    #res = (res + ack[4 if len(ack) > 4 else i0 + (4 - len(ack)) % md2]) % md
+    res = (res + ack_md[min(4, len(ack_md) - 1)])
+    if n_max < 5: return res
+    print(4, len(ack_md), ack_md)
+    if (len(ack_md) + 2).bit_length() < 17:
+        # Almost certainly the case
+        res = (res + (n_max - 4) * ack_md[-1]) % md
+    else:
+        #TODO
+        pass
     return res
 
 ##############
