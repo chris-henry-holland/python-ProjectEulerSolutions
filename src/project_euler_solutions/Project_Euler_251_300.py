@@ -5850,6 +5850,7 @@ def ackermannFunctionModuloSum(n_max: int=6, md: int=14 ** 8) -> int:
     ack_odd_md = pow(2, 4, euler_tot)
     
     for i in itertools.count(1):
+        print(ack_pow2_md, ack_odd_md)
         a1, a2 = ack_pow2_md, pow(2, ack_odd_md, odd_md)
         nxt = ((a1 * m2 * odd_md + a2 * m1 * pow2_md) - 3) % md
         print(nxt)
@@ -5872,6 +5873,66 @@ def ackermannFunctionModuloSum(n_max: int=6, md: int=14 ** 8) -> int:
         #TODO
         pass
     return res
+
+# Problem 284
+def steadySquaresDigitSum(max_n_digs: int, base: int=10) -> int:
+
+    curr = [(0, 0, 0)]
+    res = 1 # The only steady square ending in 1 is 1 itself (review- prove this)
+    prev = curr
+    curr = []
+    num0, num0_sq, dig_sum0 = 0, 0, 0
+    for d in range(2, base):
+        num = d
+        num_sq = d ** 2
+        #print(m, num, num_sq)
+        if num_sq % base != num:
+            continue
+        curr.append((num, num_sq, d))
+        #print(num, num_sq)
+        res += dig_sum0 + d
+    mult1 = base
+    md = base ** 2
+    mult2 = base ** 2
+    for m in range(1, max_n_digs):
+        if not m % 100: print(f"m = {m} of {max_n_digs}, number of options = {len(curr)}")
+        prev = curr
+        curr = []
+        for num0, num0_sq, dig_sum0 in prev:
+            if num0_sq % md == num0:
+                curr.append((num0, num0_sq, dig_sum0))
+            for d in range(1, base):
+                num = d * mult1 + num0
+                num_sq_tail = ((((2 * d * (num0 % base)) % base) * mult1) + (num0_sq % md)) % md
+                #print(num0, num0_sq, d, num, num_sq_tail)
+                if num_sq_tail != num: continue
+                num_sq = d ** 2 * mult2 + 2 * d * num0 * mult1 + num0_sq
+                #print(m, num, num_sq)
+                #if num_sq % (mult1 * base) != num:
+                #    continue
+                curr.append((num, num_sq, dig_sum0 + d))
+                #print(num, num_sq)
+                res += dig_sum0 + d
+        #print(m, curr)
+        mult1 *= base
+        mult2 *= base ** 2
+        md *= base
+    return res
+
+def steadySquaresDigitSumBaseRepr(max_n_digs: int=10 ** 4, base: int=14) -> str:
+    """
+    Solution to Project Euler #284
+    """
+    num = steadySquaresDigitSum(max_n_digs=max_n_digs, base=base)
+    print(num)
+    if not num: return "0"
+    res = []
+    ord_a = ord("a")
+    while num:
+        num, d = divmod(num, base)
+        if d < 10: res.append(str(d))
+        else: res.append(chr(ord_a + d - 10))
+    return "".join(res[::-1])
 
 ##############
 project_euler_num_range = (251, 300)
@@ -6078,10 +6139,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = ackermannFunctionModuloSum(n_max=6, md=14 ** 8)
         print(f"Solution to Project Euler #282 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+
+
+    if 284 in eval_nums:
+        since = time.time()
+        res = steadySquaresDigitSumBaseRepr(max_n_digs=10 ** 4, base=14)
+        print(f"Solution to Project Euler #284 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {282}
+    eval_nums = {284}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
