@@ -27,6 +27,7 @@ import time
 
 from collections import deque, defaultdict
 from sortedcontainers import SortedDict, SortedList, SortedSet
+from gmpy2 import mpfr
 
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
@@ -5934,6 +5935,184 @@ def steadySquaresDigitSumBaseRepr(max_n_digs: int=10 ** 4, base: int=14) -> str:
         else: res.append(chr(ord_a + d - 10))
     return "".join(res[::-1])
 
+# Problem 985
+def calculatePythagoreanOddsGameExpectedValue(k: int) -> float:
+    print(f"k = {k}")
+    n_mx = (k + 1) ** 2 + 1
+    res = 2
+    #for n in range(1, min(n_mx, 2) + 1):
+    #    rt1 = math.sqrt(n - .5)
+    #    res += math.asin((k + 1) / rt1) - math.asin(1 / rt1) - 1 / k
+    for n in range(3, (k + 1) ** 2 + 1):
+        rt1 = math.sqrt(n - .5)
+        rt2 = math.sqrt(n - 1.5)
+        ans = math.pi / 4 - math.asin(rt2 / rt1) - rt2 / (n - .5) + (n - 1.5 - rt1 * rt2) / k ** 2 + 1 - rt1 / k + 1 / k
+        print(f"k = {k}, n = {n}, P(>= n) = {ans}")
+        res += ans#math.asin((k + 1) / rt1) - math.asin(rt2 / rt1) - rt2 / k + (n - 1.5) / k ** 2
+    num1 = (k + 1) ** 2 + .5
+    rt1 = math.sqrt(num1)
+    num2 = num1 - 1
+    rt2 = math.sqrt(num2)
+    ans = .5 * (math.asin((k + 1) / rt1) + (k + 1) / (math.sqrt(2) * rt1) - math.asin(rt2 / rt1) - rt2 / num1)
+    print(f"k = {k}, n = {(k + 1) ** 2 + 1}, P(>= n) = {ans}")
+    res += ans
+    return res
+
+def calculatePythagoreanOddsRangeGameExpectedValue(k_min: int=1, k_max: int=10 ** 5) -> float:
+    """
+    Solution to Project Euler #285
+    """
+    res = 0
+    for k in range(k_min, k_max + 1):
+        res += calculatePythagoreanOddsGameExpectedValue(k)
+    return res
+
+# Problem 286
+def exactBasketballScoreProbability(
+    p: float=0.02,
+    d_min: int=1,
+    d_max: int=50,
+    total_score: int=20,
+    eps: float=1e-12,
+) -> float:
+    """
+    Solution to Project Euler #286
+    """
+    if total_score > d_max - d_min + 1 or total_score < 0: return 0
+
+    def calculateScoreProbability(q: float, score: int) -> float:
+
+        row = [d_min / q, 1 - d_min / q]
+        #print(row)
+        for d in range(d_min + 1, d_max + 1):
+            prev = row
+            mult1 = d / q
+            mult2 = 1 - mult1
+            row = [prev[0] * mult1]
+            #print(f"mult1 = {mult1}, mult2 = {mult2}")
+            #print(min(len(prev), score + 1))
+            for j in range(1, min(len(prev), score + 1)):
+                #print(j, row)
+                row.append(prev[j] * mult1 + prev[j - 1] * mult2)
+            #print(row)
+            if len(prev) <= score:
+                row.append(prev[-1] * mult2)
+            #print(row)
+        #print(score, len(row))
+        return row[score]
+
+    lo, hi = d_max, d_max
+    p_hi = calculateScoreProbability(hi, total_score)
+    #print(hi, p_hi)
+    lo, hi = hi, hi << 1
+    if p_hi == p: return p_hi
+    elif p_hi < p:
+        while calculateScoreProbability(hi, total_score) < p:
+            lo, hi = hi, hi << 1
+        while 2 * (hi - lo) > eps:
+            mid = lo + (hi - lo) * .5
+            if calculateScoreProbability(mid, total_score) > p:
+                hi = mid
+            else: lo = mid
+        return lo + (hi - lo) * .5
+    while calculateScoreProbability(hi, total_score) > p:
+        lo, hi = hi, hi << 1
+    while 2 * (hi - lo) > eps:
+        mid = lo + (hi - lo) * .5
+        if calculateScoreProbability(mid, total_score) < p:
+            hi = mid
+        else: lo = mid
+    return lo + (hi - lo) * .5
+
+    """
+    memo = {}
+    def recur(d: int, pts_remain: int) -> List[int]:
+        if d == d_max + 1:
+            return [1]
+        args = (d, pts_remain)
+        if args in memo.keys(): return memo[args]
+        res = []
+        if pts_remain < d_max - d + 1:
+            res = [0] + [x * d for x in recur(d + 1, pts_remain)]
+        if pts_remain:
+            ans = recur(d + 1, pts_remain - 1)
+            res += [0] * (len(ans) + 1 - len(res))
+            res[0] += ans[0]
+            for i in range(1, len(ans)):
+                res[i] += ans[i] - ans[i - 1] * d
+            res[len(ans)] -= ans[-1] * d
+
+        memo[args] = res
+        return res
+    
+    poly_coeffs = recur(d_min, total_score)
+    diff_poly_coeffs = [0, 0] + [-i * poly_coeffs[i] for i in range(1, len(poly_coeffs))]
+    print(f"poly_coeffs = {poly_coeffs}")
+    print(f"diff_poly_coeffs = {diff_poly_coeffs}")
+
+    def calculateReciprocalPolynomial(q: Union[CustomFraction, float, mpfr], poly_coeffs: List[int]) -> Union[CustomFraction, float, mpfr]:
+        res = mpfr(0, precision=10000)
+        inv_q = 1 / mpfr(q, precision=10000)
+        for num in reversed(poly_coeffs):
+            res = res * inv_q + mpfr(num, precision=10000)
+        return res
+        #return sum(x / q ** i for i, x in enumerate(poly_coeffs))
+
+    #print(memo)
+
+    q0 = mpfr(d_max, precision=-2 * math.ceil(math.log(eps, 10)))
+    while True:
+        # Newton-Raphson method
+        print(f"q0 = {q0}")
+        q1 = -float("inf")
+        f1 = -float("inf")
+        q2 = q0
+        f2 = calculateReciprocalPolynomial(q2, poly_coeffs) - p #sum(x / q2 ** i for i, x in enumerate(poly_coeffs)) - p
+        mx_n_iter = 50
+        i = 0
+        while 2 * abs(q2 - q1) > eps or ((f1 and f2) and (f1 > 0) != (f2 < 0)):
+            i += 1
+            if i > mx_n_iter and (not (f1 and f2) or (f1 > 0) == (f2 < 0)): break
+            print(f"q2 = {q2}")
+            q1 = q2
+            f1 = f2
+            f_diff = calculateReciprocalPolynomial(q1, diff_poly_coeffs)
+            print(f1, f_diff, f1 / f_diff)
+            q2 = q1 - f1 / f_diff
+            f2 = calculateReciprocalPolynomial(q2, poly_coeffs) - p #sum(x / q2 ** i for i, x in enumerate(poly_coeffs)) - p
+        else:
+            if q2 > d_max: break
+            q0 <<= 1
+            continue
+        (lo, f1), (hi, f2) = sorted([(q1, f1), (q2, f2)])
+        print(f"lo = {lo} with value {f1 + p}, hi = {hi} with value {f2 + p}")
+        if f2 > f1:
+            while hi - lo > eps:
+                mid = lo + (hi - lo) * .5
+                ans =  calculateReciprocalPolynomial(mid, poly_coeffs) #sum(x / mid ** i for i, x in enumerate(poly_coeffs))
+                print(mid, ans)
+                if ans > p:
+                    hi = mid
+                else: lo = mid
+        else:
+            while hi - lo > eps:
+                mid = lo + (hi - lo) * .5
+                ans = calculateReciprocalPolynomial(mid, poly_coeffs) #sum(x / mid ** i for i, x in enumerate(poly_coeffs))
+                print(mid, ans)
+                if ans > p:
+                    lo = mid
+                else: hi = mid
+        q2 = lo + (hi - lo) *.5
+        break
+
+    #for q in [52.6494571948, 52.6494571949, 52.6494571950, 52.6494571951, 52.6494571952, 52.6494571953, 52.6494571954]:
+    for num in range(470, 550):
+        q = mpfr(52.64945719, precision=10000) + mpfr(num * 10 ** -11, precision=10000)
+        p2 = calculateReciprocalPolynomial(q, poly_coeffs)
+        print(f"q = {float(q)}, prob = {p2}, ge = {p2 >= p} diff = {float(calculateReciprocalPolynomial(q, diff_poly_coeffs))}")
+    print(sum(x / q2 ** i for i, x in enumerate(poly_coeffs)), calculateReciprocalPolynomial(q2, poly_coeffs))
+    return float(q2)
+    """
 ##############
 project_euler_num_range = (251, 300)
 
@@ -6146,10 +6325,26 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = steadySquaresDigitSumBaseRepr(max_n_digs=10 ** 4, base=14)
         print(f"Solution to Project Euler #284 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 285 in eval_nums:
+        since = time.time()
+        res = calculatePythagoreanOddsRangeGameExpectedValue(k_min=1, k_max=10)
+        print(f"Solution to Project Euler #285 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 286 in eval_nums:
+        since = time.time()
+        res = exactBasketballScoreProbability(
+            p=0.02,
+            d_min=1,
+            d_max=50,
+            total_score=20,
+            eps=1e-12,
+        )
+        print(f"Solution to Project Euler #286 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {284}
+    eval_nums = {286}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
