@@ -5875,6 +5875,90 @@ def ackermannFunctionModuloSum(n_max: int=6, md: int=14 ** 8) -> int:
         pass
     return res
 
+# Problem 283
+def brahmaguptaHeronianTriangleGenerator(m_max: int) -> Generator[Tuple[Tuple[int, int, int], Tuple[int, int, int], int, CustomFraction], None, None]:
+    seen = set()
+    for m in range(1, m_max + 1):
+        for n in range(1, m + 1):
+            g1 = gcd(m, n)
+            k_rng = (isqrt((m ** 2 * n - 1) // (2 * m + n)) + 1, isqrt(m * n - 1) + 1)
+            for k in range(*k_rng):
+                if gcd(g1, k) > 1: continue
+                a, b, c = n * (m ** 2 + k ** 2), m * (n ** 2 + k ** 2), (m + n) * (m * n - k ** 2)
+                g = gcd(a, gcd(b, c))
+                a, b, c = a // g, b // g, c // g
+                tup = tuple(sorted([a, b, c]))
+                if tup in seen: continue
+                seen.add(tup)
+                r = CustomFraction(k * (m * n - k * k), 2 * g)
+                yield ((m, n, k), (a, b, c), g, r)
+
+def heronianTrianglesWithIntegerAreaPerimeterRatioPerimeterSum(
+    area_perimeter_ratio_max: int=1000,
+) -> int:
+    """
+    Solution to Project Euler #283
+    """
+    cnts = {}
+    for r in range(1, area_perimeter_ratio_max + 1):
+        if not r % 10: print(f"r = {r}")
+        cnts[r] = 0
+        r_sq = r * r
+        for m in range(1, isqrt(12 * r_sq) + 1):
+            for n in range(max((4 * r_sq) // m + 1, m), (4 * r_sq + isqrt((4 * r_sq) * (4 * r_sq + m * m))) // m + 1):
+                if not (4 * r_sq * (m + n)) % (m * n - 4 * r_sq):
+                    cnts[r] += 1
+                    print((r, m, n), (4 * r_sq * (m + n)), (m * n - 4 * r_sq))
+    print(cnts)
+    return 0
+
+    """
+    # Using Brahmagupta's parametric equation
+    res = 0
+    m_max = (isqrt(area_perimeter_ratio_max) + 1) ** 2 - 1
+    print(f"max m = {m_max}")
+    for m in range(2, m_max + 1):
+        #ratio_min = (11 * m + 13 - (6 * m + 14) * isqrt(m + 1)) >> 1
+        print(f"m = {m}")#, min ratio for this m = {ratio_min}")
+        #if ratio_min > area_perimeter_ratio_max:
+        #    break
+        for n in range(1, m + 1):
+            g1 = gcd(m, n)
+            k_max = isqrt(m * n - 1)
+            k_iter = range(2, k_max + 1, 2) if not m & 1 or not n & 1 else range(1, k_max + 1)
+            for k in k_iter:
+                if gcd(k, g1) > 1: continue
+                print((m, n, k), k * (m * n - k ** 2) / 2)
+                a = n * (m ** 2 + k ** 2)
+                b = m * (n ** 2 + k ** 2)
+                c = (m + n) * (m * n - k ** 2)
+                ratio = CustomFraction(k * (m * n - k ** 2), 2)
+                g = gcd(a, gcd(b, c))
+                ratio /= g
+                if ratio.numerator > area_perimeter_ratio_max:
+                    continue
+                
+                perim = (2 * (m * n * (m + n))) // g
+                area = (m * n * k * (m + n) * (m * n - k ** 2)) // g ** 2
+                print(area, perim, ratio)
+                mult = ratio.denominator
+                perim *= mult
+                area *= mult ** 2
+                ratio = ratio.numerator
+                #mult = 1
+                #if not ratio & 1:
+                #    ratio >>= 1
+                #    perim <<= 1
+                #    mult = 2
+                print(mult)
+                print(f"found primitive Heronian triangle with integer ratio, a = {(a * mult) // g}, b = {(b * mult) // g}, c = {(c * mult) // g}, perimeter = {perim}, area = {area}, ratio = {ratio}")
+                #sq_max = isqrt(area_perimeter_ratio_max // perim)
+                #res += perim * ((sq_max * (sq_max + 1) * (2 * sq_max + 1)) // 6)
+                scale_mx = area_perimeter_ratio_max // ratio
+                res += perim * ((scale_mx * (scale_mx + 1)) >> 1)
+    return res
+    """
+
 # Problem 284
 def steadySquaresDigitSum(max_n_digs: int, base: int=10) -> int:
 
@@ -6318,7 +6402,12 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = ackermannFunctionModuloSum(n_max=6, md=14 ** 8)
         print(f"Solution to Project Euler #282 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-
+    if 283 in eval_nums:
+        since = time.time()
+        res = heronianTrianglesWithIntegerAreaPerimeterRatioPerimeterSum(
+            area_perimeter_ratio_max=2,
+        )
+        print(f"Solution to Project Euler #283 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 284 in eval_nums:
         since = time.time()
@@ -6344,7 +6433,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {286}
+    eval_nums = {289}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -6398,3 +6487,11 @@ print(f"perimeter sum = {res}")
 #    orthocentre=(5, 0),
 #    perimeter_max=10 ** 5,
 #)
+
+cnts = {}
+for tup in brahmaguptaHeronianTriangleGenerator(m_max=100):
+    mult = tup[-1].numerator
+    if mult > 2: continue
+    cnts[mult] = cnts.get(mult, 0) + 1
+    print(tup)
+print(cnts)
