@@ -6197,6 +6197,46 @@ def exactBasketballScoreProbability(
     print(sum(x / q2 ** i for i, x in enumerate(poly_coeffs)), calculateReciprocalPolynomial(q2, poly_coeffs))
     return float(q2)
     """
+
+# Problem 288
+def factorialPrimeFactorCount(n: int, p: int) -> int:
+    n2 = n // p
+    res = 0
+    while n2:
+        res += n2
+        n2 //= p
+    return res
+
+def squareModSeriesFactorialPrimeFactorCount(
+    p: int=61,
+    s0: int=290797,
+    s_md: int=50515093,
+    series_max_pow: int=10 ** 7,
+    res_md_pow: Optional[int]=10,
+) -> int:
+    """
+    Solution to Project Euler #288
+    """
+    res_md = None if res_md_pow is None else p ** res_md_pow
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+
+    s = s0
+    res = 0
+    if res_md_pow is None: res_md_pow = float("inf")
+    
+    iter_mx = series_max_pow#min(res_md_pow, series_max_pow) if res_md_pow is not None else series_max_pow
+    mult = 1
+    for i in range(1, iter_mx + 1):
+        s = (s * s) % s_md
+        t = s % p
+        #print(i, t, mult, mult * t, (mult * t) % res_md, res)
+        res = addMod(res, mult * t)
+        if i < res_md_pow:
+            mult = addMod(mult, p ** (i))
+        
+        
+    return res 
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -6430,10 +6470,21 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #286 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 288 in eval_nums:
+        since = time.time()
+        res = squareModSeriesFactorialPrimeFactorCount(
+            p=61,
+            s0=290797,
+            s_md=50515093,
+            series_max_pow=10 ** 7,
+            res_md_pow=10,
+        )
+        print(f"Solution to Project Euler #288 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {289}
+    eval_nums = {288}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -6487,7 +6538,7 @@ print(f"perimeter sum = {res}")
 #    orthocentre=(5, 0),
 #    perimeter_max=10 ** 5,
 #)
-
+"""
 cnts = {}
 for tup in brahmaguptaHeronianTriangleGenerator(m_max=100):
     mult = tup[-1].numerator
@@ -6495,3 +6546,4 @@ for tup in brahmaguptaHeronianTriangleGenerator(m_max=100):
     cnts[mult] = cnts.get(mult, 0) + 1
     print(tup)
 print(cnts)
+"""
