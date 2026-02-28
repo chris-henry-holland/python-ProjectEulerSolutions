@@ -6198,6 +6198,73 @@ def exactBasketballScoreProbability(
     return float(q2)
     """
 
+# Problem 287
+def singleCircleQuadTreeEncodingMinimumLength(
+    image_size_pow2: int=24,
+    circle_centre: Tuple[int, int]=(1 << 23, 1 << 23),
+    circle_radius_sq: int=1 << 46,
+) -> int:
+    """
+    Solution to Project Euler #287
+    """
+    # Review- try to make faster. Consider optimising for
+    # the specific problem case (where the circle is central and
+    # there is mirror symmetry about the line x = y)
+    side_len_tots = [0] * (image_size_pow2 + 1)
+    circle_rad_floor = isqrt(circle_radius_sq)
+    def encMinLen(topleft: Tuple[int, int], side_len_pow2: int) -> int:
+        if not side_len_pow2:
+            side_len_tots[0] += 1
+            if not side_len_tots[0] % 10 ** 5:
+                n_pixels_encoded = sum((1 << (2 * i)) * f for i, f in enumerate(side_len_tots))
+                print(f"encoding size counts = {side_len_tots}, pixels encoded = {n_pixels_encoded} of {1 << (2 * image_size_pow2)} (proportion = {n_pixels_encoded / (1 << (2 * image_size_pow2))})")
+            return 2
+        side_len = 1 << side_len_pow2
+        rngs = [(x, x + side_len - 1) for x in topleft]
+        #print(topleft, side_len, rngs, circle_centre)
+        vals = set()
+        for i1 in rngs[0]:
+            for i2 in rngs[1]:
+                b = (i1 - circle_centre[0]) ** 2 + (i2 - circle_centre[1]) ** 2 <= circle_radius_sq
+                vals.add(b)
+                if len(vals) > 1: break
+            else: continue
+            break
+        else:
+            #while len(side_len_tots) <= side_len_pow2:
+            #    side_len_tots.append(0)
+            if vals == {True}:
+                # Whole square is black
+                side_len_tots[side_len_pow2] += 1
+                return 2
+            #if not rngs[0][0] and not rngs[1][0]:
+            #    print(rngs, circle_centre, rngs[0][1] <= circle_centre[0], rngs[1][1] >= circle_centre[1], rngs[1][1] <= circle_centre[1], (rngs[0][1] - circle_centre[0]) ** 2 > circle_radius_sq)
+            if (rngs[0][0] >= circle_centre[0] and (rngs[1][0] >= circle_centre[1] or rngs[1][1] <= circle_centre[1] or (rngs[0][0] - circle_centre[0]) > circle_rad_floor)) or\
+                    (rngs[0][1] <= circle_centre[0] and (rngs[1][0] >= circle_centre[1] or rngs[1][1] <= circle_centre[1] or (circle_centre[0] - rngs[0][1]) > circle_rad_floor)) or\
+                    (rngs[1][0] >= circle_centre[1] and (rngs[1][0] - circle_centre[1]) > circle_rad_floor) or\
+                    (rngs[1][1] <= circle_centre[1] and (circle_centre[1] - rngs[1][1]) > circle_rad_floor):
+                # Whole square is white
+                side_len_tots[side_len_pow2] += 1
+                return 2
+
+        #if ((rngs[0][0] <= circle_centre[0]) == (rngs[0][1] <= circle_centre[0])) and\
+        #        ((rngs[1][0] <= circle_centre[1]) == (rngs[1][1] <= circle_centre[1])):
+            
+        side_len2_pow2 = side_len_pow2 - 1
+        side_len2 = side_len >> 1
+        coord_starts = [(x, x + side_len2) for x in topleft]
+        res = 1
+        for i1 in coord_starts[0]:
+            for i2 in coord_starts[1]:
+                res += encMinLen((i1, i2), side_len2_pow2)
+        return res
+
+    res = encMinLen((0, 0), image_size_pow2)
+    n_pixels_encoded = sum((1 << (2 * i)) * f for i, f in enumerate(side_len_tots))
+    print(f"encoding size counts = {side_len_tots}, pixels encoded = {n_pixels_encoded} of {1 << (2 * image_size_pow2)} (proportion = {n_pixels_encoded / (1 << (2 * image_size_pow2))})")
+    return res
+
+
 # Problem 288
 def factorialPrimeFactorCount(n: int, p: int) -> int:
     n2 = n // p
@@ -6470,6 +6537,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #286 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 287 in eval_nums:
+        since = time.time()
+        res = singleCircleQuadTreeEncodingMinimumLength(
+            image_size_pow2=24,
+            circle_centre=(1 << 23, 1 << 23),
+            circle_radius_sq=1 << 46,
+        )
+        print(f"Solution to Project Euler #287 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 288 in eval_nums:
         since = time.time()
         res = squareModSeriesFactorialPrimeFactorCount(
@@ -6484,7 +6560,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {288}
+    eval_nums = {287}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
