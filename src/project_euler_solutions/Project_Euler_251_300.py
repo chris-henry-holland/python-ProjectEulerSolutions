@@ -6021,7 +6021,26 @@ def steadySquaresDigitSumBaseRepr(max_n_digs: int=10 ** 4, base: int=14) -> str:
 
 # Problem 985
 def calculatePythagoreanOddsGameExpectedValue(k: int) -> float:
-    print(f"k = {k}")
+    #print(f"k = {k}")
+    k2 = k + .5
+    sin_theta2 = 1 / k2
+    theta2 = math.asin(sin_theta2)
+    seg2_area = k2 * k2 * (math.pi / 4 - theta2)
+    cos_theta2 = math.sqrt(1 - sin_theta2 * sin_theta2)
+    #d2 = (1 / cos_theta2)
+    if k == 1:
+        #print(f"seg2_area = {seg2_area}, double triangle area = {(k2 * cos_theta2 - 1)}")
+        res = seg2_area - (k2 * cos_theta2 - 1)
+        return res / k
+
+    k1 = k - .5
+    sin_theta1 = 1 / k1
+    theta1 = math.asin(sin_theta1)
+    seg1_area = k1 * k1 * (math.pi / 4 - theta1)
+    cos_theta1 = math.sqrt(1 - sin_theta1 * sin_theta1)
+    res = seg2_area - seg1_area - (k2 * cos_theta2 - k1 * cos_theta1)
+    return res / k
+    """
     n_mx = (k + 1) ** 2 + 1
     res = 2
     #for n in range(1, min(n_mx, 2) + 1):
@@ -6041,6 +6060,7 @@ def calculatePythagoreanOddsGameExpectedValue(k: int) -> float:
     print(f"k = {k}, n = {(k + 1) ** 2 + 1}, P(>= n) = {ans}")
     res += ans
     return res
+    """
 
 def calculatePythagoreanOddsRangeGameExpectedValue(k_min: int=1, k_max: int=10 ** 5) -> float:
     """
@@ -6048,7 +6068,11 @@ def calculatePythagoreanOddsRangeGameExpectedValue(k_min: int=1, k_max: int=10 *
     """
     res = 0
     for k in range(k_min, k_max + 1):
-        res += calculatePythagoreanOddsGameExpectedValue(k)
+        if not k % 1000:
+            print(f"k = {k} of {k_max}")
+        exp = calculatePythagoreanOddsGameExpectedValue(k)
+        #print(f"k = {k}, expected value = {exp}")
+        res += exp
     return res
 
 # Problem 286
@@ -6523,7 +6547,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 285 in eval_nums:
         since = time.time()
-        res = calculatePythagoreanOddsRangeGameExpectedValue(k_min=1, k_max=10)
+        res = calculatePythagoreanOddsRangeGameExpectedValue(k_min=1, k_max=10 ** 5)
         print(f"Solution to Project Euler #285 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 286 in eval_nums:
@@ -6560,7 +6584,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {287}
+    eval_nums = {285}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
