@@ -6326,7 +6326,40 @@ def squareModSeriesFactorialPrimeFactorCount(
             mult = addMod(mult, p ** (i))
         
         
-    return res 
+    return res
+
+# Problem 290
+def digitSumEqualsMultipleDigitSumCount(
+    n_dig_max: int=18,
+    mult: int=137,
+    base: int=10,
+) -> int:
+
+    def digitSum(num: int) -> int:
+        res = 0
+        while num:
+            num, d = divmod(num, base)
+            res += d
+        return res
+
+    memo = {}
+    def recur(n_dig_remain: int, carry: int=0, diff: int=0) -> int:
+        if not n_dig_remain:
+            return int(digitSum(carry) == -diff)
+        elif diff + bool(carry) > (base - 1) * n_dig_remain:
+            #print("hi")
+            return 0
+        args = (n_dig_remain, carry, diff)
+        if args in memo.keys(): return memo[args]
+        res = 0
+        for d in range(base):
+            carry2, d2 = divmod(carry + mult * d, base)
+            res += recur(n_dig_remain - 1, carry=carry2, diff=diff + d2 - d)
+        memo[args] = res
+        return res
+    
+    res = recur(n_dig_max, carry=0, diff=0)
+    return res
 
 ##############
 project_euler_num_range = (251, 300)
@@ -6581,10 +6614,19 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #288 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 290 in eval_nums:
+        since = time.time()
+        res = digitSumEqualsMultipleDigitSumCount(
+            n_dig_max=18,
+            mult=137,
+            base=10,
+        )
+        print(f"Solution to Project Euler #290 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {285}
+    eval_nums = {290}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
