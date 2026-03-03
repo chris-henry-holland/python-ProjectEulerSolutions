@@ -6361,6 +6361,47 @@ def digitSumEqualsMultipleDigitSumCount(
     res = recur(n_dig_max, carry=0, diff=0)
     return res
 
+# Problem 291
+def panaitopolPrimesBruteForce(p_max: int) -> List[int]:
+    ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+    
+    res = []
+    for x in range(2, 20 * p_max + 1):
+        y = x - 1
+        if (x ** 4 - y ** 4 - 1) // (x ** 3 + y ** 3) >= p_max: break
+        for y in reversed(range(1, x)):
+            p, r = divmod(x ** 4 - y ** 4, x ** 3 + y ** 3)
+            if p > p_max: break
+            if r or not primeCheck(p): continue
+            ratio = (x ** 2 - x * y + y ** 2) // (x - y)
+            print(p, x, y, (x ** 2 - x * y + y ** 2), (x - y), ratio)
+            res.append(p)
+    
+    return sorted(res)
+
+def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
+    """
+    Solution to Project Euler #291
+    """
+    # Review- prove that p must be of the form n ** 2 + (n + 1) ** 2
+    # and that all primes of that form are panaitolo primes.
+    ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+    n_max = (isqrt(2 * p_max - 1) - 1) >> 1
+    print(f"n_max = {n_max}")
+    res = 0
+    for n in range(1, n_max + 1):
+        if not n % 10000:
+            print(f"n = {n} of {n_max}")
+        p = 2 * n ** 2 + 2 * n + 1
+        is_prime = primeCheck(p)
+        #if is_prime: print(p)
+        res += is_prime
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -6623,10 +6664,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #290 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 291 in eval_nums:
+        since = time.time()
+        res = panaitopolPrimesCount(p_max=5 * 10 ** 15 - 1)
+        print(f"Solution to Project Euler #291 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {290}
+    eval_nums = {291}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -6689,3 +6735,5 @@ for tup in brahmaguptaHeronianTriangleGenerator(m_max=100):
     print(tup)
 print(cnts)
 """
+#res = panaitopolPrimesBruteForce(1000)
+#print(res)
