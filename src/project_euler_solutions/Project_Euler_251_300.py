@@ -6402,6 +6402,39 @@ def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
         res += is_prime
     return res
 
+# Problem 293
+def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
+
+    ps = SimplePrimeSieve()
+    res = set()
+    curr = SortedList()
+    nxt = SortedList([1])
+    #sieve = []
+    #p_prod = 1
+    for p in ps.endlessPrimeGenerator():
+        if p * nxt[0] > n_max: break
+        print(f"p = {p}")
+        #if p < 13:
+        #    sieve_len = len(sieve)
+        #    for i in range(sieve_len + )
+        curr = nxt
+        nxt = SortedList()
+        for i in itertools.count(0):
+            if i >= len(curr): break
+            num = curr[i]
+            num2 = num * p
+            if num2 > n_max: break
+            curr.add(num2)
+            nxt.add(num2)
+            for num3 in itertools.count(num2 + 3, step=2):
+                if ps.millerRabinPrimalityTestWithKnownBounds(num3, max_n_additional_trials_if_above_max=10)[0]:
+                    #print(num2, num3, num3 - num2)
+                    res.add(num3 - num2)
+                    break
+
+    print(res)
+    return sum(res)
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -6669,10 +6702,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = panaitopolPrimesCount(p_max=5 * 10 ** 15 - 1)
         print(f"Solution to Project Euler #291 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 293 in eval_nums:
+        since = time.time()
+        res = pseudoFortunateNumberSum(n_max=10 ** 9 - 1)
+        print(f"Solution to Project Euler #293 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {291}
+    eval_nums = {293}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
