@@ -6411,6 +6411,7 @@ def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
     nxt = SortedList([1])
     #sieve = []
     #p_prod = 1
+    cnt = 0
     for p in ps.endlessPrimeGenerator():
         if p * nxt[0] > n_max: break
         print(f"p = {p}")
@@ -6424,6 +6425,7 @@ def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
             num = curr[i]
             num2 = num * p
             if num2 > n_max: break
+            cnt += 1
             curr.add(num2)
             nxt.add(num2)
             for num3 in itertools.count(num2 + 3, step=2):
@@ -6431,9 +6433,51 @@ def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
                     #print(num2, num3, num3 - num2)
                     res.add(num3 - num2)
                     break
-
+    print(f"total admissible numbers count = {cnt}")
     print(res)
     return sum(res)
+
+# Problem 294
+def isMultipleOfAndHasDigitSumEqualToNCount(
+    n: int=23,
+    max_n_dig: int=11 ** 12,
+    base: int=10,
+    res_md: Optional[int]=10 ** 9,
+) -> int:
+
+    md_mapping = [-1] * n
+    md_mapping_sources = set(range(n))
+    for num in range(n):
+        num2 = (num * base) % n
+        md_mapping[num] = num2
+        md_mapping_sources.discard(num2)
+    print(md_mapping_sources)
+    md_num_locations = {}
+    remain = set(range(n))
+    md_paths = []
+    for num0 in md_mapping_sources:
+        num = num0
+        md_path = []
+        while num not in md_num_locations.keys():
+            md_num_locations[num] = (len(md_paths), len(md_path))
+            remain.remove(num)
+            md_path.append(num)
+            num = (num * base) % n
+        md_paths.append((md_path, md_num_locations[num]))
+    while remain:
+        num0 = next(iter(remain))
+        num = num0
+        md_path = []
+        while num not in md_num_locations.keys():
+            md_num_locations[num] = (len(md_paths), len(md_path))
+            remain.remove(num)
+            md_path.append(num)
+            num = (num * base) % n
+        md_paths.append((md_path, md_num_locations[num]))
+    print(md_paths)
+
+    return 0
+
 
 ##############
 project_euler_num_range = (251, 300)
@@ -6707,10 +6751,20 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = pseudoFortunateNumberSum(n_max=10 ** 9 - 1)
         print(f"Solution to Project Euler #293 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 294 in eval_nums:
+        since = time.time()
+        res = isMultipleOfAndHasDigitSumEqualToNCount(
+            n=23,
+            max_n_dig=9,
+            base=10,
+            res_md=10 ** 9,
+        )
+        print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {293}
+    eval_nums = {294}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
