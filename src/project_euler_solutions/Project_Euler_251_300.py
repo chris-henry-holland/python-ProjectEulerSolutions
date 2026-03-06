@@ -6478,6 +6478,47 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
 
     return 0
 
+# Problem 297
+def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
+    """
+    Solution to Project Euler #297
+    """
+    cnt_cumu = [0, 1, 2]
+    fib = [1, 2]
+    while True:
+        num = fib[-1] + fib[-2]
+        if num > n_max: break
+        fib.append(num)
+        cnt_cumu.append(cnt_cumu[-1] + cnt_cumu[-2] + fib[-2])
+    #print(cnt_cumu)
+    #print(fib)
+    n_ub_repr = []
+    num = n_max + 1
+    i = len(fib) - 1
+    while num:
+        #print(f"i = {i}, num = {num}")
+        if num >= fib[i]:
+            n_ub_repr.extend([1, 0])
+            num -= fib[i]
+            i -= 2
+            continue
+        n_ub_repr.append(0)
+        i -= 1
+    if i == -2: n_ub_repr.pop()
+    elif i >= 0:
+        n_ub_repr.extend([0] * (i + 1))
+    n_ub_repr = n_ub_repr[::-1]
+    res = 0
+    d_cnt = 0
+    #print(n_ub_repr)
+    #print(len(cnt_cumu), len(fib), len(n_ub_repr))
+    for i in reversed(range(len(n_ub_repr))):
+        if not n_ub_repr[i]: continue
+        #print(i, len(fib))
+        res += d_cnt * fib[i] + cnt_cumu[i]
+        d_cnt += 1
+    
+    return res
 
 ##############
 project_euler_num_range = (251, 300)
@@ -6754,17 +6795,22 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 294 in eval_nums:
         since = time.time()
         res = isMultipleOfAndHasDigitSumEqualToNCount(
-            n=23,
+            n=21,
             max_n_dig=9,
             base=10,
             res_md=10 ** 9,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 297 in eval_nums:
+        since = time.time()
+        res = zeckendorfRepresentationTermCount(n_max=10 ** 17 - 1)
+        print(f"Solution to Project Euler #297 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {294}
+    eval_nums = {297}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
