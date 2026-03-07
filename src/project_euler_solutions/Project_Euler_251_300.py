@@ -35,6 +35,7 @@ from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
+from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
 
 # Problem 251
 def cardanoTripletGeneratorBySum(
@@ -6402,6 +6403,18 @@ def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
         res += is_prime
     return res
 
+# Problem 292
+def pythagoreanPolygonCount(perim_max: int) -> int:
+    side_len_max = (perim_max - 1) >> 1
+    pythag_triple_lst = []
+    poss_sides_cnt = 2 * side_len_max
+    for tup in pythagoreanTripleGeneratorByHypotenuse(primitive_only=True, max_hypotenuse=side_len_max):
+        pythag_triple_lst.append(tup[0])
+        poss_sides_cnt += 4 * (side_len_max // tup[0][2])
+    print(pythag_triple_lst)
+    print(f"maximum number of possible sides out of each vertex = {poss_sides_cnt}")
+    return 0
+
 # Problem 293
 def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
 
@@ -6787,6 +6800,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = panaitopolPrimesCount(p_max=5 * 10 ** 15 - 1)
         print(f"Solution to Project Euler #291 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 292 in eval_nums:
+        since = time.time()
+        res = pythagoreanPolygonCount(perim_max=120)
+        print(f"Solution to Project Euler #292 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 293 in eval_nums:
         since = time.time()
         res = pseudoFortunateNumberSum(n_max=10 ** 9 - 1)
@@ -6810,7 +6828,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {297}
+    eval_nums = {292}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
