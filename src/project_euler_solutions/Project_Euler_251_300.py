@@ -6405,15 +6405,111 @@ def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
 
 # Problem 292
 def pythagoreanPolygonCount(perim_max: int) -> int:
+    """
+    Solution to Project Euler #292
+    """
     side_len_max = (perim_max - 1) >> 1
-    pythag_triple_lst = []
+    pythag_triple_lst = [(0, 1, 1)]
     poss_sides_cnt = 2 * side_len_max
     for tup in pythagoreanTripleGeneratorByHypotenuse(primitive_only=True, max_hypotenuse=side_len_max):
         pythag_triple_lst.append(tup[0])
         poss_sides_cnt += 4 * (side_len_max // tup[0][2])
     print(pythag_triple_lst)
     print(f"maximum number of possible sides out of each vertex = {poss_sides_cnt}")
-    return 0
+
+    pythag_grads_sorted = sorted([(CustomFraction(x[0], x[1]), (x[1], x[0], x[2])) for x in pythag_triple_lst])
+    print(pythag_grads_sorted)
+    # Review- try to account for this in recur() to save memory
+    pythag_grads_sorted2 = [(CustomFraction(-y[0], y[1]), (y[1], -y[0], y[2])) for x, y in pythag_grads_sorted]
+    pythag_grads_sorted2.extend([(CustomFraction(-y[1], y[0]), (y[0], -y[1], y[2])) for x, y in reversed(pythag_grads_sorted)])
+    pythag_grads_sorted2.pop()
+    pythag_grads_sorted2.extend(pythag_grads_sorted)
+    pythag_grads_sorted2.extend([(CustomFraction(y[0], y[1]), (y[1], y[0], y[2])) for x, y in reversed(pythag_grads_sorted)])
+    pythag_grads_sorted2.pop()
+    print(pythag_grads_sorted2)
+    print(len(pythag_grads_sorted2))
+    n_pythag_grads = len(pythag_grads_sorted2)
+
+    def recur(idx: int, neg: bool, perim_remain: int, pt: Tuple[int, int], first_edge_idx: int=-1, latest_incl: Tuple[bool, int]=(True, -1)) -> int:
+        
+        #d_sq = sum(x * x for x in pt)
+        #perim_remain_sq = perim_remain * perim_remain
+        #if d_sq > perim_remain_sq: return 0
+        #if first_edge_idx >= 0 and pt[0] <= 0 and CustomFraction(pt[1], pt[0]) >= pythag_grads_sorted2[first_edge_idx][0]: return 0
+        args = (idx, neg, perim_remain, pt, first_edge_idx, latest_incl)
+        #print("start", args)
+        ref = None#(0, True, 2, (1, -1), 0, (False, 1))
+        ref_first_edge_idx = None#3
+        
+        is_ref = (ref == args)
+        idx_nxt = idx + 1
+        neg_nxt = neg
+
+        is_ref_first_edge_idx = (first_edge_idx == ref_first_edge_idx)
+
+        if neg and not latest_incl[0] and idx >= latest_incl[1]:
+            return 0
+        if idx_nxt == n_pythag_grads:
+            # if neg:
+            #     d_sq = sum(x * x for x in pt)
+            #     d = isqrt(d_sq)
+            #     if d * d == d_sq and pt[0] > 0:
+            #         if is_ref_first_edge_idx:
+            #             print(f"integer distance from origin: {pt}")
+            #         return 1
+            #     return 0
+            if neg or first_edge_idx < 0: return 0
+            idx_nxt = 0
+            neg_nxt = True
+        
+        res0 = recur(idx_nxt, neg_nxt, perim_remain, pt, first_edge_idx=first_edge_idx, latest_incl=latest_incl)
+        res = res0
+
+        first_edge = False
+        first_edge_nxt = first_edge_idx
+        if first_edge_idx < 0:
+            first_edge = True
+            first_edge_idx = idx
+            is_ref_first_edge_idx = (idx == ref_first_edge_idx)
+        
+        perim_remain2 = perim_remain
+        vec = tuple(pythag_grads_sorted2[idx][1][:2])
+        if neg: vec = (-vec[0], -vec[1])
+        #print(f"vec = {vec}, length = {pythag_grads_sorted2[idx][1][2]}")
+        for mult in range(1, (perim_remain // pythag_grads_sorted2[idx][1][2]) + 1):
+            pt2 = tuple(x + mult * y for x, y in zip(pt, vec))
+            perim_remain2 -= pythag_grads_sorted2[idx][1][2]
+            if is_ref_first_edge_idx:
+                print(f"args = {args}, unit vec = {vec}, mult = {mult}, edge vec = {tuple(mult * x for x in vec)}, pt2 = {pt2}, perim_remain2 = {perim_remain2}")
+            
+            if pt2 == (0, 0):
+                if is_ref_first_edge_idx: print("polygon closed")
+                #print(pt, tuple(mult * y for y in vec))
+                res += 1
+                break
+            elif neg and pt2[0] <= 0:
+                if is_ref_first_edge_idx: print("x-coordinate is non-positive")
+                break
+            elif sum(x * x for x in pt2) > perim_remain2 * perim_remain2:
+                if is_ref_first_edge_idx: print("distance from origin too large")
+                break
+            #elif first_edge_idx != idx and pt2[0] <= 0 and CustomFraction(pt2[1], pt2[0]) >= pythag_grads_sorted2[first_edge_idx][0]:
+            #    if is_ref: print("gradient to origin too large")
+            #    break
+            #if first_edge:
+            #    print(f"first edge, unit vec = {vec}, mult = {mult}, edge vec = {tuple(mult * x for x in vec)}, pt2 = {pt2}, perim_remain2 = {perim_remain2}")
+            res += recur(idx_nxt, neg_nxt, perim_remain2, pt2, first_edge_idx=first_edge_idx, latest_incl=(neg, idx))
+        if first_edge:
+            print(f"end for first edge unit {vec}", args, vec, res - res0)
+        return res
+    
+    res = 0
+    res = recur(0, False, perim_max, (0, 0), first_edge_idx=-1, latest_incl=(True, -1))
+    #for i, (grad, triple) in enumerate(pythag_grads_sorted2):
+    #    mult_max = side_len_max // triple[2]
+    #    for mult in range(1, mult_max + 1):
+    #        res += recur(perim_max - mult * triple[2], (triple[0] * mult, triple[1] * mult), i, i, False)
+    return res
 
 # Problem 293
 def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
@@ -6802,7 +6898,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 292 in eval_nums:
         since = time.time()
-        res = pythagoreanPolygonCount(perim_max=120)
+        res = pythagoreanPolygonCount(perim_max=4)
         print(f"Solution to Project Euler #292 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 293 in eval_nums:
