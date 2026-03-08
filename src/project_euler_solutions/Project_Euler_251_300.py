@@ -6430,16 +6430,23 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
     print(len(pythag_grads_sorted2))
     n_pythag_grads = len(pythag_grads_sorted2)
 
+    curr_first_edge_idx = [-1]
+    memo = {}
     def recur(idx: int, neg: bool, perim_remain: int, pt: Tuple[int, int], first_edge_idx: int=-1, latest_incl: Tuple[bool, int]=(True, -1)) -> int:
         
         #d_sq = sum(x * x for x in pt)
         #perim_remain_sq = perim_remain * perim_remain
         #if d_sq > perim_remain_sq: return 0
         #if first_edge_idx >= 0 and pt[0] <= 0 and CustomFraction(pt[1], pt[0]) >= pythag_grads_sorted2[first_edge_idx][0]: return 0
-        args = (idx, neg, perim_remain, pt, first_edge_idx, latest_incl)
+        if first_edge_idx != curr_first_edge_idx[0]:
+            # Optimisation to save memory by removing results that are no longer needed
+            memo.clear()
+            curr_first_edge_idx[0] = first_edge_idx
+        #args = (idx, neg, perim_remain, pt, first_edge_idx, latest_incl)
+        args = (idx, neg, perim_remain, pt, latest_incl)
         #print("start", args)
         ref = None#(0, True, 2, (1, -1), 0, (False, 1))
-        ref_first_edge_idx = None#3
+        ref_first_edge_idx = None#0
         
         is_ref = (ref == args)
         idx_nxt = idx + 1
@@ -6449,6 +6456,7 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
 
         if neg and not latest_incl[0] and idx >= latest_incl[1]:
             return 0
+        last = False
         if idx_nxt == n_pythag_grads:
             # if neg:
             #     d_sq = sum(x * x for x in pt)
@@ -6458,10 +6466,19 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
             #             print(f"integer distance from origin: {pt}")
             #         return 1
             #     return 0
-            if neg or first_edge_idx < 0: return 0
+            if first_edge_idx < 0: return 0
+            elif neg: last = True
+
             idx_nxt = 0
-            neg_nxt = True
+            neg_nxt = not neg
         
+        vec = tuple(pythag_grads_sorted2[idx][1][:2])
+
+        if last:
+            mult, r = divmod(pt[0], vec[0]) if vec[0] else divmod(pt[1], vec[1])
+            if r or tuple(x * mult for x in vec) != pt: return 0
+            return 1
+        if first_edge_idx >= 0 and args in memo.keys(): return memo[args]
         res0 = recur(idx_nxt, neg_nxt, perim_remain, pt, first_edge_idx=first_edge_idx, latest_incl=latest_incl)
         res = res0
 
@@ -6473,7 +6490,7 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
             is_ref_first_edge_idx = (idx == ref_first_edge_idx)
         
         perim_remain2 = perim_remain
-        vec = tuple(pythag_grads_sorted2[idx][1][:2])
+        
         if neg: vec = (-vec[0], -vec[1])
         #print(f"vec = {vec}, length = {pythag_grads_sorted2[idx][1][2]}")
         for mult in range(1, (perim_remain // pythag_grads_sorted2[idx][1][2]) + 1):
@@ -6501,6 +6518,8 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
             res += recur(idx_nxt, neg_nxt, perim_remain2, pt2, first_edge_idx=first_edge_idx, latest_incl=(neg, idx))
         if first_edge:
             print(f"end for first edge unit {vec}", args, vec, res - res0)
+        if first_edge >= 0:
+            memo[args] = res
         return res
     
     res = 0
@@ -6898,7 +6917,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 292 in eval_nums:
         since = time.time()
-        res = pythagoreanPolygonCount(perim_max=4)
+        res = pythagoreanPolygonCount(perim_max=120)
         print(f"Solution to Project Euler #292 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 293 in eval_nums:
