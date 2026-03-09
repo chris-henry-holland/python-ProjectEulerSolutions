@@ -6408,6 +6408,9 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
     """
     Solution to Project Euler #292
     """
+    # Review- try to make faster- possibly using double-ended
+    # search (keeping one branch of edges with total length
+    # no greater than that of the other to avoid double counting).
     side_len_max = (perim_max - 1) >> 1
     pythag_triple_lst = [(0, 1, 1)]
     poss_sides_cnt = 2 * side_len_max
