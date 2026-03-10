@@ -6533,6 +6533,102 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
     #        res += recur(perim_max - mult * triple[2], (triple[0] * mult, triple[1] * mult), i, i, False)
     return res
 
+def pythagoreanPolygonCount2(perim_max: int) -> int:
+    side_len_max = (perim_max - 1) >> 1
+    pythag_triple_lst = []
+    for tup in pythagoreanTripleGeneratorByHypotenuse(primitive_only=True, max_hypotenuse=side_len_max):
+        pythag_triple_lst.append(tup[0])
+    
+    curr = {(0, 0): SortedDict({0: 1})}
+    for triple in pythag_triple_lst:
+        vec = (triple[0], triple[1])
+        d = triple[2]
+        prev = dict(curr)
+        curr = {}
+        for pos, len_dict in prev.items():
+            for l, f in len_dict.items():
+                pos2 = pos
+                remain = perim_max - l
+                l2 = l
+                curr.setdefault(pos2, SortedDict())
+                curr[pos2][l2] = curr[pos2].get(l2, 0) + f
+                for mult in itertools.count(1):
+                    pos2 = tuple(x + y for x, y in zip(pos2, vec))
+                    remain -= d
+                    if sum(x * x for x in pos2) > remain * remain:
+                        break
+                    l2 += d
+                    curr.setdefault(pos2, SortedDict())
+                    curr[pos2][l2] = curr[pos2].get(l2, 0) + f
+    
+    def combinePositionLengthFrequencies(
+        pos_len_f_dict1: Dict[Tuple[int, int], SortedDict[int, int]],
+        pos_len_f_dict2: Dict[Tuple[int, int], SortedDict[int, int]],
+        pos2_transform: Callable[[Tuple[int, int]], Tuple[int, int]]=(lambda pos: pos),
+    ) -> Dict[Tuple[int, int], SortedDict[int, int]]:
+        res = {}
+        for pos1, len_dict1 in pos_len_f_dict1.items():
+            cumu_lst1 = []
+            tot = 0
+            for l1, f1 in len_dict1.items():
+                tot += f1
+                cumu_lst1.append((l1, tot))
+            for pos2_prov, len_dict2 in pos_len_f_dict2.items():
+                #if pos2 < pos1: continue
+                mult = 1# + (pos2 != pos1)
+                pos2 = pos2_transform(pos2_prov)
+                pos3 = tuple(x + y for x, y in zip(pos1, pos2))
+                d_sq = sum(x * x for x in pos3)
+                #remain_mn = isqrt(d_sq - 1) + 1
+                l_sm_mx = perim_max - isqrt(d_sq - 1) - 1 if d_sq > 0 else perim_max
+                if cumu_lst1[0][0] + len_dict2.peekitem(0)[0] > l_sm_mx:
+                    continue
+                res.setdefault(pos3, SortedDict())
+                i1 = len(cumu_lst1) - 1
+                #tot2 = 0
+                for l2, f2 in len_dict2.items():
+                    l1_mx = l_sm_mx - l2
+                    for i1 in reversed(range(i1 + 1)):
+                        if cumu_lst1[i1][0] <= l1_mx: break
+                    else: break
+                    l3 = cumu_lst1[i1][0] + l2
+                    #tot2 += f2
+                    res[pos3][l3] = res[pos3].get(l3, 0) + mult * cumu_lst1[i1][1] * f2
+        return res
+
+    # Add to reflection in the line x = y
+    curr = combinePositionLengthFrequencies(curr, curr, pos2_transform=(lambda pos: (pos[1], pos[0])))
+
+    # Add the multiples of (0, 1)
+    curr = combinePositionLengthFrequencies(curr, {(0, i): SortedDict({i: 1}) for i in range(side_len_max + 1)}, pos2_transform=(lambda pos: pos))
+
+    # Clockwise rotation of pi / 2 about origin
+    curr = combinePositionLengthFrequencies(curr, curr, pos2_transform=(lambda pos: (pos[1], -pos[0])))
+    #print(curr)
+
+    res = 0
+    curr.pop((0, 0))
+    for pos1, len_dict1 in curr.items():
+        cumu_lst1 = []
+        tot = 0
+        for l1, f1 in len_dict1.items():
+            tot += f1
+            cumu_lst1.append((l1, tot))
+        i1 = len(cumu_lst1) - 1
+        for l2, f2 in len_dict1.items():
+            l1_mx = perim_max - l2
+            for i1 in reversed(range(i1 + 1)):
+                if cumu_lst1[i1][0] <= l1_mx: break
+            else: break
+            #tot2 += f2
+            res += cumu_lst1[i1][1] * f2
+        # Excluding the paths with exactly two edges (which are not
+        # polygons)
+        if cumu_lst1[0][0] * cumu_lst1[0][0] == sum(x * x for x in pos1):
+            res -= cumu_lst1[0][1] * cumu_lst1[0][1]
+
+    return res
+
 # Problem 293
 def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
 
@@ -6920,7 +7016,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 292 in eval_nums:
         since = time.time()
-        res = pythagoreanPolygonCount(perim_max=120)
+        res = pythagoreanPolygonCount(perim_max=32)
         print(f"Solution to Project Euler #292 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 293 in eval_nums:
