@@ -6404,10 +6404,8 @@ def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
     return res
 
 # Problem 292
-def pythagoreanPolygonCount(perim_max: int) -> int:
-    """
-    Solution to Project Euler #292
-    """
+def pythagoreanPolygonCountInitialSolution(perim_max: int) -> int:
+    
     # Review- try to make faster- possibly using double-ended
     # search (keeping one branch of edges with total length
     # no greater than that of the other to avoid double counting).
@@ -6533,15 +6531,20 @@ def pythagoreanPolygonCount(perim_max: int) -> int:
     #        res += recur(perim_max - mult * triple[2], (triple[0] * mult, triple[1] * mult), i, i, False)
     return res
 
-def pythagoreanPolygonCount2(perim_max: int) -> int:
+def pythagoreanPolygonCount(perim_max: int) -> int:
+    """
+    Solution to Project Euler #292
+    """
     side_len_max = (perim_max - 1) >> 1
     pythag_triple_lst = []
     for tup in pythagoreanTripleGeneratorByHypotenuse(primitive_only=True, max_hypotenuse=side_len_max):
         pythag_triple_lst.append(tup[0])
-    
+    print(pythag_triple_lst)
     curr = {(0, 0): SortedDict({0: 1})}
+    
     for triple in pythag_triple_lst:
         vec = (triple[0], triple[1])
+        mult_mx = side_len_max // triple[2]
         d = triple[2]
         prev = dict(curr)
         curr = {}
@@ -6552,7 +6555,8 @@ def pythagoreanPolygonCount2(perim_max: int) -> int:
                 l2 = l
                 curr.setdefault(pos2, SortedDict())
                 curr[pos2][l2] = curr[pos2].get(l2, 0) + f
-                for mult in itertools.count(1):
+                
+                for mult in range(1, mult_mx + 1):
                     pos2 = tuple(x + y for x, y in zip(pos2, vec))
                     remain -= d
                     if sum(x * x for x in pos2) > remain * remain:
@@ -6568,11 +6572,14 @@ def pythagoreanPolygonCount2(perim_max: int) -> int:
     ) -> Dict[Tuple[int, int], SortedDict[int, int]]:
         res = {}
         for pos1, len_dict1 in pos_len_f_dict1.items():
-            cumu_lst1 = []
-            tot = 0
+            #cumu_lst1 = []
+            #tot = 0
+            #for l1, f1 in len_dict1.items():
+            #    tot += f1
+            #    cumu_lst1.append((l1, tot))
+            len_lst1 = []
             for l1, f1 in len_dict1.items():
-                tot += f1
-                cumu_lst1.append((l1, tot))
+                len_lst1.append((l1, f1))
             for pos2_prov, len_dict2 in pos_len_f_dict2.items():
                 #if pos2 < pos1: continue
                 mult = 1# + (pos2 != pos1)
@@ -6580,32 +6587,45 @@ def pythagoreanPolygonCount2(perim_max: int) -> int:
                 pos3 = tuple(x + y for x, y in zip(pos1, pos2))
                 d_sq = sum(x * x for x in pos3)
                 #remain_mn = isqrt(d_sq - 1) + 1
+                
                 l_sm_mx = perim_max - isqrt(d_sq - 1) - 1 if d_sq > 0 else perim_max
-                if cumu_lst1[0][0] + len_dict2.peekitem(0)[0] > l_sm_mx:
+                
+                if len_lst1[0][0] + len_dict2.peekitem(0)[0] > l_sm_mx:
                     continue
                 res.setdefault(pos3, SortedDict())
-                i1 = len(cumu_lst1) - 1
+                i1_0 = len(len_lst1) - 1
                 #tot2 = 0
+                #if pos1 == (12, 9) and pos2 == (0, 0):
+                #    print(f"pos1 = {pos1}, pos2 = {pos2}")
+                #    print(f"len_lst1 = {len_lst1}, len_dict2 = {len_dict2}")
                 for l2, f2 in len_dict2.items():
                     l1_mx = l_sm_mx - l2
-                    for i1 in reversed(range(i1 + 1)):
-                        if cumu_lst1[i1][0] <= l1_mx: break
+                    for i1_0 in reversed(range(i1_0 + 1)):
+                        if len_lst1[i1_0][0] <= l1_mx: break
                     else: break
-                    l3 = cumu_lst1[i1][0] + l2
-                    #tot2 += f2
-                    res[pos3][l3] = res[pos3].get(l3, 0) + mult * cumu_lst1[i1][1] * f2
+                    for i1 in reversed(range(i1_0 + 1)):
+                        l3 = len_lst1[i1][0] + l2
+                        #if pos1 == (12, 9) and pos2 == (0, 0): print(l3)
+                        #tot2 += f2
+                        res[pos3][l3] = res[pos3].get(l3, 0) + mult * len_lst1[i1][1] * f2
         return res
 
     # Add to reflection in the line x = y
     curr = combinePositionLengthFrequencies(curr, curr, pos2_transform=(lambda pos: (pos[1], pos[0])))
-
+    #if (12, 9) in curr.keys():
+    #    print(curr[(12, 9)])
     # Add the multiples of (0, 1)
     curr = combinePositionLengthFrequencies(curr, {(0, i): SortedDict({i: 1}) for i in range(side_len_max + 1)}, pos2_transform=(lambda pos: pos))
-
+    #if (12, 9) in curr.keys():
+    #    print(curr[(12, 9)])
+    #if (0, 0) in curr.keys():
+    #    print(curr[(0, 0)])
     # Clockwise rotation of pi / 2 about origin
     curr = combinePositionLengthFrequencies(curr, curr, pos2_transform=(lambda pos: (pos[1], -pos[0])))
+    #if (12, 9) in curr.keys():
+    #    print(curr[(12, 9)])
     #print(curr)
-
+    excl_cnt1 = 0
     res = 0
     curr.pop((0, 0))
     for pos1, len_dict1 in curr.items():
@@ -6622,12 +6642,22 @@ def pythagoreanPolygonCount2(perim_max: int) -> int:
             else: break
             #tot2 += f2
             res += cumu_lst1[i1][1] * f2
+        
         # Excluding the paths with exactly two edges (which are not
         # polygons)
-        if cumu_lst1[0][0] * cumu_lst1[0][0] == sum(x * x for x in pos1):
-            res -= cumu_lst1[0][1] * cumu_lst1[0][1]
-
-    return res
+        #if cumu_lst1[0][0] * cumu_lst1[0][0] == sum(x * x for x in pos1):
+        #    print(f"pos1 = {pos1}, excluded count = {cumu_lst1[0][1] * cumu_lst1[0][1]}")
+        #    excl_cnt1 += cumu_lst1[0][1] * cumu_lst1[0][1]
+    # Excluding the paths with exactly two edges (which are therefore
+    # not polygons)
+    #print("alternative count:")
+    excl_cnt2 = 2 * side_len_max
+    #print(f"triple (0, 1, 1) excluded count = {2 * side_len_max}")
+    for triple in pythag_triple_lst:
+        excl_cnt2 += 4 * (side_len_max // triple[2])
+        #print(f"triple {triple} excluded count = {4 * (side_len_max // triple[2])}")
+    #print(excl_cnt1, excl_cnt2)
+    return res - excl_cnt2
 
 # Problem 293
 def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
@@ -7016,7 +7046,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 292 in eval_nums:
         since = time.time()
-        res = pythagoreanPolygonCount(perim_max=32)
+        res = pythagoreanPolygonCount(perim_max=120)
         print(f"Solution to Project Euler #292 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 293 in eval_nums:
