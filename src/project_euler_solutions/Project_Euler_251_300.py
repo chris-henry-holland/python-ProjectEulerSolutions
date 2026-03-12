@@ -6777,6 +6777,179 @@ def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
     
     return res
 
+# Problem 298
+def memoryGameStrategyExpectedAbsoluteDifferenceSimulation(
+    n: int,
+    mem_size: int,
+    n_turns: int,
+    n_sim: int,
+) -> Tuple[float, float]:
+    mean = 0
+    var = 0
+    for _ in range(n_sim):
+        curr = 0
+        lst1 = SortedList()
+        incl1 = {}
+        lst2 = SortedList()
+        incl2 = {}
+        for i in range(n_turns):
+            num = random.randrange(1, n + 1)
+            if num not in incl1.keys():
+                lst1.add((i, num))
+                incl1[num] = i
+            else: curr += 1
+            if num in incl2.keys():
+                lst2.remove((incl2[num], num))
+                curr -= 1
+            lst2.add((i, num))
+            incl2[num] = i
+            if len(incl1) == mem_size: break
+        for i in range(i + 1, n_turns):
+            num = random.randrange(1, n + 1)
+            if num not in incl1.keys():
+                i2, num2 = lst1.pop(0)
+                incl1.pop(num2)
+                lst1.add((i, num))
+                incl1[num] = i
+            else: curr += 1
+            if num in incl2.keys():
+                lst2.remove((incl2[num], num))
+                curr -= 1
+            else:
+                i2, num2 = lst2.pop(0)
+                incl2.pop(num2)
+            lst2.add((i, num))
+            incl2[num] = i
+        
+        mean += abs(curr)
+        var += curr ** 2
+    mean /= n_sim
+    var /= n_sim
+    var -= mean ** 2
+    var *= (n_sim - 1) / n_sim
+    return (mean, math.sqrt(var * (n_sim - 1)) / n_sim)
+
+
+def memoryGameStrategyExpectedAbsoluteDifferenceFraction(
+    n: int,
+    mem_size: int,
+    n_turns: int,
+) -> CustomFraction:
+
+    def transferFunction(state: Tuple) -> Dict[Tuple, Dict[int, CustomFraction]]:
+        res = {}
+        state_lst = list(state)
+
+        # An integer present in Larry's memory is chosen
+        
+        #state_tup = tuple(state)
+        #res.setdefault(state_tup, {})
+        #res[state_tup][0] = res[state_tup].get(0, CustomFraction(0, 1)) + CustomFraction(1, n)
+        #z_pos_lst = []
+        missing_set = set(range(1, mem_size + 1))
+        for i in reversed(range(len(state_lst))):
+            if state_lst[i]: missing_set.remove(state_lst[i])
+            state_lst[i], state_lst[-1] = state_lst[-1], state_lst[i]
+            # Note that if 0 encountered, state must be length n.
+            net_score = int(not state_lst[-1])
+            state_tup = tuple(state_lst) if state_lst[-1] else tuple([max(0, x - 1) for x in state_lst[:-1]] + [len(state_lst)])
+            #if not state[-1]:
+            #    z_pos_lst.append(i)
+            #    continue
+            res.setdefault(state_tup, {})
+            res[state_tup][net_score] = res[state_tup].get(net_score, CustomFraction(0, 1)) + CustomFraction(1, n)
+        if len(state) > 1:
+            # putting state_lst back into its original configuration
+            state_lst = list(state)
+        #if state == (0, 2):
+        #    print(f"for state {state} missing_set = {missing_set}, current transfer function = {res}")
+        if len(state_lst) < mem_size:
+            # The number of distinct integers encountered after this
+            # turn is no greater than the memoery size, meaning that the
+            # set of integers in memory is the same for both after this
+            # turn and neither player needs to remove an integer from
+            # memory
+            net_score = 0
+            state_tup = tuple(state_lst + [len(state_lst) + 1])
+            res.setdefault(state_tup, {})
+            res[state_tup][net_score] = res[state_tup].get(net_score, CustomFraction(0, 1)) + CustomFraction(n - len(state_lst), n)
+            return res
+        
+        # Both memories are full
+
+        # An integer absent from both memories is chosen
+        net_score = 0
+        state_tup = tuple([max(0, x - 1) for x in state_lst[1:]] + [mem_size])
+        res.setdefault(state_tup, {})
+        n_choice = n - len(state_lst) - len(missing_set)
+        res[state_tup][net_score] = res[state_tup].get(net_score, CustomFraction(0, 1)) + CustomFraction(n_choice, n)
+        #if state == (0, 2):
+        #    print(f"for state {state} missing_set = {missing_set}, current transfer function = {res}")
+        
+        # An integer present in Robin's memory but not
+        # Larry's memory is chosen
+        #missing_lst = sorted(missing_set)
+        net_score = -1
+        for num in missing_set:
+            state_tup = tuple([max(0, x - (x > num)) for x in state_lst[1:]] + [mem_size])
+            res.setdefault(state_tup, {})
+            res[state_tup][net_score] = res[state_tup].get(net_score, CustomFraction(0, 1)) + CustomFraction(1, n)
+        #if state == (0, 2):
+        #    print(f"for state {state} missing_set = {missing_set}, current transfer function = {res}")
+        return res
+    
+    curr_states = {(): {0: CustomFraction(1, 1)}}
+    for i in range(n_turns):
+        #print(curr_states)
+        res = CustomFraction(0, 1)
+        for state, exp_dict in curr_states.items():
+            for exp, p in exp_dict.items():
+                res += abs(exp) * p
+        print(f"probability sum = {sum(sum(exp_dict.values()) for exp_dict in curr_states.values())}, number of states = {len(curr_states)}, expected value = {res} ({res.numerator / res.denominator})")
+        print(f"turn {i + 1}")
+        
+        prev_states = curr_states
+        curr_states = {}
+        for state, exp_dict in prev_states.items():
+            for exp, p in exp_dict.items():
+                transf_dict = transferFunction(state)
+                p_sm = sum(sum(exp_dict2.values()) for exp_dict2 in transf_dict.values())
+                if p_sm != 1:
+                    print(f"transfer function for state {state} does not sum to 1 but rather {p_sm}")
+                for state2, exp_dict2 in transf_dict.items():
+                    
+                    #if state == (1, 2, 3):
+                    #    print(state2)
+                    for exp2, p2 in exp_dict2.items():
+                        exp3 = exp + exp2
+                        p3 = p * p2
+                        curr_states.setdefault(state2, {})
+                        curr_states[state2][exp3] = curr_states[state2].get(exp3, 0) + p3
+    #print(curr_states)
+    print(f"probability sum = {sum(sum(exp_dict.values()) for exp_dict in curr_states.values())}, number of states = {len(curr_states)}")
+    res = CustomFraction(0, 1)
+    for state, exp_dict in curr_states.items():
+        for exp, p in exp_dict.items():
+            res += abs(exp) * p
+    return res
+
+def memoryGameStrategyExpectedAbsoluteDifferenceFloat(
+    n: int=10,
+    mem_size: int=5,
+    n_turns: int=50,
+) -> float:
+    """
+    Solution to Project Euler #298
+    """
+
+    res = memoryGameStrategyExpectedAbsoluteDifferenceFraction(
+        n=n,
+        mem_size=mem_size,
+        n_turns=n_turns,
+    )
+    print(res)
+    return res.numerator / res.denominator
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -7069,10 +7242,19 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = zeckendorfRepresentationTermCount(n_max=10 ** 17 - 1)
         print(f"Solution to Project Euler #297 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 298 in eval_nums:
+        since = time.time()
+        res = memoryGameStrategyExpectedAbsoluteDifferenceFloat(
+            n=10,
+            mem_size=2,
+            n_turns=20,
+        )
+        print(f"Solution to Project Euler #298 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {292}
+    eval_nums = {200}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -7137,3 +7319,24 @@ print(cnts)
 """
 #res = panaitopolPrimesBruteForce(1000)
 #print(res)
+
+n = 10
+mem_size = 5
+n_turns = 10
+n_sim = 10 ** 5
+
+res = memoryGameStrategyExpectedAbsoluteDifferenceFloat(
+    n=n,
+    mem_size=mem_size,
+    n_turns=n_turns,
+)
+
+
+mean, stderr = memoryGameStrategyExpectedAbsoluteDifferenceSimulation(
+    n=n,
+    mem_size=mem_size,
+    n_turns=n_turns,
+    n_sim=n_sim,
+)
+print(f"for n = {n}, memory size = {mem_size}, n_turns = {n_turns}, calculated expected value = {res}")
+print(f"performed {n_sim} simulation runs, sample mean = {mean}, standard error = {stderr}")
