@@ -6836,7 +6836,10 @@ def memoryGameStrategyExpectedAbsoluteDifferenceFraction(
     n_turns: int,
 ) -> CustomFraction:
 
+    memo = {}
     def transferFunction(state: Tuple) -> Dict[Tuple, Dict[int, CustomFraction]]:
+        args = state
+        if args in memo.keys(): return memo[args]
         res = {}
         state_lst = list(state)
 
@@ -6873,6 +6876,7 @@ def memoryGameStrategyExpectedAbsoluteDifferenceFraction(
             state_tup = tuple(state_lst + [len(state_lst) + 1])
             res.setdefault(state_tup, {})
             res[state_tup][net_score] = res[state_tup].get(net_score, CustomFraction(0, 1)) + CustomFraction(n - len(state_lst), n)
+            memo[args] = res
             return res
         
         # Both memories are full
@@ -6891,13 +6895,16 @@ def memoryGameStrategyExpectedAbsoluteDifferenceFraction(
         #missing_lst = sorted(missing_set)
         net_score = -1
         for num in missing_set:
-            state_tup = tuple([max(0, x - (x > num)) for x in state_lst[1:]] + [mem_size])
+            #state_tup = tuple([max(0, x - (x > num)) for x in state_lst[1:]] + [mem_size])
+            state_tup = tuple(state_lst[1:] + [num])
             res.setdefault(state_tup, {})
             res[state_tup][net_score] = res[state_tup].get(net_score, CustomFraction(0, 1)) + CustomFraction(1, n)
         #if state == (0, 2):
         #    print(f"for state {state} missing_set = {missing_set}, current transfer function = {res}")
+        memo[args] = res
         return res
     
+    seen_states = set()
     curr_states = {(): {0: CustomFraction(1, 1)}}
     for i in range(n_turns):
         #print(curr_states)
@@ -6905,12 +6912,13 @@ def memoryGameStrategyExpectedAbsoluteDifferenceFraction(
         for state, exp_dict in curr_states.items():
             for exp, p in exp_dict.items():
                 res += abs(exp) * p
-        print(f"probability sum = {sum(sum(exp_dict.values()) for exp_dict in curr_states.values())}, number of states = {len(curr_states)}, expected value = {res} ({res.numerator / res.denominator})")
+        print(f"probability sum = {sum(sum(exp_dict.values()) for exp_dict in curr_states.values())}, number of states = {len(curr_states)}, expected value after {i} turns = {res} ({res.numerator / res.denominator})")
         print(f"turn {i + 1}")
         
         prev_states = curr_states
         curr_states = {}
         for state, exp_dict in prev_states.items():
+            seen_states.add(state)
             for exp, p in exp_dict.items():
                 transf_dict = transferFunction(state)
                 p_sm = sum(sum(exp_dict2.values()) for exp_dict2 in transf_dict.values())
@@ -6927,6 +6935,10 @@ def memoryGameStrategyExpectedAbsoluteDifferenceFraction(
                         curr_states[state2][exp3] = curr_states[state2].get(exp3, 0) + p3
     #print(curr_states)
     print(f"probability sum = {sum(sum(exp_dict.values()) for exp_dict in curr_states.values())}, number of states = {len(curr_states)}")
+
+    #print("transfer function values:")
+    #for state in seen_states:
+    #    print(f"{state}: {transferFunction(state)}")
     res = CustomFraction(0, 1)
     for state, exp_dict in curr_states.items():
         for exp, p in exp_dict.items():
@@ -7246,15 +7258,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = memoryGameStrategyExpectedAbsoluteDifferenceFloat(
             n=10,
-            mem_size=2,
-            n_turns=20,
+            mem_size=5,
+            n_turns=50,
         )
         print(f"Solution to Project Euler #298 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {200}
+    eval_nums = {298}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -7319,10 +7331,10 @@ print(cnts)
 """
 #res = panaitopolPrimesBruteForce(1000)
 #print(res)
-
+"""
 n = 10
 mem_size = 5
-n_turns = 10
+n_turns = 50
 n_sim = 10 ** 5
 
 res = memoryGameStrategyExpectedAbsoluteDifferenceFloat(
@@ -7330,7 +7342,7 @@ res = memoryGameStrategyExpectedAbsoluteDifferenceFloat(
     mem_size=mem_size,
     n_turns=n_turns,
 )
-
+print(f"for n = {n}, memory size = {mem_size}, n_turns = {n_turns}, calculated expected value = {res}")
 
 mean, stderr = memoryGameStrategyExpectedAbsoluteDifferenceSimulation(
     n=n,
@@ -7338,5 +7350,6 @@ mean, stderr = memoryGameStrategyExpectedAbsoluteDifferenceSimulation(
     n_turns=n_turns,
     n_sim=n_sim,
 )
-print(f"for n = {n}, memory size = {mem_size}, n_turns = {n_turns}, calculated expected value = {res}")
+
 print(f"performed {n_sim} simulation runs, sample mean = {mean}, standard error = {stderr}")
+"""
