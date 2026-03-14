@@ -6329,13 +6329,241 @@ def squareModSeriesFactorialPrimeFactorCount(
         
     return res
 
+# Problem 289
+def circleArrayEulerianNonCrossingCycleCount(
+    n_rows: int=6,
+    n_cols: int=10,
+    res_md: Optional[int]=10 ** 10,
+) -> int:
+    """
+    Solution to Project Euler #289
+    """
+    # Adapted from solution to Project Euler #237
+
+    if n_rows > n_cols:
+        n_rows, n_cols = n_cols, n_rows
+
+    
+    
+
+    states = []
+    states_dict = {}
+
+    state_memo = {}
+    def getStateIndex(state_raw: Iterable[int]) -> int:
+        #idx_dict = {}
+        args = tuple(state_raw)
+        if args in state_memo.keys():
+            return state_memo[args]
+        state1, state2 = [], []
+        for stt, it in ((state1, state_raw), (state2, reversed(state_raw))):
+            idx_dict = {0: 0}
+            nxt = 1
+            for num in it:
+                if num not in idx_dict.keys():
+                    idx_dict[num] = nxt
+                    nxt += 1
+                stt.append(idx_dict[num])
+        std_state = tuple(min(state1, state2))
+        if std_state in states_dict.keys():
+            idx = states_dict[std_state]
+        else:
+            idx = len(states)
+            states_dict[std_state] = idx
+            states.append(std_state)
+        state_memo[args] = idx
+        return idx
+
+    init_states_std = {}
+    for bm in range(1 << (n_rows - 1)):
+        state = [1]
+        curr = 1
+        for i in range(2, n_rows + 1):
+            j = bm & 1
+            bm >>= 1
+            if j: state.extend([i, i])
+            else:
+                state.extend([curr, i])
+                curr = i
+        state.append(curr)
+        idx = getStateIndex(state)
+        init_states_std[idx] = init_states_std.get(idx, 0) + 1
+    print("initial states:")
+    print(states)
+    print("frequencies:")
+    print(init_states_std)
+
+    return 0
+    
+    def getTransferOutEdges(state_idx: int) -> Dict[int, int]:
+        state = states[state_idx]
+        m = len(state)
+        t_dict = {}
+
+        curr = []
+        l_set = set(state) - {0}
+        r_dict = {}
+        #incl_dict = {}
+        #map_dict = {}
+        nxt = [max(l_set) + 1 if l_set else 1]
+        curr_map = list(range(len(state)))
+        def recur(idx: int=0, above: int=0, non_zero_seen: bool=False) -> None:
+            #if state_idx == 3 and len(curr) >= 2 and curr[0] == 1 and curr[1] in {1, 2}:
+            #    print(idx, above, non_zero_seen, curr)
+            if idx == m:
+                if above or not non_zero_seen: return
+                ans = []
+                for idx in curr:
+                    stt = idx
+                    while stt != curr_map[stt]:
+                        stt = curr_map[stt]
+                    ans.append(stt)
+                #if state_idx == 3:
+                ##    print(ans)
+                idx2 = getStateIndex(tuple(ans))
+                t_dict[idx2] = t_dict.get(idx2, 0) + 1
+                return
+            curr.append(0)
+            if not state[idx]:
+                if above:
+                    recur(idx=idx + 1, above=above, non_zero_seen=non_zero_seen)
+                    curr[idx] = above
+                    recur(idx=idx + 1, above=0, non_zero_seen=True)
+                    curr[idx] = 0
+                else:
+                    above2 = nxt[0]
+                    curr[idx] = above2
+                    nxt[0] += 1
+                    r_dict[above2] = idx
+                    recur(idx=idx + 1, above=above2, non_zero_seen=True)
+                    r_dict.pop(above2)
+                    curr[idx] = 0
+                    nxt[0] -= 1
+            else:
+                stt = state[idx]
+                while stt != curr_map[stt]:
+                    stt = curr_map[stt]
+                if not above:
+                    recur(idx=idx + 1, above=stt, non_zero_seen=non_zero_seen)
+                    curr[idx] = stt
+                    recur(idx=idx + 1, above=0, non_zero_seen=True)
+                    curr[idx] = 0
+                elif above != stt:
+                    curr_map[stt] = above
+                    recur(idx=idx + 1, above=0, non_zero_seen=True)
+                    curr_map[stt] = stt
+            curr.pop()
+            return
+        recur(idx=0, above=0)
+        return t_dict
+        
+
+
+    def createTransferAdj(start_states: List[Tuple[int]]) -> List[Dict[int, int]]:
+        seen = set()
+        qu = deque()
+        adj = []
+        for state in start_states:
+            idx = getStateIndex(state)
+            if idx in seen: continue
+            seen.add(idx)
+            qu.append(idx)
+        while qu:
+            idx = qu.popleft()
+            adj += [{} for _ in range(idx + len(adj) + 1)]
+            #print(f"creating out edges for index {idx}, state {states[idx]}")
+            adj[idx] = getTransferOutEdges(idx)
+            for idx2 in adj[idx].keys() - seen:
+                qu.append(idx2)
+                seen.add(idx2)
+            #print([(states[idx2], f) for idx2, f in adj[idx].items()])
+        return adj
+    
+    state_adj = createTransferAdj([init_state])
+    n_states = len(states)
+    #print(states)
+    #print(f"number of distinct reachable states = {n_states}")
+    def multiplyStateAdj(state_adj1: List[Dict[int, int]], state_adj2: List[Dict[int, int]]) -> List[Dict[int, int]]:
+        res = [{} for _ in range(n_states)]
+        for idx1 in range(n_states):
+            for idx2, f2 in state_adj1[idx1].items():
+                for idx3, f3 in state_adj2[idx2].items():
+                    res[idx1][idx3] = (res[idx1].get(idx3, 0) + f2 * f3)
+                    if res_md is not None: res[idx1][idx3] %= res_md
+        return res
+    
+    def applyStateAdj(state_adj: List[Dict[int, int]], state_f_dict: Dict[int, int]) -> Dict[int, int]:
+        res = {}
+        for idx, f in state_f_dict.items():
+            for idx2, f2 in state_adj[idx].items():
+                res[idx2] = (res.get(idx2, 0) + f * f2)
+                if res_md is not None: res[idx2] %= res_md
+        return res
+
+    # binary lift
+    state_adj_bin = state_adj
+    curr = {getStateIndex(init_state): 1}
+    m = n_cols - 1
+    while True:
+        if m & 1:
+            curr = applyStateAdj(state_adj_bin, curr)
+        m >>= 1
+        if not m: break
+        state_adj_bin = multiplyStateAdj(state_adj_bin, state_adj_bin)
+
+    # Find which states reached can be connected up so that
+    # a single path visiting every square exactly once can
+    # be formed, and summing the frequencies of those states
+    # for the last column, as identified above
+    res = 0
+    #print(curr)
+    for idx, f in curr.items():
+        #if state == (1, 0, 0, 1):
+        #    res += state_dict[state]
+        pair_adj = {}
+        prev = None
+        state = states[idx]
+        for num in state:
+            if not num:
+                if prev is None: break
+                continue
+            if prev is None:
+                prev = num
+                continue
+            pair_adj.setdefault(prev, set())
+            pair_adj.setdefault(num, set())
+            pair_adj[prev].add(num)
+            pair_adj[num].add(prev)
+            prev = None
+        else:
+            if prev is not None: continue
+            n_nums = len(pair_adj)
+            
+            num1 = next(iter(pair_adj.keys()))
+            if len(pair_adj[num1]) == 1:
+                cycle_len = 1 + (next(iter(pair_adj[num1])) != num1)
+            else:
+                num2 = next(iter(pair_adj[num1]))
+                cycle = [num1]
+                while num2 != cycle[0]:
+                    cycle.append(num2)
+                    num1, num2 = num2, next(iter(pair_adj[num2] - {num1}))
+                cycle_len = len(cycle)
+            if cycle_len != n_nums: continue
+            #print(state)
+            res += f
+            if res_md is not None: res %= res_md
+    return res
+
 # Problem 290
 def digitSumEqualsMultipleDigitSumCount(
     n_dig_max: int=18,
     mult: int=137,
     base: int=10,
 ) -> int:
-
+    """
+    Solution to Project Euler #290
+    """
     def digitSum(num: int) -> int:
         res = 0
         while num:
@@ -7215,6 +7443,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #288 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 289 in eval_nums:
+        since = time.time()
+        res = circleArrayEulerianNonCrossingCycleCount(
+            n_rows=3,
+            n_cols=10,
+            res_md=10 ** 10,
+        )
+        print(f"Solution to Project Euler #289 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 290 in eval_nums:
         since = time.time()
         res = digitSumEqualsMultipleDigitSumCount(
@@ -7266,7 +7503,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {298}
+    eval_nums = {289}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
