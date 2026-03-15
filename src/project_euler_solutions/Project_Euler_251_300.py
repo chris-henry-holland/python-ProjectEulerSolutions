@@ -6340,8 +6340,8 @@ def circleArrayEulerianNonCrossingCycleCount(
     """
     # Adapted from solution to Project Euler #237
 
-    if n_rows > n_cols:
-        n_rows, n_cols = n_cols, n_rows
+    #if n_rows > n_cols:
+    #    n_rows, n_cols = n_cols, n_rows
 
     
     
@@ -6374,7 +6374,9 @@ def circleArrayEulerianNonCrossingCycleCount(
         state_memo[args] = idx
         return idx
 
-    init_states_std = {}
+    # The standardised states that can exist at the beginning
+    # and end and their corresponding frequencies
+    poss_end_states_std = {}
     for bm in range(1 << (n_rows - 1)):
         state = [1]
         curr = 1
@@ -6387,19 +6389,173 @@ def circleArrayEulerianNonCrossingCycleCount(
                 curr = i
         state.append(curr)
         idx = getStateIndex(state)
-        init_states_std[idx] = init_states_std.get(idx, 0) + 1
+        poss_end_states_std[idx] = poss_end_states_std.get(idx, 0) + 1
     print("initial states:")
     print(states)
     print("frequencies:")
-    print(init_states_std)
-
-    return 0
+    print(poss_end_states_std)
+    nxt_print = [10]
     
     def getTransferOutEdges(state_idx: int) -> Dict[int, int]:
-        state = states[state_idx]
-        m = len(state)
+        state0 = states[state_idx]
+        m = (len(state0)) >> 1
         t_dict = {}
 
+        curr = []
+        l_set = set(state)
+        #r_dict = {}
+        nxt = [max(l_set) + 1 if l_set else 1]
+        curr_connects = {}
+        
+        
+        def recur(idx: int, above_l: int, above_r: int) -> None:
+            #if len(states) >= nxt_print[0]:
+            #    print(f"number of states seen = {len(states)}, latest state = {states[-1]}")
+            #    nxt_print[0] += 10
+            jl = above_l
+            while jl != curr_connects.get(jl, jl):
+                jl = curr_connects[jl]
+            jr = above_r
+            while jr != curr_connects.get(jr, jr):
+                jr = curr_connects[jr]
+            if idx == m:
+                j0 = state0[-1]
+                while j0 != curr_connects.get(j0, j0):
+                    j0 = curr_connects[j0]
+                curr.append(-1)
+                if jl != j0:
+                    curr_connects[jl] = j0
+                    curr[-1] = jr
+                    ans = []
+                    for idx in curr:
+                        stt = idx
+                        while stt != curr_connects.get(stt, stt):
+                            stt = curr_connects[stt]
+                        ans.append(stt)
+                    idx2 = getStateIndex(tuple(ans))
+                    t_dict[idx2] = t_dict.get(idx2, 0) + 1
+                    curr_connects.pop(jl)
+                if jl != jr:
+                    curr_connects[jr] = jl
+                    curr[-1] = j0
+                    ans = []
+                    for idx in curr:
+                        stt = idx
+                        while stt != curr_connects.get(stt, stt):
+                            stt = curr_connects[stt]
+                        ans.append(stt)
+                    idx2 = getStateIndex(tuple(ans))
+                    t_dict[idx2] = t_dict.get(idx2, 0) + 1
+                    curr_connects.pop(jr)
+                curr.pop()
+                return
+            j0 = state0[2 * idx - 1]
+            while j0 != curr_connects.get(j0, j0):
+                j0 = curr_connects[j0]
+            #print(idx, 2 * idx, state0)
+            j1 = state0[2 * idx]
+            while j1 != curr_connects.get(j1, j1):
+                j1 = curr_connects[j1]
+            
+            curr.extend([0, 0])
+            j2 = nxt[0]
+            nxt[0] += 1
+            if j0 != j1:
+                # Connecting the incoming left branches
+                curr_connects[j1] = j0
+                
+                if jl != jr and (jl != j0 or jr != j1):
+                    # Connecting the incoming top branches
+                    i1, i2 = (jl, jr) if j1 != jl else (jr, jl)
+                    curr_connects[i1] = i2
+                    j3 = nxt[0]
+                    nxt[0] += 1
+                    curr[-2] = j3
+                    curr[-1] = j3
+                    recur(idx + 1, j2, j2)
+                    curr[-2] = j2
+                    recur(idx + 1, j2, j3)
+                    nxt[0] -= 1
+                    curr_connects.pop(i1)
+                
+                curr[-2] = jr
+                curr[-1] = jl
+                recur(idx + 1, j2, j2)
+                curr[-1] = j2
+                recur(idx + 1, jl, j2)
+                curr[-2] = j2
+                recur(idx + 1, jl, jr)
+                #print(j0, j1, jl, jr)
+                curr_connects.pop(j1)
+            
+            if j0 != jl:
+                # Connecting the incoming left upper branch to the top
+                # leftmost branch
+                curr_connects[jl] = j0
+                #j1_2 = j1
+                #while j1_2 != curr_connects.get(j1_2, j1_2):
+                #    j1_2 = curr_connects[j1_2]
+                if j1 != jr and (j1 != j0 or jr != jl):
+                    # Connecting the incoming left lower branch to the top
+                    # rightmost branch
+                    i1, i2 = (j1, jr) if j1 != jl else (jr, j1)
+                    curr_connects[i1] = i2
+                    j3 = nxt[0]
+                    nxt[0] += 1
+                    curr[-2] = j3
+                    curr[-1] = j3
+                    recur(idx + 1, j2, j2)
+                    curr[-2] = j2
+                    recur(idx + 1, j2, j3)
+                    nxt[0] -= 1
+                    curr_connects.pop(i1)
+                
+                curr[-2] = jr
+                curr[-1] = j1
+                recur(idx + 1, j2, j2)
+                curr[-1] = j2
+                recur(idx + 1, j1, j2)
+                curr[-2] = j2
+                recur(idx + 1, j1, jr)
+                #print(j1, j2, jl, jr)
+                curr_connects.pop(jl)
+
+            if jl != jr:
+                # Connecting the incoming top branches (note that
+                # the case where the incoming left branches are
+                # also connected has already been handled)
+                curr_connects[jr] = jl
+
+                curr[-2] = j0
+                curr[-1] = j1
+                recur(idx + 1, j2, j2)
+                curr[-1] = j2
+                recur(idx + 1, j1, j2)
+                curr[-2] = j2
+                recur(idx + 1, j1, j0)
+
+                curr_connects.pop(jr)
+            nxt[0] -= 1
+            # None of the incoming left or top branches connect to
+            # each other
+            curr[-2] = jr
+            curr[-1] = jl
+            recur(idx + 1, j1, j0)
+
+            curr.pop()
+            curr.pop()
+            return
+        
+        j = nxt[0]
+        nxt[0] += 1
+        curr = [state0[0]]
+        recur(1, j, j)
+        curr[0] = j
+        recur(1, state0[0], j)
+        
+        return t_dict
+
+        """
         curr = []
         l_set = set(state) - {0}
         r_dict = {}
@@ -6455,22 +6611,25 @@ def circleArrayEulerianNonCrossingCycleCount(
             curr.pop()
             return
         recur(idx=0, above=0)
+        
         return t_dict
+        """
         
 
 
-    def createTransferAdj(start_states: List[Tuple[int]]) -> List[Dict[int, int]]:
+    def createTransferAdj(start_state_inds: List[int]) -> List[Dict[int, int]]:
+        
         seen = set()
         qu = deque()
         adj = []
-        for state in start_states:
-            idx = getStateIndex(state)
+        for idx in start_state_inds:
             if idx in seen: continue
             seen.add(idx)
             qu.append(idx)
         while qu:
             idx = qu.popleft()
-            adj += [{} for _ in range(idx + len(adj) + 1)]
+            print(f"creating out edges for index {idx}, state {states[idx]}. Total number of states seen = {len(states)}")
+            adj += [{} for _ in range(idx - len(adj) + 1)]
             #print(f"creating out edges for index {idx}, state {states[idx]}")
             adj[idx] = getTransferOutEdges(idx)
             for idx2 in adj[idx].keys() - seen:
@@ -6479,10 +6638,14 @@ def circleArrayEulerianNonCrossingCycleCount(
             #print([(states[idx2], f) for idx2, f in adj[idx].items()])
         return adj
     
-    state_adj = createTransferAdj([init_state])
+    state_adj = createTransferAdj(list(poss_end_states_std.keys()))
     n_states = len(states)
+    print(f"finished creating state adjacency table")
+    
     #print(states)
-    #print(f"number of distinct reachable states = {n_states}")
+    print(f"number of distinct reachable states = {n_states}")
+    print(states)
+    print(state_adj)
     def multiplyStateAdj(state_adj1: List[Dict[int, int]], state_adj2: List[Dict[int, int]]) -> List[Dict[int, int]]:
         res = [{} for _ in range(n_states)]
         for idx1 in range(n_states):
@@ -6502,7 +6665,8 @@ def circleArrayEulerianNonCrossingCycleCount(
 
     # binary lift
     state_adj_bin = state_adj
-    curr = {getStateIndex(init_state): 1}
+    curr = dict(poss_end_states_std)
+    print(f"start state = {curr}")
     m = n_cols - 1
     while True:
         if m & 1:
@@ -6517,6 +6681,11 @@ def circleArrayEulerianNonCrossingCycleCount(
     # for the last column, as identified above
     res = 0
     #print(curr)
+    for idx in poss_end_states_std.keys():
+        res += curr.get(idx, 0)
+        if res_md is not None: res %= res_md
+    return res
+    """
     for idx, f in curr.items():
         #if state == (1, 0, 0, 1):
         #    res += state_dict[state]
@@ -6554,6 +6723,8 @@ def circleArrayEulerianNonCrossingCycleCount(
             res += f
             if res_md is not None: res %= res_md
     return res
+    """
+    
 
 # Problem 290
 def digitSumEqualsMultipleDigitSumCount(
@@ -7446,8 +7617,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 289 in eval_nums:
         since = time.time()
         res = circleArrayEulerianNonCrossingCycleCount(
-            n_rows=3,
-            n_cols=10,
+            n_rows=6,
+            n_cols=2,
             res_md=10 ** 10,
         )
         print(f"Solution to Project Euler #289 = {res}, calculated in {time.time() - since:.4f} seconds")
