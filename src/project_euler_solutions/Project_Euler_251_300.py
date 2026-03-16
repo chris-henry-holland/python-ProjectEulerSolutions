@@ -6343,9 +6343,6 @@ def circleArrayEulerianNonCrossingCycleCount(
     #if n_rows > n_cols:
     #    n_rows, n_cols = n_cols, n_rows
 
-    
-    
-
     states = []
     states_dict = {}
 
@@ -6464,7 +6461,7 @@ def circleArrayEulerianNonCrossingCycleCount(
                 # Connecting the incoming left branches
                 curr_connects[j1] = j0
                 
-                if jl != jr and (jl != j0 or jr != j1):
+                if jl != jr and ({jl, jr} != {j0, j1}):
                     # Connecting the incoming top branches
                     i1, i2 = (jl, jr) if j1 != jl else (jr, jl)
                     curr_connects[i1] = i2
@@ -6495,7 +6492,7 @@ def circleArrayEulerianNonCrossingCycleCount(
                 #j1_2 = j1
                 #while j1_2 != curr_connects.get(j1_2, j1_2):
                 #    j1_2 = curr_connects[j1_2]
-                if j1 != jr and (j1 != j0 or jr != jl):
+                if j1 != jr and ({j0, jl} != {j1, jr}):
                     # Connecting the incoming left lower branch to the top
                     # rightmost branch
                     i1, i2 = (j1, jr) if j1 != jl else (jr, j1)
@@ -7617,7 +7614,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 289 in eval_nums:
         since = time.time()
         res = circleArrayEulerianNonCrossingCycleCount(
-            n_rows=6,
+            n_rows=3,
             n_cols=2,
             res_md=10 ** 10,
         )
