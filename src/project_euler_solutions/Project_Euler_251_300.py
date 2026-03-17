@@ -6340,6 +6340,11 @@ def circleArrayEulerianNonCrossingCycleCount(
     """
     # Adapted from solution to Project Euler #237
 
+    # Known:
+    # (1, m): 1 << (m - 1)
+    # (2, m): 2, 37, 672, 12182, 220792,
+    # (3, m): 4, 672, 104290
+
     #if n_rows > n_cols:
     #    n_rows, n_cols = n_cols, n_rows
 
@@ -6611,9 +6616,7 @@ def circleArrayEulerianNonCrossingCycleCount(
         
         return t_dict
         """
-        
-
-
+    
     def createTransferAdj(start_state_inds: List[int]) -> List[Dict[int, int]]:
         
         seen = set()
@@ -6660,6 +6663,7 @@ def circleArrayEulerianNonCrossingCycleCount(
                 if res_md is not None: res[idx2] %= res_md
         return res
 
+    
     # binary lift
     state_adj_bin = state_adj
     curr = dict(poss_end_states_std)
@@ -6671,7 +6675,13 @@ def circleArrayEulerianNonCrossingCycleCount(
         m >>= 1
         if not m: break
         state_adj_bin = multiplyStateAdj(state_adj_bin, state_adj_bin)
-
+    
+    """
+    # basic repeated application of the state transfer
+    curr = dict(poss_end_states_std)
+    for _ in range(n_cols - 1):
+        curr = applyStateAdj(state_adj, curr)
+    """
     # Find which states reached can be connected up so that
     # a single path visiting every square exactly once can
     # be formed, and summing the frequencies of those states
