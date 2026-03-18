@@ -6330,6 +6330,32 @@ def squareModSeriesFactorialPrimeFactorCount(
     return res
 
 # Problem 289
+class UnionFind:
+    def __init__(self, n: int):
+        self.n = n
+        self.root = list(range(n))
+        self.rank = [1] * n
+    
+    def find(self, i: int) -> int:
+        r = self.root[i]
+        if r == i: return i
+        res = self.find(r)
+        self.root[i] = res
+        return res
+    
+    def union(self, i1: int, i2: int) -> None:
+        r1, r2 = list(map(self.find, (i1, i2)))
+        if r1 == r2: return
+        d = self.rank[r1] - self.rank[r2]
+        if d < 0: r1, r2 = r2, r1
+        elif not d: self.rank[r1] += 1
+        self.root[r2] = r1
+        return
+    
+    def connected(self, i1: int, i2: int) -> bool:
+        return self.find(i1) == self.find(i2)
+
+
 def circleArrayEulerianNonCrossingCycleCount(
     n_rows: int=6,
     n_cols: int=10,
@@ -6347,6 +6373,8 @@ def circleArrayEulerianNonCrossingCycleCount(
 
     #if n_rows > n_cols:
     #    n_rows, n_cols = n_cols, n_rows
+
+    
 
     states = []
     states_dict = {}
@@ -6392,13 +6420,368 @@ def circleArrayEulerianNonCrossingCycleCount(
         state.append(curr)
         idx = getStateIndex(state)
         poss_end_states_std[idx] = poss_end_states_std.get(idx, 0) + 1
+
+    incoming_branch_connections = []
+    incoming_branch_connections_dict = {}
+    n_branches = 2 * n_rows
+
+    def getIncomingBranchConnectionsIndex(connects_raw: List[Tuple[int, int]]) -> int:
+        pairs1 = sorted(tuple(sorted(x)) for x in connects_raw)
+        pairs2 = sorted(tuple(sorted([n_branches - x[0] - 1, n_branches - x[1] - 1])) for x in connects_raw)
+        pairs_tup = tuple(min(pairs1, pairs2))
+        if pairs_tup in incoming_branch_connections_dict.keys():
+            return incoming_branch_connections_dict[pairs_tup]
+        res = len(incoming_branch_connections)
+        incoming_branch_connections_dict[pairs_tup] = res
+        incoming_branch_connections.append(pairs_tup)
+        return res
+
+    def calculateLayerConnections(n_rows: int) -> Dict[tuple, Dict[tuple, int]]:
+        res = {}
+        #nxt_mid = [0]
+        #nxt_r = [0]
+
+        curr = [[], [None] * (n_rows * 2)]
+
+        res = {}
+        def recur(idx: int, curr_l: Optional[Tuple[bool, int]], curr_r: Optional[Tuple[bool, int]], mult: int=1) -> None:
+            print(f"args = {(idx, curr_l, curr_r, mult)}, curr = {curr}")
+            j2 = (idx << 1)
+            j1 = j2 - 1
+            curr[1][j1] = None
+            if idx == n_rows:
+
+                # The left and right descending branches connect to each other (either
+                # directly in the case that curr_l is not None or through the descending
+                # branches in the case that curr_l is None)
+                pop_count = 0
+                if curr_l is not None:
+                    if curr_l[0]:
+                        curr[1][curr_l[1]] = curr_r
+                    if curr_r[0]:
+                        curr[1][curr_r[1]] = curr_l
+                    if not curr_r[0] and not curr_l[0]:
+                        curr[0].append((curr_l[1], curr_r[1]))
+                        pop_count += 1
+
+                curr[1][j1] = (False, j1)
+
+                #branch_connects_l_idx = getIncomingBranchConnectionsIndex(curr[0])
+                #state_r_idx = getStateIndex(curr[1])
+                #res.setdefault(branch_connects_l_idx, {})
+                #res[branch_connects_l_idx][state_r_idx] = res[branch_connects_l_idx].get(state_r_idx, 0) + mult
+
+                #branch_connects_l_idx = getIncomingBranchConnectionsIndex(curr[0])
+                branch_connects_l_tup = tuple(sorted([tuple(sorted(x)) for x in curr[0]]))
+                #state_r_idx = getStateIndex(curr[1])
+                print(curr[1])
+                connects_l_tup = tuple(tuple(x) for x in curr[1])
+                #print(connects_l_tup)
+                res.setdefault(branch_connects_l_tup, {})
+                res[branch_connects_l_tup][connects_l_tup] = res[branch_connects_l_tup].get(connects_l_tup, 0) + mult
+
+                if curr_l is not None:
+                    if curr_l[0]: curr[1][curr_l[1]] = None
+                    if curr_r[0]: curr[1][curr_r[1]] = None
+                curr[1][j1] = None
+                    
+                for _ in range(pop_count): curr[0].pop()
+                
+                # Note that if curr_l[0] is None the final incoming and outgoing
+                # branches must connect via the descending branches, so no further
+                # configurations are possible
+                if curr_l is None: return
+
+                # The final incoming and outgoing branches connect to the left and
+                # right descending branches respectively
+                pop_count = 0
+                if curr_l[0]:
+                    curr[1][curr_l[1]] = (False, j1)
+                else:
+                    curr[0].append((curr_l[1], j1))
+                    pop_count += 1
+                curr[1][j1] = curr_r
+                if curr_r[0]: curr[1][curr_r[1]] = (True, j1)
+
+                if len(curr[0]) < n_rows:
+                    # Require the layers to be connected, so at least one connection
+                    # must exist between the incoming and outgoing branches (in fact,
+                    # as the number of such connections must be even, this means there
+                    # must be least 2 such connections, which is consistent with an
+                    # Eulerian circuit)
+                    #branch_connects_l_idx = getIncomingBranchConnectionsIndex(curr[0])
+                    branch_connects_l_tup = tuple(sorted([tuple(sorted(x)) for x in curr[0]]))
+                    #state_r_idx = getStateIndex(curr[1])
+                    print(curr[1])
+                    connects_l_tup = tuple(tuple(x) for x in curr[1])
+                    #print(connects_l_tup)
+                    res.setdefault(branch_connects_l_tup, {})
+                    res[branch_connects_l_tup][connects_l_tup] = res[branch_connects_l_tup].get(connects_l_tup, 0) + mult
+                curr[1][j1] = None
+                if curr_l[0]: curr[1][curr_l[1]] = None
+                if curr_r[0]: curr[1][curr_r[1]] = None
+                for _ in range(pop_count): curr[0].pop()
+                
+                return
+
+
+            curr[1][j2] = None
+
+            if curr_l is None:
+                # The descending branches are already connected to each other and not yet any
+                # incoming or outgoing branches
+
+                # The left descending branch connects to the upper incoming branch
+
+                # The right descending branch connects to the upper outgoing branch
+                curr[1][j1] = (False, j1)
+                recur(idx + 1, (False, j2), (True, j2), mult=mult)
+                curr[1][j2] = (False, j2)
+                recur(idx + 1, None, None, mult=mult)
+                
+                #curr[1][j1] = None
+                # The right descending branch continues as the right descending branch
+                curr[1][j1] = (True, j2)
+                curr[1][j2] = (True, j1)
+                recur(idx + 1, (False, j2), (False, j1), mult=mult)
+                curr[1][j1] = None
+                curr[1][j2] = None
+                # The two cases:
+                #  1) The right descending branch connects to the lower incoming branch,
+                #      the upper outgoing branch connects to the new left descending branch
+                #  2) The left descending branch continues as the left descending branch and
+                #      the right descending branch connects to the upper outgoing branch
+                curr[0].append((j1, j2))
+                recur(idx + 1, (True, j1), (True, j2), mult=2 * mult)
+                #curr[0].pop()
+
+                # The three cases:
+                #  1) the both descending branches continue
+                #  2) the descending branches connect to the incoming branches
+                #  3) the descending branches connect to the outgoing branches
+                curr[1][j1] = (True, j2)
+                curr[1][j2] = (True, j1)
+                recur(idx + 1, None, None, mult=mult * 3)
+                curr[1][j1] = None
+                curr[1][j2] = None
+                
+                curr[0].pop()
+
+                return
+            
+            # The descending branches arise from incoming or outgoing branches
+            # and are not yet connected to each other
+
+            # The descending branches become connected
+
+            pop_count = 0
+            if curr_l[0]:
+                curr[1][curr_l[1]] = curr_r
+            if curr_r[0]:
+                curr[1][curr_r[1]] = curr_l
+            if not curr_r[0] and not curr_l[0]:
+                curr[0].append((curr_l[1], curr_r[1]))
+                pop_count += 1
+
+
+            #if curr_l[0] == curr_r[0]:
+            #    if curr_l[0]:
+            #        curr[1][curr_r[1]] = curr_l#curr[1][curr_l[1]]
+            #        curr[1][curr_l[1]] = curr_r
+            #    else:
+            #        curr[0].append((curr_l[1], curr_r[1]))
+            #        pop_count += 1
+
+            # The upper incoming branch connects to the upper outgoing branch
+            curr[1][j1] = (False, j1)
+            curr[1][j2] = (False, j2)
+            recur(idx + 1, None, None, mult=mult)
+            curr[1][j2] = None
+            recur(idx + 1, (False, j2), (True, j2), mult=mult)
+            # The upper incoming branch connects to the new right descending branch
+            curr[1][j1] = (True, j2)
+            curr[1][j2] = (True, j1)
+            recur(idx + 1, (False, j2), (False, j1), mult=mult)
+            # The upper incoming branch connects to the lower incoming branch
+            curr[0].append((j1, j2))
+            pop_count += 1
+            recur(idx + 1, None, None, mult=mult)
+            curr[1][j1] = None
+            curr[1][j2] = None
+            recur(idx + 1, (True, j1), (True, j2), mult=mult)
+
+            #curr[1][curr_r[1]] = curr_r[1] + 1
+            if curr_l[0]: curr[1][curr_l[1]] = None
+            if curr_r[0]: curr[1][curr_r[1]] = None
+            for _ in range(pop_count): curr[0].pop()
+
+            # The left descending branch connects to the upper incoming branch
+
+            pop_count = 0
+            if curr_l[0]:
+                curr[1][curr_l[1]] = (False, j1)
+            else:
+                curr[0].append((curr_l[1], j1))
+                pop_count += 1
+
+            # The right descending branch connects to the upper outgoing branch
+            #if curr_r[0]:
+            #    curr[1][j1] = curr[1][curr_r[1]]
+            if curr_r[0]:
+                curr[1][curr_r[1]] = (True, j1)
+            curr[1][j1] = curr_r
+            curr[1][j2] = (False, j2)
+            recur(idx + 1, None, None, mult=mult)
+            curr[1][j2] = None
+            recur(idx + 1, (False, j1), (True, j2), mult=mult)
+            #curr[1][j1] = None
+            # The right descending branch continues as the new right descending branch
+            if curr_r[0]: curr[1][curr_r[1]] = None
+            curr[1][j1] = (True, j2)
+            curr[1][j2] = (True, j1)
+            recur(idx + 1, (False, j2), curr_r, mult=mult)
+            
+            # The right descending branch connects to the lower incoming branch
+            if curr_r[0]:
+                curr[1][curr_r[1]] = (False, j2)
+            else:
+                curr[0].append((curr_l[1], j2))
+                pop_count += 1
+            recur(idx + 1, None, None, mult=mult)
+            curr[1][j1] = None
+            curr[1][j2] = None
+            recur(idx + 1, (True, j1), (True, j2), mult=mult)
+
+            if curr_l[0]: curr[1][curr_l[1]] = None
+            if curr_r[0]: curr[1][curr_r[1]] = None
+            for _ in range(pop_count): curr[0].pop()
+
+            # The left descending branch continues as the new left descending branch
+            
+            curr[0].append((j1, j2))
+            pop_count = 1
+
+            # The right descending branch connects to the upper outgoing branch
+            #if curr_r[0]:
+            #    curr[1][j1] = curr[1][curr_r[1]]
+            if curr_r[0]:
+                curr[1][curr_r[1]] = (True, j1)
+            curr[1][j1] = curr_r
+            recur(idx + 1, curr_l, (True, j2), mult=mult)
+            curr[1][j1] = None
+            if curr_r[0]: curr[1][curr_r[1]] = None
+            # The right descending branch continues as the new right descending branch
+            curr[1][j1] = (True, j2)
+            curr[1][j2] = (True, j1)
+            recur(idx + 1, curr_l, curr_r, mult=mult)
+            curr[1][j1] = None
+            curr[1][j2] = None
+
+            for _ in range(pop_count): curr[0].pop()
+
+            # The left descending branch connects to the lower outgoing branch
+
+            pop_count = 0
+            #if curr_l[0]:
+            #    curr[1][j2] = curr_l[1] + 1
+            curr[1][j2] = curr_l
+            if curr_l[0]:
+                curr[1][curr_l[1]] = (True, j2)
+
+            # The right descending branch connects to the upper outgoing branch
+            #if curr_r[0]:
+            #    curr[1][j1] = curr[1][curr_r[1]]
+            if curr_r[0]:
+                curr[1][curr_r[1]] = (True, j1)
+            curr[1][j1] = curr_r
+            recur(idx + 1, (False, j2), (False, j1), mult=mult)
+            curr[0].append((j1, j2))
+            pop_count += 1
+            recur(idx + 1, None, None, mult=mult)
+
+            if curr_l[0]: curr[1][curr_l[1]] = None
+            if curr_r[0]: curr[1][curr_r[1]] = None
+            curr[1][j1] = None
+            curr[1][j2] = None
+            for _ in range(pop_count): curr[0].pop()
+
+            return
+
+        recur(1, (False, 0), (True, 0), mult=1)
+        #print(incoming_branch_connections)
+        #print(res)
+        #curr[0][0] = [True, 0]
+        #curr[1][0] = [False, 0]
+        #nxt_mid[0] += 1
+        curr[1][0] = (False, 0)
+        recur(1, None, None, mult=1)
+        #print(incoming_branch_connections)
+        #print(res)
+        #nxt_mid[0] -= 1
+        return res
+
+    
+    layer_connections = calculateLayerConnections(n_rows)
+    print(f"number of pairings of the incoming branches = {len(layer_connections)}")
+    print(list(layer_connections.keys()))
+
+    #print(incoming_branch_connections)
+    print(states)
+    print(layer_connections)
+
     print("initial states:")
     print(states)
     print("frequencies:")
     print(poss_end_states_std)
     nxt_print = [10]
-    
+
     def getTransferOutEdges(state_idx: int) -> Dict[int, int]:
+        state0 = states[state_idx]
+        state0_mx = max(state0)
+        res = {}
+        for connect_pairs in layer_connections.keys():
+            print(connect_pairs)
+            #cp1, cp2 = connect_pairs, tuple(sorted(tuple(sorted(n_rows * 2 - x[0], n_rows * 2 - x[1])) for x in connect_pairs))
+            #it = [cp1] if cp1 == cp2 else [cp1, cp2]
+            cnt = 0
+            for cp in [connect_pairs]:
+                uf = UnionFind(2 * n_rows)
+                for pair in cp:
+                    num1, num2 = state0[pair[0]] - 1, state0[pair[1]] - 1
+                    if uf.connected(num1, num2):
+                        break
+                    uf.union(num1, num2)
+                else: cnt += 1
+            if not cnt: continue
+            #incoming_branch_map = {}
+
+            #to_break = False
+            #for idx1, idx2 in connect_pairs:
+            #    num1, num2 = state0[idx1] - 1, state0[idx2] - 1
+            #    if uf.connected(num1, num2):
+            #        to_break = True
+            #        break
+            #    uf.union(num1, num2)
+            #if to_break: break
+            
+            for out_branch_connects, freq in layer_connections[connect_pairs].items():
+                state = []
+                
+                for idx0, (b, idx) in enumerate(out_branch_connects):
+                    if not b:
+                        state.append(uf.find(state0[idx] - 1) + 1)
+                        continue
+                    if idx < idx0: state.append(state[idx])
+                    else: state.append(idx0 + state0_mx + 1)
+                    continue
+                state_idx = getStateIndex(tuple(state))
+                print(f"state0 = {state0}, incoming connect_pairs = {connect_pairs}, out_branch_connects = {out_branch_connects}, state = {state}")
+                res[state_idx] = res.get(state_idx, 0) + freq * cnt
+        print(f"for state_idx = {state_idx}, out edges = {res}")
+        return res
+
+    
+    def getTransferOutEdges0(state_idx: int) -> Dict[int, int]:
         state0 = states[state_idx]
         m = (len(state0)) >> 1
         t_dict = {}
@@ -6617,6 +7000,27 @@ def circleArrayEulerianNonCrossingCycleCount(
         return t_dict
         """
     
+    def createTransferAdj0(start_state_inds: List[int]) -> List[Dict[int, int]]:
+        
+        seen = set()
+        qu = deque()
+        adj = []
+        for idx in start_state_inds:
+            if idx in seen: continue
+            seen.add(idx)
+            qu.append(idx)
+        while qu:
+            idx = qu.popleft()
+            print(f"creating out edges for index {idx}, state {states[idx]}. Total number of states seen = {len(states)}")
+            adj += [{} for _ in range(idx - len(adj) + 1)]
+            #print(f"creating out edges for index {idx}, state {states[idx]}")
+            adj[idx] = getTransferOutEdges0(idx)
+            for idx2 in adj[idx].keys() - seen:
+                qu.append(idx2)
+                seen.add(idx2)
+            #print([(states[idx2], f) for idx2, f in adj[idx].items()])
+        return adj
+    
     def createTransferAdj(start_state_inds: List[int]) -> List[Dict[int, int]]:
         
         seen = set()
@@ -6639,6 +7043,7 @@ def circleArrayEulerianNonCrossingCycleCount(
         return adj
     
     state_adj = createTransferAdj(list(poss_end_states_std.keys()))
+    state_adj0 = createTransferAdj0(list(poss_end_states_std.keys()))
     n_states = len(states)
     print(f"finished creating state adjacency table")
     
@@ -6646,6 +7051,7 @@ def circleArrayEulerianNonCrossingCycleCount(
     print(f"number of distinct reachable states = {n_states}")
     print(states)
     print(state_adj)
+    print(state_adj0)
     def multiplyStateAdj(state_adj1: List[Dict[int, int]], state_adj2: List[Dict[int, int]]) -> List[Dict[int, int]]:
         res = [{} for _ in range(n_states)]
         for idx1 in range(n_states):
