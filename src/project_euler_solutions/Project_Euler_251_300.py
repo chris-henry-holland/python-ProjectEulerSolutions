@@ -6474,9 +6474,9 @@ def circleArrayEulerianNonCrossingCycleCount(
                 #branch_connects_l_idx = getIncomingBranchConnectionsIndex(curr[0])
                 branch_connects_l_tup = tuple(sorted([tuple(sorted(x)) for x in curr[0]]))
                 #state_r_idx = getStateIndex(curr[1])
-                print(curr[1])
+                #print(curr[1])
                 connects_l_tup = tuple(tuple(x) for x in curr[1])
-                #print(connects_l_tup)
+                print(branch_connects_l_tup, connects_l_tup, mult)
                 res.setdefault(branch_connects_l_tup, {})
                 res[branch_connects_l_tup][connects_l_tup] = res[branch_connects_l_tup].get(connects_l_tup, 0) + mult
 
@@ -6512,9 +6512,9 @@ def circleArrayEulerianNonCrossingCycleCount(
                     #branch_connects_l_idx = getIncomingBranchConnectionsIndex(curr[0])
                     branch_connects_l_tup = tuple(sorted([tuple(sorted(x)) for x in curr[0]]))
                     #state_r_idx = getStateIndex(curr[1])
-                    print(curr[1])
+                    #print(curr[1])
                     connects_l_tup = tuple(tuple(x) for x in curr[1])
-                    #print(connects_l_tup)
+                    print(branch_connects_l_tup, connects_l_tup, mult)
                     res.setdefault(branch_connects_l_tup, {})
                     res[branch_connects_l_tup][connects_l_tup] = res[branch_connects_l_tup].get(connects_l_tup, 0) + mult
                 curr[1][j1] = None
@@ -6543,6 +6543,7 @@ def circleArrayEulerianNonCrossingCycleCount(
                 # The right descending branch continues as the right descending branch
                 curr[1][j1] = (True, j2)
                 curr[1][j2] = (True, j1)
+                print("right descending continues")
                 recur(idx + 1, (False, j2), (False, j1), mult=mult)
                 curr[1][j1] = None
                 curr[1][j2] = None
@@ -6557,15 +6558,25 @@ def circleArrayEulerianNonCrossingCycleCount(
 
                 # The three cases:
                 #  1) the both descending branches continue
-                #  2) the descending branches connect to the incoming branches
-                #  3) the descending branches connect to the outgoing branches
+                #  2) the descending branches connect to the incoming branches with the outgoing branches connecting to each other
+                #  3) the descending branches connect to the outgoing branches with the incoming branches connecting to each other
                 curr[1][j1] = (True, j2)
                 curr[1][j2] = (True, j1)
                 recur(idx + 1, None, None, mult=mult * 3)
                 curr[1][j1] = None
                 curr[1][j2] = None
-                
+
+                # The descending branches connect to the incoming branches and the outgoing branches connect to the new descending branches
+                #recur(idx + 1, (True, j1), (True, j2), mult=mult)
                 curr[0].pop()
+                
+                # The descending branches connect to the outgoing branches and the incoming branches connect to the new descending branches
+                curr[1][j1] = (True, j2)
+                curr[1][j2] = (True, j1)
+                recur(idx + 1, (False, j2), (False, j1), mult=mult)
+                curr[1][j1] = None
+                curr[1][j2] = None
+                
 
                 return
             
@@ -6633,7 +6644,7 @@ def circleArrayEulerianNonCrossingCycleCount(
             curr[1][j2] = (False, j2)
             recur(idx + 1, None, None, mult=mult)
             curr[1][j2] = None
-            recur(idx + 1, (False, j1), (True, j2), mult=mult)
+            recur(idx + 1, (False, j2), (True, j2), mult=mult)
             #curr[1][j1] = None
             # The right descending branch continues as the new right descending branch
             if curr_r[0]: curr[1][curr_r[1]] = None
@@ -6645,7 +6656,7 @@ def circleArrayEulerianNonCrossingCycleCount(
             if curr_r[0]:
                 curr[1][curr_r[1]] = (False, j2)
             else:
-                curr[0].append((curr_l[1], j2))
+                curr[0].append((curr_r[1], j2))
                 pop_count += 1
             recur(idx + 1, None, None, mult=mult)
             curr[1][j1] = None
@@ -6727,7 +6738,8 @@ def circleArrayEulerianNonCrossingCycleCount(
 
     #print(incoming_branch_connections)
     print(states)
-    print(layer_connections)
+    for k, v in layer_connections.items():
+        print(f"{k}: {v}")
 
     print("initial states:")
     print(states)
@@ -7043,7 +7055,7 @@ def circleArrayEulerianNonCrossingCycleCount(
         return adj
     
     state_adj = createTransferAdj(list(poss_end_states_std.keys()))
-    state_adj0 = createTransferAdj0(list(poss_end_states_std.keys()))
+    #state_adj0 = createTransferAdj0(list(poss_end_states_std.keys()))
     n_states = len(states)
     print(f"finished creating state adjacency table")
     
@@ -7051,7 +7063,7 @@ def circleArrayEulerianNonCrossingCycleCount(
     print(f"number of distinct reachable states = {n_states}")
     print(states)
     print(state_adj)
-    print(state_adj0)
+    #print(state_adj0)
     def multiplyStateAdj(state_adj1: List[Dict[int, int]], state_adj2: List[Dict[int, int]]) -> List[Dict[int, int]]:
         res = [{} for _ in range(n_states)]
         for idx1 in range(n_states):
@@ -8032,7 +8044,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = circleArrayEulerianNonCrossingCycleCount(
             n_rows=3,
             n_cols=2,
-            res_md=10 ** 10,
+            res_md=None,#10 ** 10,
         )
         print(f"Solution to Project Euler #289 = {res}, calculated in {time.time() - since:.4f} seconds")
 
