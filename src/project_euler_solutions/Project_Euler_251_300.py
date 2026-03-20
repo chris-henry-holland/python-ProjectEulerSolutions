@@ -6330,6 +6330,128 @@ def squareModSeriesFactorialPrimeFactorCount(
     return res
 
 # Problem 289
+def circleArrayEulerianNonCrossingCycleCountBruteForce(
+    n_rows: int=6,
+    n_cols: int=10,
+    res_md: Optional[int]=10 ** 10,
+) -> int:
+    if n_rows == 1 and n_cols == 1: return 1
+    connect_combs_interior = [
+        (1, 0, 3, 2, 5, 4, 7, 6),
+        (1, 0, 3, 2, 7, 6, 5, 4),
+        (1, 0, 5, 4, 3, 2, 7, 6),
+        (1, 0, 7, 4, 3, 6, 5, 2),
+        (1, 0, 7, 6, 5, 4, 3, 2),
+        (3, 2, 1, 0, 5, 4, 7, 6),
+        (3, 2, 1, 0, 7, 6, 5, 4),
+        (5, 2, 1, 4, 3, 0, 7, 6),
+        (5, 4, 3, 2, 1, 0, 7, 6),
+        (7, 2, 1, 4, 3, 6, 5, 0),
+        (7, 2, 1, 6, 5, 4, 3, 0),
+        (7, 4, 3, 2, 1, 6, 5, 0),
+        (7, 6, 3, 2, 5, 4, 1, 0),
+        (7, 6, 5, 4, 3, 2, 1, 0),
+    ]
+    connect_combs_left = [
+        (None, 4, None, None, 1, None, 7, 6),
+        (None, 7, None, None, 6, None, 4, 1),
+    ]
+    connect_combs_upper = [
+        (None, None, 4, None, 2, 7, None, 5),
+        (None, None, 7, None, 5, 4, None, 2),
+    ]
+    connect_combs_right = [
+        (2, None, 0, 5, None, 3, None, None),
+        (5, None, 3, 2, None, 0, None, None),
+    ]
+    connect_combs_bottom = [
+        (1, 0, None, 6, None, None, 3, None),
+        (6, 3, None, 1, None, None, 0, None),
+    ]
+    connect_combs_ul = [(None, None, None, None, 7, None, None, 4)]
+    connect_combs_ur = [(None, None, 5, None, None, 2, None, None)]
+    connect_combs_bl = [(None, 6, None, None, None, None, 1, None)]
+    connect_combs_br = [(3, None, None, 0, None, None, None, None)]
+    links = [[(-1, 0), 5], [(-1, 0), 4], [(0, -1), 7], [(0, -1), 6], [(1, 0), 1], [(1, 0), 0], [(0, 1), 3], [(0, 1), 2]]
+
+    n_circles = n_rows * n_cols
+    n_edges = n_circles * 4
+
+    def isNonCrossingEulerianCircuit(arr: List[List[int]]) -> bool:
+        
+
+        cnt = 0
+        start = [(0, 0), 7]
+        nextEdge = lambda curr: [tuple(x + y for x, y in zip(curr[0], links[curr[1]][0])), links[curr[1]][1]]
+
+        curr = start
+        cnt = 0
+        nxt_lst = []
+        #seen = set()
+        first = True
+        while first or curr != start:
+            first = False
+            #if tuple(curr) in seen:
+            #    break
+            #seen.add(tuple(curr))
+            curr = nextEdge(curr)
+            if not curr[0][0]:
+                if not curr[0][1]:
+                    nxt_lst = connect_combs_ul
+                elif curr[0][1] == n_rows:
+                    nxt_lst = connect_combs_ur
+                else: nxt_lst = connect_combs_upper
+            elif curr[0][0] == n_cols:
+                if not curr[0][1]:
+                    nxt_lst = connect_combs_bl
+                elif curr[0][1] == n_rows:
+                    nxt_lst = connect_combs_br
+                else: nxt_lst = connect_combs_bottom
+            else:
+                if not curr[0][1]:
+                    nxt_lst = connect_combs_left
+                elif curr[0][1] == n_rows:
+                    nxt_lst = connect_combs_right
+                else: nxt_lst = connect_combs_interior
+            #print(curr, nxt_lst)
+            #print(arr[curr[0][0]][curr[0][1]])
+            curr[1] = nxt_lst[arr[curr[0][0]][curr[0][1]]][curr[1]]
+            cnt += 1
+        #print(arr, cnt, n_edges)
+        return cnt == n_edges
+        
+
+    curr = [[0] * (n_rows + 1) for _ in range(n_cols + 1)]
+    res = [0]
+
+    def recur(i1: int, i2: int) -> None:
+        if i2 == n_rows + 1:
+            if i1 == n_cols:
+                if isNonCrossingEulerianCircuit(curr):
+                    res[0] += 1
+                    if res_md is not None: res[0] %= res_md
+                    print(f"found solution, current count = {res[0]}")
+                return
+            i1 += 1
+            i2 = 0
+        #print(i1, i2)
+        is_at_vertical_edge = (i1 == 0 or i1 == n_cols)
+        is_at_horizontal_edge = (i2 == 0 or i2 == n_rows)
+        #n_opts = 0
+        #print(f"({i1}, {i2}), at vertical edge = {is_at_vertical_edge}, at horizontal edge = {is_at_horizontal_edge}")
+        #if is_at_horizontal_edge or is_at_vertical_edge:
+        n_opts = 3 - (is_at_horizontal_edge + is_at_vertical_edge)
+        if n_opts == 3: n_opts = len(connect_combs_interior)
+        for j in range(n_opts):
+            curr[i1][i2] = j
+            recur(i1, i2 + 1)
+        return
+
+
+    recur(0, 0)
+    return res[0]
+        
+
 class UnionFind:
     def __init__(self, n: int):
         self.n = n
@@ -8041,9 +8163,9 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 289 in eval_nums:
         since = time.time()
-        res = circleArrayEulerianNonCrossingCycleCount(
+        res = circleArrayEulerianNonCrossingCycleCountBruteForce(
             n_rows=3,
-            n_cols=2,
+            n_cols=3,
             res_md=None,#10 ** 10,
         )
         print(f"Solution to Project Euler #289 = {res}, calculated in {time.time() - since:.4f} seconds")
