@@ -4938,6 +4938,35 @@ def calculateCoprimePrimeOsculatorSum(p_max: int=10 ** 7 - 1, base: int=10) -> i
         res += calculateOsculator(p, base=base)
     return res
 
+# Problem 275
+def countBalancedPolyominoSculptures(
+    n_tiles: int=18,
+) -> int:
+
+    curr = {0: {((0, True, 0),)}}
+
+    def centreOfMassXCanBeZero(state: Iterable[Tuple[int, bool, int]], curr_com_x: int, tiles_remain: int) -> int:
+        if not curr_com_x: return True
+        idx = 2 * (curr_com_x > 0)
+        curr_max_extent = max(x.bit_length() for x in state)
+        reach = curr_max_extent * tiles_remain + ((tiles_remain * (tiles_remain + 1))) >> 1
+        return reach <= abs(curr_com_x)
+    
+    def getStandardisedState(state: Iterable[Tuple[int, bool, int]], curr_com_x: int) -> Tuple[Iterable[Tuple[int, bool, int]], int]:
+        if curr_com_x > 0: return (state, curr_com_x)
+        state2 = [tuple(x[::-1]) for x in state]
+        if curr_com_x < 0: return (state2, -curr_com_x)
+        return (min(state, state2), 0)
+
+    
+    n_tiles_remain = n_tiles - 1
+    for n_tiles in range(2, n_tiles + 1):
+        n_tiles_remain -= 1
+        prev = curr
+        curr = {}
+
+    return sum(len(x) for x in curr.values())
+
 # Problem 276
 def countPrimitiveTriangles(perim_max: int=10 ** 7) -> int:
     """
@@ -6487,14 +6516,15 @@ def circleArrayEulerianNonCrossingCycleCount(
     Solution to Project Euler #289
     """
     # Adapted from solution to Project Euler #237
+    # Review- Consider sharing on Project Euler forum
 
     # Known:
     # (1, m): 1 << (m - 1)
     # (2, m): 2, 37, 672, 12182, 220792,
     # (3, m): 4, 672, 104290
 
-    #if n_rows > n_cols:
-    #    n_rows, n_cols = n_cols, n_rows
+    if n_rows > n_cols:
+        n_rows, n_cols = n_cols, n_rows
 
     
 
@@ -8199,7 +8229,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 289 in eval_nums:
         since = time.time()
         res = circleArrayEulerianNonCrossingCycleCount(
-            n_rows=6,
+            n_rows=7,
             n_cols=10,
             res_md=10 ** 10,
         )
