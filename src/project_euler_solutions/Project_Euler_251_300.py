@@ -4943,30 +4943,94 @@ def countBalancedPolyominoSculptures(
     n_tiles: int=18,
 ) -> int:
 
-    curr = {0: {((0, True, 0),)}}
+    ref_state = ((1, 1), (3, 3), (0, 2))
 
-    def centreOfMassXCanBeZero(state: Iterable[Tuple[int, bool, int]], curr_com_x: int, tiles_remain: int) -> int:
+    curr = {0: {((1, 1),)}}
+
+    def centreOfMassXCanBeZero(state: Iterable[Tuple[int, int]], curr_com_x: int, tiles_remain: int) -> int:
+        #print(f"using centreOfMassXCanBeZero() with state = {state}, curr_com_x = {curr_com_x}, tiles_remain = {tiles_remain}")
         if not curr_com_x: return True
-        idx = 2 * (curr_com_x > 0)
-        curr_max_extent = max(x.bit_length() for x in state)
+        idx = (curr_com_x > 0)
+        curr_max_extent = max(x[idx].bit_length() - 1 for x in state)
         reach = curr_max_extent * tiles_remain + ((tiles_remain * (tiles_remain + 1))) >> 1
-        return reach <= abs(curr_com_x)
+        #print(f"reach = {reach}")
+        return reach >= abs(curr_com_x)
     
-    def getStandardisedState(state: Iterable[Tuple[int, bool, int]], curr_com_x: int) -> Tuple[Iterable[Tuple[int, bool, int]], int]:
+    def getStandardisedState(state: Iterable[Tuple[int, int]], curr_com_x: int) -> Tuple[Iterable[Tuple[int, int]], int]:
         if curr_com_x > 0: return (state, curr_com_x)
         state2 = [tuple(x[::-1]) for x in state]
         if curr_com_x < 0: return (state2, -curr_com_x)
         return (min(state, state2), 0)
 
+    def calculateNextMoves(bm_lst: Iterable[int]) -> Dict[int, List[int]]:
+        incl_locs = {}
+        for i1, bm in enumerate(bm_lst):
+            if not bm: continue
+            incl_locs.setdefault(i1, set())
+            bm2 = bm
+            for i2 in range(bm.bit_length()):
+                if bm2 & 1:
+                    incl_locs[i1].add(i2)
+                    if bm2 == 1: break
+                bm2 >>= 1
+        #print(incl_locs)
+        seen_locs = {}
+        for i1, i2_set in incl_locs.items():
+            for i2 in i2_set:
+                for j, p in enumerate([(i1 + 1, i2), (i1, i2 + 1), (i1 - 1, i2), (i1, i2 - 1)]):
+                    if p[0] >= 0 and p[1] >= 0:
+                        #seen_locs.setdefault(i1 - 1, {})
+                        if p[1] in incl_locs.get(p[0], set()): continue
+                        seen_locs.setdefault(p[0], {})
+                        seen_locs[p[0]].setdefault(p[1], [])
+                        seen_locs[p[0]][p[1]].append(j)
+        #if state == ref_state: print(seen_locs)
+        res = {}
+        for i1, i2_dict in seen_locs.items():
+            res[i1] = set()
+            for i2, src_lst in i2_dict.items():
+                #if len(src_lst) > 1 and src_lst != [0, 1]:
+                #    continue
+                res[i1].add(i2)
+            if not res[i1]:
+                res.pop(i1)
+                continue
+            #print(res)
+            res[i1] = sorted(res[i1])
+        return res
+
     
     n_tiles_remain = n_tiles - 1
     for n_tiles in range(2, n_tiles + 1):
+        print(f"calculating for {n_tiles} tiles, number of starting states = {sum(len(x) for x in curr.values())}")
         n_tiles_remain -= 1
         prev = curr
         curr = {}
-
-    return sum(len(x) for x in curr.values())
-
+        for com_x0, state_set in prev.items():
+            #print(state_set)
+            for state0 in state_set:
+                #states = [state0] if com_x0 else [state0, [tuple(x[::-1]) for x in state0]]
+                for state, com_x in [(state0, com_x0), ([tuple(x[::-1]) for x in state0], -com_x0)]:
+                    #if state == ref_state: print(f"state = {state}")
+                    for i1, i2_lst in calculateNextMoves([x[0] for x in state]).items():
+                        #print(i1, i2_lst)
+                        for i2 in i2_lst:
+                            com_x2 = com_x - i2
+                            state2 = list(state)
+                            if i1 == len(state2): state2.append((0, 0))
+                            bm2 = (1 << i2)
+                            state2[i1] = (state2[i1][0] | bm2, state2[i1][1] | (0 if i2 else bm2))
+                            #if state == ref_state: print(f"possible new state = {state2}")
+                            if not centreOfMassXCanBeZero(state2, com_x2, n_tiles_remain):
+                                #if state == ref_state: print(f"centre of mass cannot be zero")
+                                continue#break
+                            state2, com_x2 = getStandardisedState(state2, com_x2)
+                            curr.setdefault(com_x2, set())
+                            curr[com_x2].add(tuple(state2))
+        #print(n_tiles, n_tiles_remain, curr)
+        #print(max(curr.keys()))
+        print(f"solution for {n_tiles} tiles = {len(curr[0])}")
+    return len(curr[0])
 # Problem 276
 def countPrimitiveTriangles(perim_max: int=10 ** 7) -> int:
     """
@@ -8136,6 +8200,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateCoprimePrimeOsculatorSum(p_max=10 ** 7 - 1, base=10)
         print(f"Solution to Project Euler #274 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 275 in eval_nums:
+        since = time.time()
+        res = countBalancedPolyominoSculptures(n_tiles=18)
+        print(f"Solution to Project Euler #275 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 276 in eval_nums:
         since = time.time()
         res = countPrimitiveTriangles(perim_max=10 ** 7)
@@ -8286,7 +8355,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {289}
+    eval_nums = {275}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
