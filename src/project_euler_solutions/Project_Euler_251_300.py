@@ -4942,17 +4942,74 @@ def calculateCoprimePrimeOsculatorSum(p_max: int=10 ** 7 - 1, base: int=10) -> i
 def countBalancedPolyominoSculptures(
     n_tiles: int=18,
 ) -> int:
+    """
+    Solution to Project Euler #275
+    """
+    # Review- try to make faster
+    def centreOfMassXCanBeZero(x_rng: Tuple[int, int], curr_com_x: int, tiles_remain: int) -> bool:
+        #print(f"using centreOfMassXCanBeZero() with state = {state}, curr_com_x = {curr_com_x}, tiles_remain = {tiles_remain}")
+        if not curr_com_x: return True
+        if curr_com_x < 0:
+            mx = curr_com_x + x_rng[1] * tiles_remain + ((tiles_remain * (tiles_remain + 1)) >> 1)
+            return mx >= 0
+        mn = curr_com_x + x_rng[0] * tiles_remain - ((tiles_remain * (tiles_remain + 1)) >> 1)
+        return mn <= 0
+
+    # Using Redelmeier's algorithm
+
+    #untried = {(0, 0)}
+    curr_incl_or_neighbour = {(0, 0)}
+    tot = [0]
+    tot_sym = [0]
+
+    def recur(tiles_remain: int, curr_com_x: int, x_rng: Tuple[int, int], n_zero: int, untried: Set[int]) -> None:
+        #print(tiles_remain, curr_com_x, x_rng, n_zero, untried, curr_incl_or_neighbour)
+        if not x_rng[0] and n_tiles == 2 * tiles_remain + n_zero:
+            #print("found symmetric")
+            tot_sym[0] += 1
+        if not tiles_remain:
+            #if not curr_com_x: print("found")
+            tot[0] += not curr_com_x
+            return
+        elif not centreOfMassXCanBeZero(x_rng, curr_com_x, tiles_remain): return
+        untried2 = set(untried)
+        for p in untried:
+            untried2.remove(p)
+            new_neighbours = set()
+            for p2 in [(p[0] - 1, p[1]), (p[0], p[1] - 1), (p[0] + 1, p[1]), (p[0], p[1] + 1)]:
+                if p2[1] < 0 or p2 in curr_incl_or_neighbour: continue
+                new_neighbours.add(p2)
+                curr_incl_or_neighbour.add(p2)
+                untried2.add(p2)
+            #print(f"adding {p}")
+            if n_tiles - tiles_remain < 5:
+                print(f"placing tile {n_tiles - tiles_remain + 1} at {p}")
+            recur(tiles_remain - 1, curr_com_x + p[0], (min(x_rng[0], p[0]), max(x_rng[1], p[0])), n_zero + (not p[0]), untried2)
+            for p2 in new_neighbours:
+                curr_incl_or_neighbour.remove(p2)
+                untried2.remove(p2)
+            #print(f"removing {p}")
+        return
+        
+
+    recur(n_tiles, 0, (0, 0), 0, {(0, 0)})
+    print(tot[0], tot_sym[0])
+    return (tot[0] + tot_sym[0]) >> 1
+"""
+def countBalancedPolyominoSculptures(
+    n_tiles: int=18,
+) -> int:
 
     ref_state = ((1, 1), (3, 3), (0, 2))
 
     curr = {0: {((1, 1),)}}
 
-    def centreOfMassXCanBeZero(state: Iterable[Tuple[int, int]], curr_com_x: int, tiles_remain: int) -> int:
+    def centreOfMassXCanBeZero(state: Iterable[Tuple[int, int]], curr_com_x: int, tiles_remain: int) -> bool:
         #print(f"using centreOfMassXCanBeZero() with state = {state}, curr_com_x = {curr_com_x}, tiles_remain = {tiles_remain}")
         if not curr_com_x: return True
         idx = (curr_com_x > 0)
         curr_max_extent = max(x[idx].bit_length() - 1 for x in state)
-        reach = curr_max_extent * tiles_remain + ((tiles_remain * (tiles_remain + 1))) >> 1
+        reach = curr_max_extent * tiles_remain + ((tiles_remain * (tiles_remain + 1)) >> 1)
         #print(f"reach = {reach}")
         return reach >= abs(curr_com_x)
     
@@ -5021,9 +5078,9 @@ def countBalancedPolyominoSculptures(
                             bm2 = (1 << i2)
                             state2[i1] = (state2[i1][0] | bm2, state2[i1][1] | (0 if i2 else bm2))
                             #if state == ref_state: print(f"possible new state = {state2}")
-                            if not centreOfMassXCanBeZero(state2, com_x2, n_tiles_remain):
-                                #if state == ref_state: print(f"centre of mass cannot be zero")
-                                continue#break
+                            #if not centreOfMassXCanBeZero(state2, com_x2, n_tiles_remain):
+                            #    #if state == ref_state: print(f"centre of mass cannot be zero")
+                            #    continue#break
                             state2, com_x2 = getStandardisedState(state2, com_x2)
                             curr.setdefault(com_x2, set())
                             curr[com_x2].add(tuple(state2))
@@ -5031,6 +5088,8 @@ def countBalancedPolyominoSculptures(
         #print(max(curr.keys()))
         print(f"solution for {n_tiles} tiles = {len(curr[0])}")
     return len(curr[0])
+"""
+    
 # Problem 276
 def countPrimitiveTriangles(perim_max: int=10 ** 7) -> int:
     """
