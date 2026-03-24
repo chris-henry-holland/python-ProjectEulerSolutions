@@ -6046,11 +6046,34 @@ def brahmaguptaHeronianTriangleGenerator(m_max: int) -> Generator[Tuple[Tuple[in
                 r = CustomFraction(k * (m * n - k * k), 2 * g)
                 yield ((m, n, k), (a, b, c), g, r)
 
+def heronianTrianglesWithGivenAreaPerimeterRatio(
+    area_perimeter_ratio: int,
+) -> List[Tuple[int, int, int]]:
+    r_sq = area_perimeter_ratio ** 2
+    res = []
+    for x in range(1, 12 * r_sq + 1):
+        for y in range(max(x, ((4 * r_sq) // x) + 1), ((12 * r_sq) // x) + 1):
+            numer = 4 * (x + y) * r_sq
+            denom = x * y - 4 * r_sq
+            z, rem = divmod(numer, denom)
+            if z < y: break
+            if rem: continue
+            #print(x, y, z)
+            res.append(tuple(sorted([y + z, x + z, x + y])))
+    return res
+
 def heronianTrianglesWithIntegerAreaPerimeterRatioPerimeterSum(
     area_perimeter_ratio_max: int=1000,
 ) -> int:
     """
     Solution to Project Euler #283
+    """
+    res = 0
+    for ratio in range(1, area_perimeter_ratio_max + 1):
+        triangles = heronianTrianglesWithGivenAreaPerimeterRatio(ratio)
+        print(f"ratio = {ratio}, number of triangles = {len(triangles)}")
+        res += sum(sum(x) for x in triangles)
+    return res
     """
     cnts = {}
     for r in range(1, area_perimeter_ratio_max + 1):
@@ -6064,7 +6087,7 @@ def heronianTrianglesWithIntegerAreaPerimeterRatioPerimeterSum(
                     print((r, m, n), (4 * r_sq * (m + n)), (m * n - 4 * r_sq))
     print(cnts)
     return 0
-
+    """
     """
     # Using Brahmagupta's parametric equation
     res = 0
@@ -8309,7 +8332,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 283 in eval_nums:
         since = time.time()
         res = heronianTrianglesWithIntegerAreaPerimeterRatioPerimeterSum(
-            area_perimeter_ratio_max=2,
+            area_perimeter_ratio_max=1000,
         )
         print(f"Solution to Project Euler #283 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -8414,7 +8437,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {275}
+    eval_nums = {283}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
