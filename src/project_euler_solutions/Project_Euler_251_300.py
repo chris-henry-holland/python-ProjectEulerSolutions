@@ -6049,6 +6049,8 @@ def brahmaguptaHeronianTriangleGenerator(m_max: int) -> Generator[Tuple[Tuple[in
 def heronianTrianglesWithGivenAreaPerimeterRatio(
     area_perimeter_ratio: int,
 ) -> List[Tuple[int, int, int]]:
+    # Review- try to make faster (look into Markov paper "Heronian triangles
+    # whose areas are integer multiples of their perimeters")
     r_sq = area_perimeter_ratio ** 2
     res = []
     for x in range(1, 12 * r_sq + 1):
