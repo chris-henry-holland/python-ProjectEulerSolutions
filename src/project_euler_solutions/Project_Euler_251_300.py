@@ -7894,6 +7894,24 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
 
     return 0
 
+def isMultipleOfAndHasDigitSumEqualTo23Count(
+    max_n_dig: int=11 ** 12,
+    res_md: Optional[int]=10 ** 9,
+) -> int:
+    n = 23
+    base = 10
+    md_mapping = [-1] * n
+    for num in range(n):
+        num2 = (num * base) % n
+        md_mapping[num] = num2
+    print(md_mapping)
+
+    nonzero_cycle_len = 22
+
+
+    #def 
+    return 0
+
 # Problem 297
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
     """
@@ -8414,10 +8432,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 294 in eval_nums:
         since = time.time()
-        res = isMultipleOfAndHasDigitSumEqualToNCount(
-            n=21,
+        res = isMultipleOfAndHasDigitSumEqualTo23Count(
             max_n_dig=9,
-            base=10,
             res_md=10 ** 9,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -8439,7 +8455,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {283}
+    eval_nums = {294}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
