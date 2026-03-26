@@ -7894,6 +7894,12 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
 
     return 0
 
+def isMultipleOfAndHasDigitSumEqualTo23CountDigitDP(
+    max_n_dig: int=11 ** 12,
+    res_md: Optional[int]=10 ** 9,
+) -> int:
+    pass
+
 def isMultipleOfAndHasDigitSumEqualTo23Count(
     max_n_dig: int=11 ** 12,
     res_md: Optional[int]=10 ** 9,
@@ -7908,9 +7914,47 @@ def isMultipleOfAndHasDigitSumEqualTo23Count(
 
     nonzero_cycle_len = 22
 
+    addMod = (lambda a, b: a + b) if res_md is None else (lambda a, b: (a + b) % res_md)
+    multMod = (lambda a, b: a * b) if res_md is None else (lambda a, b: (a * b) % res_md)
+    sumMod = (lambda lst: sum(lst)) if res_md is None else (lambda lst: sum(lst) % res_md)
 
-    #def 
-    return 0
+    curr_states = [{} for _ in range(n + 1)]
+    curr_states[n] = {0: {0: 1}}
+    curr_mults = list(range(base))
+    cnt_sm = 0
+    for i in range(min(n, max_n_dig)):
+        n_opts = (max_n_dig - i - 1) // (nonzero_cycle_len + 1) + 1
+        print(i, n_opts)
+        cnt_sm += n_opts
+        if res_md is not None: n_opts %= res_md
+        for d in range(1, base):
+            mul = curr_mults[d]
+            for dig_sm_rem in range(d, n + 1):
+                f_mx = min(dig_sm_rem // d, n_opts)
+                for f in range(1, f_mx + 1):
+                    dig_sm_rem2 = dig_sm_rem - f * d
+                    for r, occ_dict in curr_states[dig_sm_rem].items():
+                        r2 = (r + mul * f) % n
+                        for n_occ, cnt in occ_dict.items():
+                            n_occ2 = n_occ + f
+                            if n_occ2 > n_opts: continue
+                            curr_states[dig_sm_rem2].setdefault(r2, {})
+                            curr_states[dig_sm_rem2][r2][n_occ2] = addMod(curr_states[dig_sm_rem2][r2].get(n_occ2, 0), multMod(cnt, math.comb(n_opts - n_occ, f)))
+
+                #dig_sm_rem2 = dig_sm_rem - d
+                #for r, f in curr_states[dig_sm_rem].items():
+                #    r2 = (r + mul) % n
+                #    curr_states[dig_sm_rem2][r2] = addMod(curr_states[dig_sm_rem2].get(r2, 0), multMod(cnt, f))
+        for j in range(n + 1):
+            curr_states[j] = {x: {0: sumMod(y.values())} for x, y in curr_states[j].items()}
+        if i < 5:
+            print(curr_states)
+
+        curr_mults = [md_mapping[x] for x in curr_mults]
+    print(f"max_n_dig = {max_n_dig}, count sum = {cnt_sm}")
+    res = curr_states[0].get(0, {}).get(0, 0)
+    if res_md is not None: res %= res_md
+    return res
 
 # Problem 297
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
@@ -8433,8 +8477,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 294 in eval_nums:
         since = time.time()
         res = isMultipleOfAndHasDigitSumEqualTo23Count(
-            max_n_dig=9,
-            res_md=10 ** 9,
+            max_n_dig=42,
+            res_md=None,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
 
