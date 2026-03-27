@@ -7854,6 +7854,59 @@ def pseudoFortunateNumberSum(n_max: int=10 ** 9 - 1) -> int:
     return sum(res)
 
 # Problem 294
+def isMultipleOfAndHasDigitSumEqualToNCountDigitDP(
+    n: int=23,
+    max_n_dig: int=11 ** 12,
+    base: int=10,
+    res_md: Optional[int]=10 ** 9,
+) -> int:
+    md_mapping = [-1] * n
+    for num in range(n):
+        num2 = (num * base) % n
+        md_mapping[num] = num2
+    
+    md_mapping_binary_lift = [md_mapping]
+    m2 = max_n_dig
+    while m2 > 1:
+        m2 >>= 1
+        md_mapping_binary_lift.append([md_mapping_binary_lift[-1][x] for x in md_mapping_binary_lift[-1]])
+    
+    def getDigitMultipliedByBasePowerMod(d: int, exp: int) -> int:
+        d %= n
+        if not exp: return d
+        exp2 = exp
+        res = d
+        for i in itertools.count(0):
+            if exp2 & 1:
+                res = md_mapping_binary_lift[i][res]
+                if exp2 == 1: break
+            exp2 >>= 1
+        return res
+
+    addMod = (lambda a, b: a + b) if res_md is None else (lambda a, b: (a + b) % res_md)
+    
+    memo = {}
+    def recur(idx: int, remain: int, curr_md: int) -> int:
+        if not remain:
+            return not curr_md
+        elif idx == max_n_dig - 1:
+            if remain >= base: return 0
+            d = remain
+            d_contrib = getDigitMultipliedByBasePowerMod(d, idx)
+            return not ((curr_md + d_contrib) % n)
+        
+        args = (idx, remain, curr_md)
+        if args in memo.keys(): return memo[args]
+        res = 0
+        for d in range(min(base, remain + 1)):
+            d_contrib = getDigitMultipliedByBasePowerMod(d, idx)
+            res = addMod(res, recur(idx + 1, remain - d, ((curr_md + d_contrib) % n)))
+        memo[args] = res
+        return res
+    
+    res = recur(0, n, 0)
+    return res
+
 def isMultipleOfAndHasDigitSumEqualToNCount(
     n: int=23,
     max_n_dig: int=11 ** 12,
@@ -7867,7 +7920,7 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
         num2 = (num * base) % n
         md_mapping[num] = num2
         md_mapping_sources.discard(num2)
-    print(md_mapping_sources)
+    #print(md_mapping_sources)
     md_num_locations = {}
     remain = set(range(n))
     md_paths = []
@@ -7890,15 +7943,140 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
             md_path.append(num)
             num = (num * base) % n
         md_paths.append((md_path, md_num_locations[num]))
-    print(md_paths)
+    #print(md_paths)
+    cycle_starts = set()
+    cycle_len = 1
+    for i, (chain, insertion) in enumerate(md_paths):
+        if insertion[0] != i: continue
+        cycle_starts.add(chain[insertion[1]])
+        length = len(chain) - insertion[1]
+        cycle_len = lcm(cycle_len, length)
+    start_chain_len = 0
+    for i, (chain, _) in enumerate(md_paths):
+        num = chain[0]
+        for j in itertools.count(0):
+            if num in cycle_starts: break
+            num = md_mapping[num]
+        start_chain_len = max(start_chain_len, j)
+    print(f"start_chain_len = {start_chain_len}, cycle_len = {cycle_len}")
 
-    return 0
+    addMod = (lambda a, b: a + b) if res_md is None else (lambda a, b: (a + b) % res_md)
+    multMod = (lambda a, b: a * b) if res_md is None else (lambda a, b: (a * b) % res_md)
+    sumMod = (lambda lst: sum(lst)) if res_md is None else (lambda lst: sum(lst) % res_md)
+
+    curr_states = [{} for _ in range(n + 1)]
+    curr_states[n] = {0: {0: 1}}
+    curr_mults = list(range(min(n, base)))
+    #print(curr_mults)
+    for i in range(min(start_chain_len, max_n_dig)):
+        #print(i)
+        for dig_sm_rem in range(n + 1):
+            if not curr_states[dig_sm_rem]: continue
+            for d in range(1, min(base, dig_sm_rem + 1)):
+                d2 = d % n
+                mul = curr_mults[d2]
+                dig_sm_rem2 = dig_sm_rem - d
+                for r, occ_dict in curr_states[dig_sm_rem].items():
+                    r2 = (r + mul) % n
+                    curr_states[dig_sm_rem2].setdefault(r2, {})
+                    #if dig_sm_rem2 == 8 and r2 == 16:
+                    #    print(f"intermediary: {d}, {r}")
+                    #if not dig_sm_rem2 and not r2 and occ_dict.get(0, 0):
+                    #    print(f"solution found: {d}, {r}")
+                    curr_states[dig_sm_rem2][r2][0] = addMod(curr_states[dig_sm_rem2][r2].get(0, 0), occ_dict.get(0, 0))
+        #for j in range(n + 1):
+        #    curr_states[j] = {x: {0: sumMod(y.values())} for x, y in curr_states[j].items()}
+        #print(curr_states)
+        curr_mults = [md_mapping[x] for x in curr_mults]
+        #print(curr_mults)
+    
+    cnt_sm = 0
+    n_opts_lst = []
+    for i0 in range(start_chain_len, min(cycle_len + start_chain_len, max_n_dig)):
+        n_opts = (max_n_dig - i0 - 1) // cycle_len + 1
+        i = i0 % cycle_len
+        #print(i0, i, n_opts)
+        n_opts_lst.append(n_opts)
+        cnt_sm += n_opts
+        #if res_md is not None: n_opts %= res_md
+        for d in range(1, base):
+            d2 = d % n
+            mul = curr_mults[d2]
+            for dig_sm_rem in range(d, n + 1):
+                f_mx = min(dig_sm_rem // d, n_opts)
+                for f in range(1, f_mx + 1):
+                    dig_sm_rem2 = dig_sm_rem - f * d
+                    for r, occ_dict in curr_states[dig_sm_rem].items():
+                        r2 = (r + mul * f) % n
+                        for n_occ, cnt in occ_dict.items():
+                            n_occ2 = n_occ + f
+                            if n_occ2 > n_opts: continue
+                            curr_states[dig_sm_rem2].setdefault(r2, {})
+                            curr_states[dig_sm_rem2][r2][n_occ2] = addMod(curr_states[dig_sm_rem2][r2].get(n_occ2, 0), multMod(cnt, math.comb(n_opts - n_occ, f)))
+        for j in range(n + 1):
+            curr_states[j] = {x: {0: sumMod(y.values())} for x, y in curr_states[j].items()}
+        #if i < 5:
+        #    print(curr_states)
+
+        curr_mults = [md_mapping[x] for x in curr_mults]
+    #print(f"max_n_dig = {max_n_dig}, count sum = {cnt_sm}")
+    #print(n_opts_lst)
+    res = curr_states[0].get(0, {}).get(0, 0)
+    if res_md is not None: res %= res_md
+    return res
 
 def isMultipleOfAndHasDigitSumEqualTo23CountDigitDP(
     max_n_dig: int=11 ** 12,
     res_md: Optional[int]=10 ** 9,
 ) -> int:
-    pass
+    n = 23
+    base = 10
+    md_mapping = [-1] * n
+    for num in range(n):
+        num2 = (num * base) % n
+        md_mapping[num] = num2
+    
+    md_mapping_binary_lift = [md_mapping]
+    m2 = max_n_dig
+    while m2 > 1:
+        m2 >>= 1
+        md_mapping_binary_lift.append([md_mapping_binary_lift[-1][x] for x in md_mapping_binary_lift[-1]])
+    
+    def getDigitMultipliedByBasePowerMod(d: int, exp: int) -> int:
+        d %= n
+        if not exp: return d
+        exp2 = exp
+        res = d
+        for i in itertools.count(0):
+            if exp2 & 1:
+                res = md_mapping_binary_lift[i][res]
+                if exp2 == 1: break
+            exp2 >>= 1
+        return res
+
+    addMod = (lambda a, b: a + b) if res_md is None else (lambda a, b: (a + b) % res_md)
+    
+    memo = {}
+    def recur(idx: int, remain: int, curr_md: int) -> int:
+        if not remain:
+            return not curr_md
+        elif idx == max_n_dig - 1:
+            if remain >= base: return 0
+            d = remain
+            d_contrib = getDigitMultipliedByBasePowerMod(d, idx)
+            return not ((curr_md + d_contrib) % n)
+        
+        args = (idx, remain, curr_md)
+        if args in memo.keys(): return memo[args]
+        res = 0
+        for d in range(min(base, remain + 1)):
+            d_contrib = getDigitMultipliedByBasePowerMod(d, idx)
+            res = addMod(res, recur(idx + 1, remain - d, ((curr_md + d_contrib) % n)))
+        memo[args] = res
+        return res
+    
+    res = recur(0, n, 0)
+    return res
 
 def isMultipleOfAndHasDigitSumEqualTo23Count(
     max_n_dig: int=11 ** 12,
@@ -7909,10 +8087,11 @@ def isMultipleOfAndHasDigitSumEqualTo23Count(
     md_mapping = [-1] * n
     for num in range(n):
         num2 = (num * base) % n
+        #print(n, num)
         md_mapping[num] = num2
-    print(md_mapping)
+    #print(md_mapping)
 
-    nonzero_cycle_len = 22
+    #nonzero_cycle_len = 22
 
     addMod = (lambda a, b: a + b) if res_md is None else (lambda a, b: (a + b) % res_md)
     multMod = (lambda a, b: a * b) if res_md is None else (lambda a, b: (a * b) % res_md)
@@ -7920,15 +8099,18 @@ def isMultipleOfAndHasDigitSumEqualTo23Count(
 
     curr_states = [{} for _ in range(n + 1)]
     curr_states[n] = {0: {0: 1}}
-    curr_mults = list(range(base))
+    curr_mults = list(range(min(n, base)))
     cnt_sm = 0
-    for i in range(min(n, max_n_dig)):
-        n_opts = (max_n_dig - i - 1) // (nonzero_cycle_len + 1) + 1
-        print(i, n_opts)
+    n_opts_lst = []
+    for i in range(min(n - 1, max_n_dig)):
+        n_opts = (max_n_dig - i - 1) // (n - 1) + 1
+        #print(i, n_opts)
+        n_opts_lst.append(n_opts)
         cnt_sm += n_opts
-        if res_md is not None: n_opts %= res_md
+        #if res_md is not None: n_opts %= res_md
         for d in range(1, base):
-            mul = curr_mults[d]
+            d2 = d % n
+            mul = curr_mults[d2]
             for dig_sm_rem in range(d, n + 1):
                 f_mx = min(dig_sm_rem // d, n_opts)
                 for f in range(1, f_mx + 1):
@@ -7947,11 +8129,12 @@ def isMultipleOfAndHasDigitSumEqualTo23Count(
                 #    curr_states[dig_sm_rem2][r2] = addMod(curr_states[dig_sm_rem2].get(r2, 0), multMod(cnt, f))
         for j in range(n + 1):
             curr_states[j] = {x: {0: sumMod(y.values())} for x, y in curr_states[j].items()}
-        if i < 5:
-            print(curr_states)
+        #if i < 5:
+        #    print(curr_states)
 
         curr_mults = [md_mapping[x] for x in curr_mults]
-    print(f"max_n_dig = {max_n_dig}, count sum = {cnt_sm}")
+    #print(f"max_n_dig = {max_n_dig}, count sum = {cnt_sm}")
+    #print(n_opts_lst)
     res = curr_states[0].get(0, {}).get(0, 0)
     if res_md is not None: res %= res_md
     return res
@@ -8476,9 +8659,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 294 in eval_nums:
         since = time.time()
-        res = isMultipleOfAndHasDigitSumEqualTo23Count(
-            max_n_dig=42,
-            res_md=None,
+        res = isMultipleOfAndHasDigitSumEqualToNCount(
+            n=23,
+            max_n_dig=11 ** 12,
+            base=10,
+            res_md=10 ** 9,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -8503,86 +8688,11 @@ if __name__ == "__main__":
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
-for triangle_pts in trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
-    orthocentre_x=5,
-    perimeter_max=50,
-):
-    print(triangle_pts)
-"""
-#print(calculateDistinctPrimeCombinationsFrobeniusNumber([5, 7]))
-#print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 3, 5]))
-#print(calculateDistinctPrimeCombinationsFrobeniusNumber([2, 7, 11]))
-"""
-#print(countPizzaToppings(3, 1))
-n_rows = 5
-n_cols = 5
-start = (2, 2)
-n_sim = 10 ** 5
-res = antRandomWalkExpectedNumberOfStepsFloatDirect(
-    n_rows=n_rows,
-    n_cols=n_cols,
-    start=start,
-)
-#print(res)
-
-res2 = antRandomWalkExpectedNumberOfStepsSimulation(
-    n_rows=n_rows,
-    n_cols=n_cols,
-    start=start,
-    n_sim=n_sim,
-)
-print(res, res2)
-"""
-"""
-res = 0
-for x0_abs in range(1, 10 ** 5 + 1, 2):
-    r_sq = x0_abs ** 2
-    for x0 in (x0_abs, -x0_abs):
-        x = (5 - x0) >> 1
-        
-        y_sq = r_sq - x ** 2
-        if y_sq <= 0: continue
-        y = isqrt(y_sq)
-        if y ** 2 == y_sq:
-            perim = 2 * (y + math.sqrt((x - x0) ** 2 + y_sq))
-            res += perim
-            print(perim, (x0, 0), (x, y), (x, -y))
-print(f"perimeter sum = {res}")
-"""
-#trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentrePerimeterSum2(
-#    orthocentre=(5, 0),
-#    perimeter_max=10 ** 5,
-#)
-"""
-cnts = {}
-for tup in brahmaguptaHeronianTriangleGenerator(m_max=100):
-    mult = tup[-1].numerator
-    if mult > 2: continue
-    cnts[mult] = cnts.get(mult, 0) + 1
-    print(tup)
-print(cnts)
-"""
-#res = panaitopolPrimesBruteForce(1000)
-#print(res)
-"""
-n = 10
-mem_size = 5
-n_turns = 50
-n_sim = 10 ** 5
-
-res = memoryGameStrategyExpectedAbsoluteDifferenceFloat(
-    n=n,
-    mem_size=mem_size,
-    n_turns=n_turns,
-)
-print(f"for n = {n}, memory size = {mem_size}, n_turns = {n_turns}, calculated expected value = {res}")
-
-mean, stderr = memoryGameStrategyExpectedAbsoluteDifferenceSimulation(
-    n=n,
-    mem_size=mem_size,
-    n_turns=n_turns,
-    n_sim=n_sim,
-)
-
-print(f"performed {n_sim} simulation runs, sample mean = {mean}, standard error = {stderr}")
+n = 24
+base = 10
+res_md = None
+for max_n_dig in range(1, 51):
+    ans1 = isMultipleOfAndHasDigitSumEqualToNCount(n=n, max_n_dig=max_n_dig, base=base, res_md=res_md)
+    ans2 = isMultipleOfAndHasDigitSumEqualToNCountDigitDP(n=n, max_n_dig=max_n_dig, base=base, res_md=res_md)
+    print(max_n_dig, ans1, ans2, ans1 == ans2)
 """
