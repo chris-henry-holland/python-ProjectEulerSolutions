@@ -7913,7 +7913,9 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
     base: int=10,
     res_md: Optional[int]=10 ** 9,
 ) -> int:
-
+    """
+    Solution to Project Euler #294
+    """
     md_mapping = [-1] * n
     md_mapping_sources = set(range(n))
     for num in range(n):
@@ -8137,6 +8139,160 @@ def isMultipleOfAndHasDigitSumEqualTo23Count(
     #print(n_opts_lst)
     res = curr_states[0].get(0, {}).get(0, 0)
     if res_md is not None: res %= res_md
+    return res
+
+# Problem 295
+def calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDisplacements(
+    rad_sq: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> List[Tuple[int, int]]:
+    
+    def segmentContainsALatticePoint(p1: Tuple[int, int], p2: Tuple[int, int]) -> bool:
+        # Note that points along the straight edge of the segment (excluding
+        # the two end points) are consdered to be inside but points on the
+        # curved edge (including the two end points) are considered to be
+        # outside
+        
+        if abs(p1[0] - p2[0]) > abs(p1[1] - p2[1]):
+            p1 = (p1[1], p1[0])
+            p2 = (p2[1], p2[0])
+        p1, p2 = sorted([p1, p2])
+        v = [x - y for x, y in zip(p2, p1)]
+        #print(v, gcd(*v))
+        if abs(gcd(*v)) > 1:
+            return True
+        #print(p1, p2)
+        for x in range(p1[0] + 1, p2[0]):
+            y_mn = p1[1] + (((x - p1[0]) * v[1] - 1) // v[0]) + 1
+            y_mx = isqrt(rad_sq - x * x)
+            #print(x, (y_mn, y_mx))
+            if y_mn <= y_mx: return True
+        #print("does not contain a lattice point")
+        return False
+
+    pair_lst = sorted([tuple(sorted(x)) for x in sumOfTwoSquaresSolutionGenerator(rad_sq, ps=ps)])
+    if not pair_lst: return []
+    m = len(pair_lst)
+    #print(pair_lst)
+    res = []
+    i1 = 0
+    for i2 in range(1, m):
+        p2 = pair_lst[i2]
+        for i1 in range(i1, i2):
+            if not segmentContainsALatticePoint(pair_lst[i1], p2): break
+        else: i1 = i2
+        #print(i1, i2)
+        for i1_2 in range(i1, i2):
+            #print(1, p2, pair_lst[i1_2])
+            res.append(tuple(sorted([abs(x - y) for x, y in zip(p2, pair_lst[i1_2])])))
+        #if i1 < i2:
+        #    print(p2, pair_lst[i2 - 1])
+        #    res.append(tuple(sorted([abs(x - y) for x, y in zip(p2, pair_lst[i2 - 1])])))
+    m2 = m - (pair_lst[-1][0] == pair_lst[-1][1])
+    for i2 in reversed(range(m2)):
+        p2 = (pair_lst[i2][1], pair_lst[i2][0])
+        for i1 in range(i1, m):
+            if not segmentContainsALatticePoint(pair_lst[i1], p2): break
+        else: break
+        #print(i1, i2)
+        #if i2 == m - 1:
+        #    print(p2, pair_lst[i2])
+        #    res.append(tuple(sorted([abs(x - y) for x, y in zip(p2, pair_lst[i2])])))
+        #else:
+        #    print(p2, (pair_lst[i2 + 1][1], pair_lst[i2 + 1][0]))
+        #    res.append(tuple(sorted([abs(x - y) for x, y in zip(p2, (pair_lst[i2 + 1][1], pair_lst[i2 + 1][0]))])))
+        for i1_2 in range(i1, m):
+            #print(2, p2, pair_lst[i1_2])
+            res.append(tuple(sorted([abs(x - y) for x, y in zip(p2, pair_lst[i1_2])])))
+        for i1_2 in reversed(range(i2 + 1, m2)):
+            #print(3, p2, (pair_lst[i1_2][1], pair_lst[i1_2][0]))
+            res.append(tuple(sorted([abs(x - y) for x, y in zip(p2, (pair_lst[i1_2][1], pair_lst[i1_2][0]))])))
+    return sorted(res)
+    # sumOfTwoSquaresSolutionGenerator(
+    #    target: int,
+    #    ps: Optional[PrimeSPFsieve]=None,
+    #)
+
+def calculateNumberOfRadiusCombinationsCanMakeLenticularHoleBruteForce(
+    rad_max: int=10 ** 5,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    vec_sets = []
+    for rad_sq in range(1, rad_max ** 2 + 1):
+        vecs = calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDisplacements(
+            rad_sq,
+            ps=None,
+        )
+        vec_sets.append(set(vecs))
+    res = 0
+    for i1 in range(len(vec_sets) - 1):
+        for i2 in range(i1, len(vec_sets)):
+            res += not vec_sets[i1].isdisjoint(vec_sets[i2])
+    return res
+
+def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
+    rad_max: int=10 ** 5,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Solution to Project Euler #295
+    """
+
+    """
+    rad_sq_mx = rad_max * rad_max
+    res = 0
+    seen_cnts = {}
+    for rad_sq in range(1, rad_sq_mx + 1):
+        if not rad_sq % 100000:
+            print(f"rad_sq = {rad_sq} of {rad_sq_mx}")
+        v_lst = calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDisplacements(
+            rad_sq,
+            ps=ps,
+        )
+        
+        if not v_lst: continue
+        print(rad_sq, v_lst)
+        res += 1
+        for v in v_lst:
+            seen_cnts.setdefault(v, 0)
+            res += seen_cnts[v]
+            seen_cnts[v] += 1
+        #print(rad_sq, v_lst, seen_cnts, res)
+    return res
+
+    """
+    rad_sq_mx = rad_max * rad_max
+    res = 0
+    seen_cnts = {}
+    vecs = []
+    vec_dict = {}
+    for rad_sq in range(1, rad_sq_mx + 1):
+        if not rad_sq % 100000:
+            print(f"rad_sq = {rad_sq} of {rad_sq_mx}")
+        v_lst = calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDisplacements(
+            rad_sq,
+            ps=ps,
+        )
+        if not v_lst: continue
+        res += 1
+        bm = 0
+        for v in v_lst:
+            if v in vec_dict.keys():
+                i = vec_dict[v]
+            else:
+                i = len(vecs)
+                vecs.append(v)
+                vec_dict[v] = i
+            bm |= 1 << i
+        bm2 = bm
+        while bm2:
+            seen_cnts.setdefault(bm2, 0)
+            res += seen_cnts[bm2] if (bm2.bit_count() & 1) else -seen_cnts[bm2]
+            seen_cnts[bm2] += 1
+            bm2 = (bm2 - 1) & bm
+        #print(rad_sq, v_lst, seen_cnts, res)
+    #print(vecs)
+    #print(seen_cnts)
     return res
 
 # Problem 297
@@ -8667,6 +8823,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 295 in eval_nums:
+        since = time.time()
+        res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
+            rad_max=10 ** 5,
+            ps=None,
+        )
+        print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 297 in eval_nums:
         since = time.time()
         res = zeckendorfRepresentationTermCount(n_max=10 ** 17 - 1)
@@ -8684,7 +8848,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {294}
+    eval_nums = {295}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
@@ -8696,3 +8860,8 @@ for max_n_dig in range(1, 51):
     ans2 = isMultipleOfAndHasDigitSumEqualToNCountDigitDP(n=n, max_n_dig=max_n_dig, base=base, res_md=res_md)
     print(max_n_dig, ans1, ans2, ans1 == ans2)
 """
+
+#print(calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDisplacements(
+#    rad_sq=25,
+#    ps=None,
+#))
