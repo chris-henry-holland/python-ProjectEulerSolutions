@@ -8294,7 +8294,7 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
     #print(vecs)
     #print(seen_cnts)
     return res
-
+    
 # Problem 297
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
     """
@@ -8826,7 +8826,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 295 in eval_nums:
         since = time.time()
         res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
-            rad_max=10 ** 5,
+            rad_max=10 ** 2,
             ps=None,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
