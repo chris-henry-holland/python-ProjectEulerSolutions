@@ -8299,6 +8299,24 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
     """
     Solution to Project Euler #297
+
+    Calculates the sum of the number of terms in the Zeckendorf representation
+    of each of the integers between 1 and n_max inclusive.
+
+    The Zeckendorf representation of a non-negative integer is the unique
+    set of non-consecutive Fibonacci numbers (where the sequence starts with
+    1, 2) whose sum is equal to that integer, with the number of terms being
+    the size of that set.
+
+    Args:
+        Optional named:
+        n_max (int): The largest integer whose number of terms in its
+                Zeckendorf representation is to be included in the sum.
+            Default: 10 ** 17 - 1
+    
+    Returns:
+    Integer (int) govomg the sum of the number of terms in the Zeckendorf
+    representation of each of the integers between 1 and n_max inclusive.
     """
     cnt_cumu = [0, 1, 2]
     fib = [1, 2]
