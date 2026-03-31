@@ -7915,6 +7915,40 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
 ) -> int:
     """
     Solution to Project Euler #294
+
+    Calculates the number of integers that are multiples of n and
+    whose representation in the chosen base contains at most
+    max_n_dig digits which sum to exactly n. If res_md is given
+    as a strictly positive integer then this is given modulo res_md.
+
+    Args:
+        Optional named:
+        n (int): Strictly positive integer of which all integers
+                included in the count must be a multiple and should
+                also have the digits in the representation in the
+                chosen base sum to this value.
+            Default: 23
+        max_n_dig (int): The maximum number of digits the representation
+                in the chosen base of the integers considered for inclusion
+                in the count.
+            Default: 11 ** 12
+        base (int): Integer strictly greater than 1 giving the
+                base in which the numbers should be represented
+                when assessing the number of digits and calculating
+                the digit sum.
+        res_md (int or None): If given as a strictly positive integer,
+                the modulus to which the final count should be taken when
+                returned, otherwise the term value itself is returned.
+            Default: 10 ** 9
+    
+    Returns:
+    Integer (int) giving the number of integers that are multiples of n
+    and whose representation in the chosen base contains at most
+    max_n_dig digits which sum to exactly n. If res_md is given
+    as a strictly positive integer then this is given modulo res_md.
+
+    Outline of rationale:
+    TODO
     """
     md_mapping = [-1] * n
     md_mapping_sources = set(range(n))
