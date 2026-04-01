@@ -7564,6 +7564,32 @@ def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
 
 # Problem 292
 def pythagoreanPolygonCountInitialSolution(perim_max: int) -> int:
+    """
+    Calculates the number of distinct Pythagorean polygons whose
+    perimeter does not exceed perim_max.
+
+    A Pythagorean polygon is a convex polygon in the Cartesian plane
+    containing at least 3 vertices, each of which have integer coordinates,
+    and of which no subset of three vertices are collinear and whose edges
+    are all integer length.
+
+    For this function, two Pythagorean polygons are considered to be
+    distinct from each other if and only if no translation exists that
+    maps the vertices of one of the polygons onto the other.
+
+    Args:
+        Optional named:
+        perim_max (int): The largest perimeter of the Pythagorean polygons
+                to be counted.
+            Default: 120
+    
+    Returns:
+    Integer (int) giving the number of distinct Pythagorean polygons whose
+    perimeter does not exceed perim_max.
+    
+    Outline of rationale:
+    TODO
+    """
     
     # Review- try to make faster- possibly using double-ended
     # search (keeping one branch of edges with total length
@@ -7690,9 +7716,34 @@ def pythagoreanPolygonCountInitialSolution(perim_max: int) -> int:
     #        res += recur(perim_max - mult * triple[2], (triple[0] * mult, triple[1] * mult), i, i, False)
     return res
 
-def pythagoreanPolygonCount(perim_max: int) -> int:
+def pythagoreanPolygonCount(perim_max: int=120) -> int:
     """
     Solution to Project Euler #292
+
+    Calculates the number of distinct Pythagorean polygons whose
+    perimeter does not exceed perim_max.
+
+    A Pythagorean polygon is a convex polygon in the Cartesian plane
+    containing at least 3 vertices, each of which have integer coordinates,
+    and of which no subset of three vertices are collinear and whose edges
+    are all integer length.
+
+    For this function, two Pythagorean polygons are considered to be
+    distinct from each other if and only if no translation exists that
+    maps the vertices of one of the polygons onto the other.
+
+    Args:
+        Optional named:
+        perim_max (int): The largest perimeter of the Pythagorean polygons
+                to be counted.
+            Default: 120
+    
+    Returns:
+    Integer (int) giving the number of distinct Pythagorean polygons whose
+    perimeter does not exceed perim_max.
+    
+    Outline of rationale:
+    TODO
     """
     side_len_max = (perim_max - 1) >> 1
     pythag_triple_lst = []
@@ -8878,7 +8929,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 295 in eval_nums:
         since = time.time()
         res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
-            rad_max=10 ** 2,
+            rad_max=10 ** 5,
             ps=None,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
