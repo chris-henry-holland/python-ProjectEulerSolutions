@@ -7523,6 +7523,34 @@ def digitSumEqualsMultipleDigitSumCount(
 
 # Problem 291
 def panaitopolPrimesBruteForce(p_max: int) -> List[int]:
+    """
+    Finds all Panaitopol primes no greater than p_max.
+
+    The Panaitopol primes are the prime numbers for which there exist
+    strictly positive integers x, y such that the expression:
+        (x ** 4 - y ** 4) / (x ** 3 + y ** 3)
+    is exactly equal to the chosen prime number.
+
+    Args:
+        Optional named:
+        p_max (int): Strictly positive integer giving the inclusive
+                upper bound on the size of the prime numbers to be
+                included in the returned Panaitopal prime numbers.
+            Default: 5 * 10 ** 15 - 1
+    
+    Returns:
+    List containing every Panaitopol prime number no greater than p_max
+    in strictly increasing order.
+
+    Outline of rationale:
+    This calculates the value of the expression for all integers
+    0 < y < x <= 20 * p_max and tests each for which the expression
+    is an integer as to whether it is prime, including those that
+    are prime that have not already been included.
+
+    The upper bound of x <= 20 * p_max is guaranteed to result in all
+    Panaitopol primes no greater than p_max being found due to ... TODO
+    """
     ps = SimplePrimeSieve()
     def primeCheck(num: int) -> int:
         return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
@@ -7544,6 +7572,27 @@ def panaitopolPrimesBruteForce(p_max: int) -> List[int]:
 def panaitopolPrimesCount(p_max: int=5 * 10 ** 15 - 1) -> int:
     """
     Solution to Project Euler #291
+
+    Calculates the number of Panaitopol primes no greater than p_max.
+
+    The Panaitopol primes are the prime numbers for which there exist
+    strictly positive integers x, y such that the expression:
+        (x ** 4 - y ** 4) / (x ** 3 + y ** 3)
+    is exactly equal to the chosen prime number.
+
+    Args:
+        Optional named:
+        p_max (int): Strictly positive integer giving the inclusive
+                upper bound on the size of the prime numbers to be
+                included in the count.
+            Default: 5 * 10 ** 15 - 1
+    
+    Returns:
+    Integer (int) giving the number of Panaitopol primes no greater
+    tham p_max.
+
+    Outline of rationale:
+    TODO
     """
     # Review- prove that p must be of the form n ** 2 + (n + 1) ** 2
     # and that all primes of that form are panaitolo primes.
