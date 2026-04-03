@@ -7485,7 +7485,6 @@ def circleArrayEulerianNonCrossingCycleCount(
     return res
     """
     
-
 # Problem 290
 def digitSumEqualsMultipleDigitSumCount(
     n_dig_max: int=18,
@@ -7494,6 +7493,41 @@ def digitSumEqualsMultipleDigitSumCount(
 ) -> int:
     """
     Solution to Project Euler #290
+
+    Calculates the number of integers for which the representations
+    in the chosen base of the integer itself and its product with
+    mult have the same sum of digits, and whose representation in the
+    chosen base has no more than n_dig_max digits.
+
+    Args:
+        Optional named:
+        n_dig_max (int): Strictly positive integer giving the
+                inclusive upper bound on the number of digits the
+                integers considered for inclusion in the sum may
+                have when represented in the chosen base.
+            Default: 18
+        mult (int): Strictly positive integer giving the multiplier
+                whose product with the original integer must have the
+                same digit sum as that original integer when both
+                are represented in the chosen base in order for that
+                integer to be included in the count.
+            Default: 137
+        base (int): Integer strictly greater than 1 giving the base in
+                which the integer and the multiple of that integer are
+                to be represented when assessing their digit sums, and
+                for the former when assessing whether it has no more
+                digits than n_dig_max.
+            Default: 10
+    
+    Returns:
+    Integer (int) giving the number of integers for which the
+    representations in the chosen base of the integer itself and its
+    product with mult have the same sum of digits, and whose
+    representation in the chosen base has no more than n_dig_max
+    digits.
+    
+    Outline of rationale:
+    TODO
     """
     def digitSum(num: int) -> int:
         res = 0
