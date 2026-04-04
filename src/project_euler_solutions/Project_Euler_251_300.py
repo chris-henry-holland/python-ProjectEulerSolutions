@@ -6512,6 +6512,47 @@ def circleArrayEulerianNonCrossingCycleCountBruteForce(
     n_cols: int=10,
     res_md: Optional[int]=10 ** 10,
 ) -> int:
+    """
+    For integers x and y where 0 <= x < n_rows and 0 <= y < n_cols,
+    consider the overlapping circles such that each pair of such
+    values of x and y, there is a corresponding circle that passes
+    through the points:
+        (x, y), (x, y + 1), (x + 1, y) and (x + 1, y + 1)
+    This function calculates the number of continuous cycles that
+    passes through every arc of every circle in this arrangement
+    exactly once for which the path never crosses itself. If
+    res_md is given as a strictly positive integer, this number
+    is returned modulo res_md.
+
+    A continuous cycle is a path consisting only of consecutive
+    arcs of the circles that returns to its starting point.
+
+    Args:
+        Optional named:
+        n_rows (int): Non-negative integer giving the number of
+                x-values to which the different circles may
+                correspond as outlined above (i.e. the number
+                of rows of circles in the arrangement).
+            Default: 6
+        n_cols (int): Non-negative integer giving the number of
+                y-values to which the different circles may
+                correspond as outlined above (i.e. the number
+                of columns of circles in the arrangement).
+            Default: 10
+        res_md (int or None): If given as a strictly positive integer,
+                the modulus to which the final count should be taken when
+                returned, otherwise the count itself is returned.
+            Default: 10 ** 9
+    
+    Returns:
+    Integer giving the number of continuous non-crossing cycles in
+    the arrangement described above with n_rows rows and n_cols columns
+    of circles. If res_md is givesn as a strictly positive integer,
+    then this number is returned modulo res_md.
+
+    Outline of rationale:
+    TODO
+    """
     if n_rows == 1 and n_cols == 1: return 1
     connect_combs_interior = [
         (1, 0, 3, 2, 5, 4, 7, 6),
@@ -6662,6 +6703,46 @@ def circleArrayEulerianNonCrossingCycleCount(
 ) -> int:
     """
     Solution to Project Euler #289
+
+    For integers x and y where 0 <= x < n_rows and 0 <= y < n_cols,
+    consider the overlapping circles such that each pair of such
+    values of x and y, there is a corresponding circle that passes
+    through the points:
+        (x, y), (x, y + 1), (x + 1, y) and (x + 1, y + 1)
+    This function calculates the number of continuous cycles that
+    passes through every arc of every circle in this arrangement
+    exactly once for which the path never crosses itself. If
+    res_md is given as a strictly positive integer, this number
+    is returned modulo res_md.
+
+    A continuous cycle is a path consisting only of consecutive
+    arcs of the circles that returns to its starting point.
+
+    Args:
+        Optional named:
+        n_rows (int): Non-negative integer giving the number of
+                x-values to which the different circles may
+                correspond as outlined above (i.e. the number
+                of rows of circles in the arrangement).
+            Default: 6
+        n_cols (int): Non-negative integer giving the number of
+                y-values to which the different circles may
+                correspond as outlined above (i.e. the number
+                of columns of circles in the arrangement).
+            Default: 10
+        res_md (int or None): If given as a strictly positive integer,
+                the modulus to which the final count should be taken when
+                returned, otherwise the count itself is returned.
+            Default: 10 ** 9
+    
+    Returns:
+    Integer giving the number of continuous non-crossing cycles in
+    the arrangement described above with n_rows rows and n_cols columns
+    of circles. If res_md is givesn as a strictly positive integer,
+    then this number is returned modulo res_md.
+    
+    Outline of rationale:
+    TODO
     """
     # Adapted from solution to Project Euler #237
     # Review- Consider sharing on Project Euler forum
@@ -6673,7 +6754,8 @@ def circleArrayEulerianNonCrossingCycleCount(
 
     if n_rows > n_cols:
         n_rows, n_cols = n_cols, n_rows
-
+    if n_rows < 0: return 0
+    elif not n_rows: return 1
     
 
     states = []
@@ -8072,7 +8154,7 @@ def isMultipleOfAndHasDigitSumEqualToNCount(
                 the digit sum.
         res_md (int or None): If given as a strictly positive integer,
                 the modulus to which the final count should be taken when
-                returned, otherwise the term value itself is returned.
+                returned, otherwise the count itself is returned.
             Default: 10 ** 9
     
     Returns:
