@@ -3619,6 +3619,110 @@ def sumOfTwoSquaresSolutionGenerator(
     #print(f"for {target}, with the number of ways of representing as the sum of squares of two non-negative integers = {cnt}")
     return
 
+def sumOfTwoSquaresSolutionFromPrimeFactorisationGenerator(
+    pf=Dict[int, int],
+) -> Generator[Tuple[int, int], None, None]:
+    if any(f & 1 and x & 3 == 3 for x, f in pf.items()): return
+    gaussian_pf = {}
+    mult = 1
+    for p, f in pf.items():
+        if p == 2:
+            gaussian_pf[(1, 1)] = f
+            continue
+        residue = p % 4
+        if residue == 3:
+            if f & 1:
+                #print(p, f)
+                return
+            mult *= p ** (f >> 1)
+            continue
+        pair = sumOfTwoSquaresEqualToPrime(p)
+        gaussian_pf[pair] = f
+    
+    #print(target, gaussian_pf)
+    def multiplyComplex(num1: Tuple[int, int], num2: Tuple[int, int]) -> Tuple[int, int]:
+        #print(num1, num2)
+        return (
+            num1[0] * num2[0] - num1[1] * num2[1],
+            num1[0] * num2[1] + num1[1] * num2[0],
+        )
+    
+    def complexExponentiated(num: Tuple[int, int], exp: int) -> Tuple[int, int]:
+        curr = num
+        exp2 = exp
+        res = num if exp2 & 1 else (1, 0)
+        exp2 >>= 1
+        while exp2:
+            curr = multiplyComplex(curr, curr)
+            if exp2 & 1:
+                res = multiplyComplex(res, curr)
+            exp2 >>= 1
+        return res
+    #print(gaussian_pf)
+    p_lst = list(gaussian_pf.keys())
+    #print(p_lst)
+    #print(p_lst)
+    f_lst = [gaussian_pf[p] for p in p_lst]
+    #print(p_lst, f_lst)
+    n_p = len(p_lst)
+    seen = set()
+    def recur(idx: int, curr: Tuple[int, int]) -> Generator[Tuple[int, int], None, None]:
+        #print(idx, curr)
+        if idx == n_p:
+            ans = tuple(sorted(abs(x) for x in curr))
+            if ans in seen:
+                #print(f"repeat seen: {ans}")
+                return
+            seen.add(ans)
+            yield ans
+            return
+        curr2 = curr
+        p, f = p_lst[idx], f_lst[idx]
+        p_conj = (p[0], -p[1])
+
+        if not idx:
+            # For the first prime factor, only consider one of each conjugate
+            # pairs. This cannot be done for every prime factor due to how
+            # the results change when replacing with its one or both of the
+            # complex numbers in a product.
+            # Review- can this be taken further than just one to avoid
+            # calculating the same values repeatedly?
+            curr2 = curr
+            p, f = p_lst[idx], f_lst[idx]
+            p_conj = (p[0], -p[1])
+            #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
+            for pos_f in range(f >> 1):
+                neg_f = f - pos_f
+                mult_neg = complexExponentiated(p_conj, neg_f)
+                #print(f"pos_f = {pos_f}, curr2 = {curr2}, mult_neg = {mult_neg}")
+                yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+                curr2 = multiplyComplex(curr2, p)
+            pos_f = f >> 1
+            neg_f = f - pos_f
+            mult_neg = complexExponentiated(p_conj, neg_f)
+            yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+            return
+        #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
+        for pos_f in range(f):
+            neg_f = f - pos_f
+            mult_neg = complexExponentiated(p_conj, neg_f)
+            #print(f"pos_f = {pos_f}, curr2 = {curr2}, mult_neg = {mult_neg}")
+            yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+            curr2 = multiplyComplex(curr2, p)
+        pos_f = f
+        yield from recur(idx + 1, curr2)
+        
+        return
+        
+    #print(gaussian_pf)
+    #print(f"mult = {mult}")
+    yield from recur(0, (mult, 0))
+    #cnt = 0
+    #for ans in recur(0, (mult, 0)):
+    #    cnt += 1
+    #print(f"for {target}, with the number of ways of representing as the sum of squares of two non-negative integers = {cnt}")
+    return
+
 def trianglesWithLatticePointVerticesAndFixedCircumcentreAndOrthocentreByPerimeterGenerator(
     orthocentre: Tuple[int, int],
     perimeter_max: Optional[int]=None,
@@ -8419,8 +8523,10 @@ def calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDis
             if y_mn <= y_mx: return True
         #print("does not contain a lattice point")
         return False
-
-    pair_lst = sorted([tuple(sorted(x)) for x in sumOfTwoSquaresSolutionGenerator(rad_sq, ps=ps)])
+    pf = calculatePrimeFactorisation(rad_sq, ps=ps)
+    for p in pf.keys():
+        if not p & 3 == 1: return []
+    pair_lst = sorted([tuple(sorted(x)) for x in sumOfTwoSquaresSolutionFromPrimeFactorisationGenerator(pf=pf)])
     if not pair_lst: return []
     m = len(pair_lst)
     #print(pair_lst)
@@ -8524,6 +8630,10 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
             ps=ps,
         )
         if not v_lst: continue
+        #p_fact = calculatePrimeFactorisation(rad_sq, ps=ps)
+        #if (not any(x & 1 for x in p_fact.values()) or any(x & 3 != 1 for x in p_fact.keys())):
+        #if (any(x & 3 != 1 for x in p_fact.keys())):
+        #    print(rad_sq, calculatePrimeFactorisation(rad_sq, ps=ps), v_lst)
         res += 1
         bm = 0
         for v in v_lst:
@@ -9094,7 +9204,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 295 in eval_nums:
         since = time.time()
         res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
-            rad_max=10 ** 5,
+            rad_max=10 ** 3,
             ps=None,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
