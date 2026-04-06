@@ -8523,9 +8523,30 @@ def calculateCircularSegmentsWithEndsAtLatticePointsContainingNoLatticePointsDis
             if y_mn <= y_mx: return True
         #print("does not contain a lattice point")
         return False
-    pf = calculatePrimeFactorisation(rad_sq, ps=ps)
-    for p in pf.keys():
-        if not p & 3 == 1: return []
+    if ps is not None:
+        pf = calculatePrimeFactorisation(rad_sq, ps=ps)
+        for p in pf.keys():
+            if not p & 3 == 1: return []
+    else:
+        pf = {}
+        if not rad_sq & 1: return []
+        num = rad_sq
+        for p in range(3, isqrt(num) + 1, 2):
+            if p * p > num: break
+            num2, r = divmod(num, p)
+            if r: continue
+            if p & 3 == 3: return []
+            num = num2
+            f = 1
+            num2, r = divmod(num, p)
+            while not r:
+                num = num2
+                f += 1
+                num2, r = divmod(num, p)
+            pf[p] = f
+        if num > 1:
+            if num & 3 == 3: return []
+            pf[num] = 1
     pair_lst = sorted([tuple(sorted(x)) for x in sumOfTwoSquaresSolutionFromPrimeFactorisationGenerator(pf=pf)])
     if not pair_lst: return []
     m = len(pair_lst)
@@ -8590,9 +8611,6 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
     rad_max: int=10 ** 5,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
-    """
-    Solution to Project Euler #295
-    """
 
     """
     rad_sq_mx = rad_max * rad_max
@@ -8651,10 +8669,20 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
             seen_cnts[bm2] += 1
             bm2 = (bm2 - 1) & bm
         #print(rad_sq, v_lst, seen_cnts, res)
-    #print(vecs)
-    #print(seen_cnts)
+    print(vecs)
+    print(", ".join([f"{format(x, 'b')}: {y}" for x, y in seen_cnts.items()]))
+    #print(vec_dict)
     return res
     
+def calculateNumberOfRadiusCombinationsCanMakeLenticularHole2(
+    rad_max: int=10 ** 5,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+
+    d_sq_mx = isqrt(32 * rad_max * rad_max - 1) - 2
+    print(d_sq_mx)
+    return 0
+
 # Problem 297
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
     """
@@ -9203,8 +9231,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 295 in eval_nums:
         since = time.time()
-        res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
-            rad_max=10 ** 3,
+        res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole2(
+            rad_max=10 ** 5,
             ps=None,
         )
         print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
