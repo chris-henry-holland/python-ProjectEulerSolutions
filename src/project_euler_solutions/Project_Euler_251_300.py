@@ -8607,7 +8607,7 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHoleBruteForce(
             res += not vec_sets[i1].isdisjoint(vec_sets[i2])
     return res
 
-def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
+def calculateNumberOfRadiusCombinationsCanMakeLenticularHoleInitialSolution(
     rad_max: int=10 ** 5,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
@@ -8672,16 +8672,126 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
     print(vecs)
     print(", ".join([f"{format(x, 'b')}: {y}" for x, y in seen_cnts.items()]))
     #print(vec_dict)
+    ff_dict = {}
+    for f in seen_cnts.keys(): ff_dict[seen_cnts[f]] = ff_dict.get(seen_cnts[f], 0) + 1
+    for f in sorted(ff_dict.keys()):
+        print(f"{f}: {ff_dict[f]}")
     return res
     
-def calculateNumberOfRadiusCombinationsCanMakeLenticularHole2(
+def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
     rad_max: int=10 ** 5,
-    ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
+    """
+    Solution to Project Euler #295
+    """
+    rad_max_sq = rad_max * rad_max
+    d_sq_mx = isqrt(32 * rad_max_sq - 1) - 2
+    #print(d_sq_mx)
 
-    d_sq_mx = isqrt(32 * rad_max * rad_max - 1) - 2
-    print(d_sq_mx)
-    return 0
+    def segmentContainsALatticePoint(vec: Tuple[int, int], m: int) -> bool:
+        # Note that points along the straight edge of the segment (excluding
+        # the two end points) are consdered to be inside but points on the
+        # curved edge (including the two end points) are considered to be
+        # outside
+
+        if vec[1] < vec[0]:
+            vec = (vec[1], vec[0])
+
+        d_sq = vec[0] * vec[0] + vec[1] * vec[1]
+        m_sq = m * m
+        rad_sq = (d_sq * (m_sq + 1)) >> 2
+        #if d_sq > 4 * rad_sq: return True
+        p1 = ((-vec[0] + vec[1] * m) // 2, (-vec[1] - vec[0] * m) // 2)
+        p2 = tuple(x + y for x, y in zip(p1, vec))
+        
+        for i in range(2):
+            if (p1[i] < 0 and p2[i] > 0) or (p1[i] > 0 and p2[i] < 0):
+                return True
+        p1 = list(p1)
+        p2 = list(p2)
+        vec = list(vec)
+        for i in range(2):
+            if p1[i] >= 0: continue
+            p1[i] = -p1[i]
+            p2[i] = -p2[i]
+            vec[i] = -vec[i]
+        p1 = tuple(p1)
+        p2 = tuple(p2)
+        vec = tuple(vec)
+        #print(vec, m, rad_sq, p1, p2)
+        #if abs(p1[0] - p2[0]) > abs(p1[1] - p2[1]):
+        #    p1 = (p1[1], p1[0])
+        #    p2 = (p2[1], p2[0])
+        #p1, p2 = sorted([p1, p2])
+        #v = [x - y for x, y in zip(p2, p1)]
+        #print(v, gcd(*v))
+        #if abs(gcd(*vec)) > 1:
+        #    return True
+        #print(p1, p2)
+        ref = (3, 5)
+        #if vec == ref:
+        #    print(f"vec = {vec}, rad_sq = {rad_sq}, p1 = {p1}, p2 = {p2}")
+        for x in range(p1[0] + 1, p2[0]):
+            y_mn = p1[1] + (((x - p1[0]) * vec[1] - 1) // vec[0]) + 1
+            y_mx = isqrt(rad_sq - x * x)
+            #if vec == ref:
+            #    print(f"rng = [{y_mn}, {y_mx}]")
+            #print(x, (y_mn, y_mx))
+            if y_mn <= y_mx: return True
+        #print("does not contain a lattice point")
+        return False
+
+    def calculateMinimumM(vec: Tuple[int, int], m_max: int) -> int:
+        
+        lo, hi = 0, ((m_max - 1) >> 1) + 1
+        while lo < hi:
+            mid = lo + ((hi - lo) >> 1)
+            #print(lo, hi, mid)
+            if segmentContainsALatticePoint(vec, 2 * mid + 1):
+                lo = mid + 1
+            else: hi = mid
+        return 2 * lo + 1
+
+    nxt_idx = 0
+    rad_sq_bms = {}
+    for v1 in range(1, isqrt(d_sq_mx - 1) + 1, 2):
+        v1_sq = v1 * v1
+        for v2 in range(1, min(v1, isqrt(d_sq_mx - v1_sq)) + 1, 2):
+            if (gcd(v1, v2) > 1): continue
+            d_sq = v1_sq + v2 * v2
+            #rad_sq_lst = []
+            vec = (v1, v2)
+            
+            m_mx = isqrt((4 * rad_max_sq) // d_sq - 1)
+            m_mn = calculateMinimumM(vec, m_mx + 1)
+            #m_mn += not m_mn & 1
+            #print(m_mn, m_mx)
+            
+            if m_mn > m_mx: continue
+            #print(vec, (m_mn, m_mx))
+            bm2 = 1 << nxt_idx
+            nxt_idx += 1
+            for m in range(m_mn, m_mx + 1, 2):
+                rad_sq = (d_sq * (m * m + 1)) >> 2
+                rad_sq_bms.setdefault(rad_sq, 0)
+                rad_sq_bms[rad_sq] |= bm2
+    #print(rad_sq_bms)
+    res = 0
+    seen_cnts = {}
+    for rad_sq, bm in rad_sq_bms.items():
+        res += 1
+        bm2 = bm
+        while bm2:
+            seen_cnts.setdefault(bm2, 0)
+            res += seen_cnts[bm2] if (bm2.bit_count() & 1) else -seen_cnts[bm2]
+            seen_cnts[bm2] += 1
+            bm2 = (bm2 - 1) & bm
+    #print(seen_cnts)
+    #ff_dict = {}
+    #for f in seen_cnts.keys(): ff_dict[seen_cnts[f]] = ff_dict.get(seen_cnts[f], 0) + 1
+    #for f in sorted(ff_dict.keys()):
+    #    print(f"{f}: {ff_dict[f]}")
+    return res
 
 # Problem 297
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
@@ -9231,11 +9341,10 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 295 in eval_nums:
         since = time.time()
-        res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole2(
+        res = calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
             rad_max=10 ** 5,
-            ps=None,
         )
-        print(f"Solution to Project Euler #294 = {res}, calculated in {time.time() - since:.4f} seconds")
+        print(f"Solution to Project Euler #295 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 297 in eval_nums:
         since = time.time()
