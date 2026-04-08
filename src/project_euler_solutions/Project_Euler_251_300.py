@@ -8793,6 +8793,28 @@ def calculateNumberOfRadiusCombinationsCanMakeLenticularHole(
     #    print(f"{f}: {ff_dict[f]}")
     return res
 
+# Problem 296
+def integerSidedTriangleTangentAngleBisectorIntersectionIntegerLengthCount(
+    perim_max: int=10 ** 5,
+) -> int:
+    """
+    Solution to Project Euler #296
+    """
+    res = 0
+    for a in range(1, perim_max // 3 + 1):
+        if not a % 100: print(f"a = {a} of {perim_max // 3}")
+        for b in range(a, ((perim_max - a) >> 1) + 1):
+            if gcd(a, b) != 1: continue
+            mult_max = perim_max // (a + 2 * b)
+            #print(a, b, mult_max)
+            # Review- try to find a more efficient way to calculate this
+            n = (a + b)
+            for m in range(1, mult_max + 1):
+                rng = (b * m, min(n * m - 1, perim_max - n * m))
+                #print(a, b, m, rng)
+                res += max(0, (rng[1] // n) - ((rng[0] - 1) // n))
+    return res
+
 # Problem 297
 def zeckendorfRepresentationTermCount(n_max: int=10 ** 17 - 1) -> int:
     """
@@ -9346,6 +9368,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #295 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 296 in eval_nums:
+        since = time.time()
+        res = integerSidedTriangleTangentAngleBisectorIntersectionIntegerLengthCount(
+            perim_max=10 ** 5,
+        )
+        print(f"Solution to Project Euler #296 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 297 in eval_nums:
         since = time.time()
         res = zeckendorfRepresentationTermCount(n_max=10 ** 17 - 1)
@@ -9363,7 +9392,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {295}
+    eval_nums = {296}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
