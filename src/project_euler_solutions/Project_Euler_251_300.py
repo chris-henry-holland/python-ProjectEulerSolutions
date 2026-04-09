@@ -9060,6 +9060,130 @@ def memoryGameStrategyExpectedAbsoluteDifferenceFloat(
     print(res)
     return res.numerator / res.denominator
 
+# Problem 299
+def threeSimilarTrianglesCount(cathetus_sum_max: int=10 ** 8 - 1) -> int:
+
+    def primitivePythagoreanTripleGeneratorByCathetusSum(
+        max_cathetus_sum: Optional[int]=None,
+    ) -> Generator[Tuple[Tuple[int, int, int], int, bool], None, None]:
+        heap = []
+        if max_cathetus_sum is None: max_cathetus_sum = float("inf")
+        for m in itertools.count(2):
+            m_odd = m & 1
+            if not m % 10 ** 3: print(f"primitive triples, m = {m}")
+            m_sq = m ** 2
+            min_cathetus_sum = min(m ** 2 + 2 * m - 1, m ** 2 + 2 * m * (m - 1) - (m - 1) ** 2)
+            #print(m, min_cathetus_sum)
+            while heap and heap[0][0] < min_cathetus_sum:
+                ans = heapq.heappop(heap)
+                yield (tuple(ans[1][::-1]), ans[0])
+            if min_cathetus_sum > max_cathetus_sum: break
+            discr = 2 * m_sq - max_cathetus_sum
+            n_mn = 1 #max(1, m - isqrt(discr - 1) + 1) if discr > 0 else 1
+            if m_odd and n_mn & 1: n_mn += 1
+            n_mx = min(m - 1, m - isqrt(discr)) if discr >= 0 else m - 1
+            #print(m, (n_mn, n_mx))
+            for n in range(n_mn, n_mx + 1, 2):
+                if gcd(m, n) != 1: continue
+                a, b, c = m_sq - n ** 2, 2 * m * n, m_sq + n ** 2
+                if b < a: a, b = b, a
+                heapq.heappush(heap, ((a + b), (c, b, a)))
+        return
+    
+    def parallelHypotenuseCount(
+        max_cathetus_sum: Optional[int]=None,
+    ) -> int:
+        res = 0
+        if max_cathetus_sum is None: max_cathetus_sum = float("inf")
+        for m in itertools.count(2):
+            m_odd = m & 1
+            if not m % 10 ** 3: print(f"primitive triples, m = {m}")
+            m_sq = m ** 2
+            min_cathetus_sum = min(m ** 2 + 2 * m - 1, m ** 2 + 2 * m * (m - 1) - (m - 1) ** 2)
+            if min_cathetus_sum > max_cathetus_sum: break
+            discr = 2 * m_sq - max_cathetus_sum
+            #if discr < 0: break
+            n_mn = 1 #max(1, m - isqrt(discr - 1) + 1) if discr > 0 else 1
+            if m_odd and n_mn & 1: n_mn += 1
+            n_mx = min(m - 1, m - isqrt(discr)) if discr >= 0 else m - 1
+            #print(m, (n_mn, n_mx))
+            for n in range(n_mn, n_mx + 1, 2):
+                if gcd(m, n) != 1: continue
+                b, d = m_sq - n ** 2, 2 * m * n
+                res += max_cathetus_sum // (b + d)
+        return res
+    
+    #res = 0
+    #for triple, cath_sm in primitivePythagoreanTripleGeneratorByCathetusSum(max_cathetus_sum=cathetus_sum_max):
+    #    #print(triple, cath_sm)
+    #    res += 2 * (cathetus_sum_max // cath_sm)
+    
+    res = 2 * parallelHypotenuseCount(
+        max_cathetus_sum=cathetus_sum_max,
+    )
+
+    def primitivePairGeneratorByCathetusSum(
+        max_cathetus_sum: Optional[int]=None,
+    ) -> Generator[Tuple[Tuple[int, int, int], int, bool], None, None]:
+        heap = []
+        if max_cathetus_sum is None: max_cathetus_sum = float("inf")
+        for m in itertools.count(1):
+            #m_odd = m & 1
+            if not m % 10 ** 3: print(f"primitive pairs, m = {m}")
+            m_sq = m ** 2
+            min_cathetus_sum = (m + 1) ** 2 + m_sq
+            #print(m, min_cathetus_sum)
+            while heap and heap[0][0] < min_cathetus_sum:
+                ans = heapq.heappop(heap)
+                yield (tuple(ans[1][::-1]), ans[0])
+            if min_cathetus_sum > max_cathetus_sum: break
+            #cathetus_sum = 8 * m_sq
+            n_mn = 1
+            discr = max_cathetus_sum - m_sq
+            if discr < 0: break
+            n_mx = isqrt(discr)
+            for n in range(n_mn, n_mx + 1, 2):
+                if gcd(m, n) != 1: continue
+                p, a = 2 * m * n, 2 * m_sq + n ** 2
+                b = p + a
+                if gcd(a, b) != 1: continue
+                heapq.heappush(heap, (2 * b, (b, a)))
+        return
+    
+    def pointOnIncentreCount(
+        max_cathetus_sum: Optional[int]=None,
+    ) -> int:
+        res = 0
+        b_max = max_cathetus_sum >> 1
+        if max_cathetus_sum is None: max_cathetus_sum = float("inf")
+        for m in itertools.count(1):
+            #m_odd = m & 1
+            if not m % 10 ** 3: print(f"primitive pairs, m = {m}")
+            m_sq = m ** 2
+            min_cathetus_sum = (m + 1) ** 2 + m_sq
+            if min_cathetus_sum > max_cathetus_sum: break
+            n_mn = 1
+            discr = max_cathetus_sum - m_sq
+            if discr < 0: break
+            n_mx = isqrt(discr)
+            for n in range(n_mn, n_mx + 1, 2):
+                if gcd(m, n) != 1: continue
+                p, a = 2 * m * n, 2 * m_sq + n ** 2
+                b = p + a
+                if b > b_max: break
+                if gcd(a, b) != 1: continue
+                res += max_cathetus_sum // (2 * b)
+        return res
+
+    #for pair, cath_sm in primitivePairGeneratorByCathetusSum(max_cathetus_sum=cathetus_sum_max):
+    #    #print((pair[0], pair[1], pair[1]), cath_sm)
+    #    res += cathetus_sum_max // cath_sm
+
+    res += pointOnIncentreCount(
+        max_cathetus_sum=cathetus_sum_max,
+    )
+    return res
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -9389,10 +9513,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #298 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 299 in eval_nums:
+        since = time.time()
+        res = threeSimilarTrianglesCount(cathetus_sum_max=10 ** 8 - 1)
+        print(f"Solution to Project Euler #299 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {296}
+    eval_nums = {299}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
