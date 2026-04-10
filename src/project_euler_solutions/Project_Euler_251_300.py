@@ -9184,6 +9184,86 @@ def threeSimilarTrianglesCount(cathetus_sum_max: int=10 ** 8 - 1) -> int:
     )
     return res
 
+def proteinFoldingAverageContactPointsFraction(
+    protein_string_length: int,
+) -> CustomFraction:
+
+    if protein_string_length == 1:
+        return 0
+    
+    nonconsec_pairs = set()
+
+    curr_incl = {}
+    curr_pairs = []
+
+    def backtrack(idx: int, p: Tuple[int, int], p0: Optional[Tuple[int, int]]) -> None:
+        if idx == protein_string_length:
+            nonconsec_pairs.add(tuple(sorted(curr_pairs)))
+            return
+        n_pair0 = len(curr_pairs)
+        for p2 in [(p[0], p[1] - 1), (p[0], p[1] + 1), (p[0] - 1, p[1]), (p[0] + 1, p[1])]:
+            if p2 in curr_incl: continue
+            curr_incl[p2] = idx
+            for p3 in [(p2[0], p2[1] - 1), (p2[0], p2[1] + 1), (p2[0] - 1, p2[1]), (p2[0] + 1, p2[1])]:
+                if p3 != p and p3 in curr_incl.keys():
+                    curr_pairs.append((curr_incl[p3], idx))
+            backtrack(idx=idx + 1, p=p2, p0=p)
+            for _ in range(len(curr_pairs) - n_pair0):
+                curr_pairs.pop()
+            curr_incl.pop(p2)
+        return
+
+    #if protein_string_length == 2:
+    #    pass
+    #else:
+    curr_incl[(0, 0)] = 0
+    for x in range(1, protein_string_length - 1):
+        curr_incl[(x, 0)] = x
+        curr_incl[(x, 1)] = x + 1
+        backtrack(idx=x + 2, p=(x, 1), p0=(x, 0))
+        curr_incl.pop((x, 1))
+    if not nonconsec_pairs: nonconsec_pairs.add(())
+    else: nonconsec_pairs.discard(())
+
+    #print(nonconsec_pairs)
+    print(len(nonconsec_pairs))
+    nonconsec_pairs = sorted(nonconsec_pairs, key=lambda x: len(x))
+
+    res = 0
+    for bm in range(1 << protein_string_length):
+        if not bm % 100:
+            print(f"processing protein string {bm} of {1 << protein_string_length}")
+        lst = []
+        bm2 = bm
+        cnt0 = 0
+        lst = [bm2 & 1]
+        bm2 >>= 1
+        for _ in range(1, protein_string_length):
+            lst.append(bm2 & 1)
+            cnt0 += lst[-1] and lst[-2]
+            bm2 >>= 1
+        cnt = 0
+        # Review- try to make faster
+        for pairs in reversed(nonconsec_pairs):
+            if len(pairs) <= cnt: break
+            curr = 0
+            for pair in pairs:
+                curr += lst[pair[0]] and lst[pair[1]]
+            cnt = max(cnt, curr)
+        res += cnt + cnt0
+
+    return CustomFraction(res, 1 << protein_string_length)
+
+def proteinFoldingAverageContactPointsFloat(
+    protein_string_length: int=15,
+) -> float:
+    """
+    Solution to Project Euler #300
+    """
+    res = proteinFoldingAverageContactPointsFraction(protein_string_length)
+    print(res)
+    return res.numerator / res.denominator
+
 ##############
 project_euler_num_range = (251, 300)
 
@@ -9518,10 +9598,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = threeSimilarTrianglesCount(cathetus_sum_max=10 ** 8 - 1)
         print(f"Solution to Project Euler #299 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 300 in eval_nums:
+        since = time.time()
+        res = proteinFoldingAverageContactPointsFloat(
+            protein_string_length=15,
+        )
+        print(f"Solution to Project Euler #300 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {299}
+    eval_nums = {300}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 """
