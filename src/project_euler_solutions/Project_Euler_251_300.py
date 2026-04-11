@@ -9184,6 +9184,7 @@ def threeSimilarTrianglesCount(cathetus_sum_max: int=10 ** 8 - 1) -> int:
     )
     return res
 
+# Problem 300
 def proteinFoldingAverageContactPointsFraction(
     protein_string_length: int,
 ) -> CustomFraction:
