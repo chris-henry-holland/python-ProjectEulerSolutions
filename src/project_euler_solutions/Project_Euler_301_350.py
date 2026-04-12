@@ -51,7 +51,7 @@ def nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2: int=30) -> int
 
 
 # Problem 306
-def paperStripGamePlayer1WinsWithPerfectPlayCount(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
+def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
     """
     Solution to Project Euler #306
     """
@@ -71,6 +71,39 @@ def paperStripGamePlayer1WinsWithPerfectPlayCount(n_square_pick: int=2, n_max: i
         res += bool(g_arr[-1])
     return res
 
+def paperStripGamePlayer1WinsWithPerfectPlayCount(n_max: int=10 ** 6) -> int:
+    """
+    Solution to Project Euler #306
+    """
+    # Review- prove that this works
+
+    # Using Sprague-Grundy theorem and OEIS A215721
+    n_square_pick = 2
+    g_arr = [0] * n_square_pick
+    z_lst = [1]
+    
+    for i in range(n_square_pick, n_max + 1):
+        if not i % 1000: print(f"i = {i} of {n_max}")
+        seen = set()
+        for i2 in range(0, ((i - n_square_pick) >> 1) + 1):
+            g = g_arr[i2] ^ g_arr[i - i2 - n_square_pick]
+            seen.add(g)
+        for g in range(len(seen) + 1):
+            if g in seen: continue
+            g_arr.append(g)
+            break
+        if not g_arr[-1]:
+            z_lst.append(i)
+            if len(z_lst) == 13: break
+    if len(z_lst) < 13:
+        return n_max - len(z_lst)
+    res = n_max - 8
+    print(z_lst)
+    print(res)
+    for i in range(8, 13):
+        print(z_lst[i], 1 + ((n_max - z_lst[i]) // 34))
+        res -= 1 + ((n_max - z_lst[i]) // 34)
+    return res
 
 
 ##############
@@ -90,7 +123,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 306 in eval_nums:
         since = time.time()
-        res = paperStripGamePlayer1WinsWithPerfectPlayCount(n_square_pick=2, n_max=10 ** 5)
+        res = paperStripGamePlayer1WinsWithPerfectPlayCount(n_max=10 ** 6)
         print(f"Solution to Project Euler #301 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
