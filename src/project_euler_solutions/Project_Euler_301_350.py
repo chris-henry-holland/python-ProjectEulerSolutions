@@ -48,6 +48,111 @@ def nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2: int=30) -> int
         curr = [curr[1], sum(curr)]
     return curr[1]
 
+# Problem 302
+def strongAchillesNumberCount(n_max: int=10 ** 18 - 1) -> int:
+    """
+    Solution to Project Euler #302
+    """
+
+    p_max = integerNthRoot(n_max, 3)
+    ps = PrimeSPFsieve(p_max)
+
+    def primeFactorisationIsStrongAchilles(pf: Dict[int, int]) -> bool:
+        for p in list(pf.keys()):
+            if pf[p] <= 0: pf.pop(p)
+        if min(pf.values()) < 2:
+            return False
+        if pf[max(pf.keys())] < 3: return False
+        g1 = 0
+        for f in pf.values():
+            g1 = gcd(g1, f)
+            if g1 == 1: break
+        else: return False
+        pf2 = {}
+        for p, f in pf.items():
+            if f > 1: pf2[p] = pf2.get(p, 0) + (f - 1)
+            pf3 = ps.primeFactorisation(p - 1)
+            for p2, f2 in pf3.items():
+                if f2 > 1: pf2[p2] = pf2.get(p2, 0) + f2
+        if min(pf2.values()) < 2: return False
+        g2 = 0
+        for f in pf2.values():
+            g2 = gcd(g2, f)
+            if g2 == 1: break
+        else: return False
+        return True
+    
+    p_lst = ps.p_lst
+    print(f"p_max = {p_max}, p_list length = {len(p_lst)}")
+    p_dict = {x: i for i, x in enumerate(p_lst)}
+    p_sq_lst = [p * p for p in p_lst]
+    m = len(p_lst)
+    
+    res = [0]
+    #curr_pf = [0] * m
+    curr_totient_pf = [0] * m
+    curr_incomplete_totient = SortedSet()
+
+    def recur(idx: int=m - 1, remain_mx: int=n_max, g1: int=0, g2: int=0) -> None:
+        if idx < 0 or remain_mx < 2:
+            res[0] += (g1 == 1 and g2 == 1 and not curr_incomplete_totient)
+            return
+        p_mx = max(remain_mx, p_lst[idx])
+        if curr_incomplete_totient:
+            if idx < 0 or p_lst[curr_incomplete_totient[-1]] > p_mx: return
+        
+        #if curr_pf[idx] != 1:
+        recur(idx=idx - 1, remain_mx=remain_mx, g1=g1, g2=g2)
+
+        if p_lst[idx] > p_mx:
+            return
+
+        exp_mn = (2 + (not curr_totient_pf[idx]))
+        exp_mx = integerNthRoot(remain_mx, 3)
+        remain_mx2 = remain_mx
+        for _ in range(exp_mn - 1):
+            remain_mx2 //= p_lst[idx]
+        p_minus_one_pf = ps.primeFactorisation(p_lst[idx] - 1)
+        for p, f in p_minus_one_pf.items():
+            if not f: continue
+            p_idx = p_dict[p]
+            if curr_totient_pf[p_idx] == 1:
+                curr_incomplete_totient.remove(p_idx)
+            elif f == 1 and not curr_totient_pf[p_idx]:
+                curr_incomplete_totient.add(p_idx)
+            curr_totient_pf[p_idx] += f
+        curr_totient_pf[idx] += exp_mn - 2
+        idx2 = idx
+        g2_2 = g2
+        for exp in range(exp_mn, exp_mx + 1):
+            curr_totient_pf[idx] += 1
+            remain_mx2 //= p_lst[idx]
+            # Review- may be able to restrict further, as for any prime greater
+            # than 3, p - 1 is not prime as 2 is a factor
+            if curr_incomplete_totient and curr_incomplete_totient[-1] >= remain_mx2 - 1:
+                curr_totient_pf[idx] -= exp - 1
+                break
+            idx2_prev = idx2
+            idx2 = min(idx, bisect.bisect_right(p_sq_lst, remain_mx2)) - 1
+            for i in reversed(range(idx2, idx2_prev)):
+                if g2_2 == 1: break
+                g2_2 = gcd(g2_2, curr_totient_pf[i])
+            g1_2 = gcd(g1, exp)
+            recur(idx=idx2, remain_mx=remain_mx2, g1=g1_2, g2=g2_2)
+        else:
+            curr_totient_pf[idx] -= exp_mx - 1
+        for p, f in p_minus_one_pf.items():
+            if not f: continue
+            p_idx = p_dict[p]
+            if curr_totient_pf[p_idx] == 1:
+                curr_incomplete_totient.remove(p_idx)
+            elif curr_totient_pf[p_idx] - f == 1:
+                curr_incomplete_totient.add(p_idx)
+            curr_totient_pf[p_idx] -= f
+
+    recur(idx=m - 1, remain_mx=n_max)
+    return res[0]
+
 # Problem 304
 def calculatePrimeFactorisation(
     num: int,
@@ -239,6 +344,10 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2=30)
         print(f"Solution to Project Euler #301 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 302 in eval_nums:
+        since = time.time()
+        res = strongAchillesNumberCount(n_max=10 ** 18 - 1)
+        print(f"Solution to Project Euler #302 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 304 in eval_nums:
         since = time.time()
@@ -257,5 +366,5 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {304}
+    eval_nums = {302}
     evaluateProjectEulerSolutions251to300(eval_nums)
