@@ -38,122 +38,6 @@ from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenera
 from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
 
 
-# Problem 301
-def nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2: int=30) -> int:
-    """
-    Solution to Project Euler #301
-    """
-    curr = [1, 1]
-    for _ in range(pow2):
-        curr = [curr[1], sum(curr)]
-    return curr[1]
-
-# Problem 302
-def strongAchillesNumberCount(n_max: int=10 ** 18 - 1) -> int:
-    """
-    Solution to Project Euler #302
-    """
-
-    p_max = integerNthRoot(n_max, 3)
-    ps = PrimeSPFsieve(p_max)
-
-    def primeFactorisationIsStrongAchilles(pf: Dict[int, int]) -> bool:
-        for p in list(pf.keys()):
-            if pf[p] <= 0: pf.pop(p)
-        if min(pf.values()) < 2:
-            return False
-        if pf[max(pf.keys())] < 3: return False
-        g1 = 0
-        for f in pf.values():
-            g1 = gcd(g1, f)
-            if g1 == 1: break
-        else: return False
-        pf2 = {}
-        for p, f in pf.items():
-            if f > 1: pf2[p] = pf2.get(p, 0) + (f - 1)
-            pf3 = ps.primeFactorisation(p - 1)
-            for p2, f2 in pf3.items():
-                if f2 > 1: pf2[p2] = pf2.get(p2, 0) + f2
-        if min(pf2.values()) < 2: return False
-        g2 = 0
-        for f in pf2.values():
-            g2 = gcd(g2, f)
-            if g2 == 1: break
-        else: return False
-        return True
-    
-    p_lst = ps.p_lst
-    print(f"p_max = {p_max}, p_list length = {len(p_lst)}")
-    p_dict = {x: i for i, x in enumerate(p_lst)}
-    p_sq_lst = [p * p for p in p_lst]
-    m = len(p_lst)
-    
-    res = [0]
-    #curr_pf = [0] * m
-    curr_totient_pf = [0] * m
-    curr_incomplete_totient = SortedSet()
-
-    def recur(idx: int=m - 1, remain_mx: int=n_max, g1: int=0, g2: int=0) -> None:
-        if idx < 0 or remain_mx < 2:
-            res[0] += (g1 == 1 and g2 == 1 and not curr_incomplete_totient)
-            return
-        p_mx = max(remain_mx, p_lst[idx])
-        if curr_incomplete_totient:
-            if idx < 0 or p_lst[curr_incomplete_totient[-1]] > p_mx: return
-        
-        #if curr_pf[idx] != 1:
-        recur(idx=idx - 1, remain_mx=remain_mx, g1=g1, g2=g2)
-
-        if p_lst[idx] > p_mx:
-            return
-
-        exp_mn = (2 + (not curr_totient_pf[idx]))
-        exp_mx = integerNthRoot(remain_mx, 3)
-        remain_mx2 = remain_mx
-        for _ in range(exp_mn - 1):
-            remain_mx2 //= p_lst[idx]
-        p_minus_one_pf = ps.primeFactorisation(p_lst[idx] - 1)
-        for p, f in p_minus_one_pf.items():
-            if not f: continue
-            p_idx = p_dict[p]
-            if curr_totient_pf[p_idx] == 1:
-                curr_incomplete_totient.remove(p_idx)
-            elif f == 1 and not curr_totient_pf[p_idx]:
-                curr_incomplete_totient.add(p_idx)
-            curr_totient_pf[p_idx] += f
-        curr_totient_pf[idx] += exp_mn - 2
-        idx2 = idx
-        g2_2 = g2
-        for exp in range(exp_mn, exp_mx + 1):
-            curr_totient_pf[idx] += 1
-            remain_mx2 //= p_lst[idx]
-            # Review- may be able to restrict further, as for any prime greater
-            # than 3, p - 1 is not prime as 2 is a factor
-            if curr_incomplete_totient and curr_incomplete_totient[-1] >= remain_mx2 - 1:
-                curr_totient_pf[idx] -= exp - 1
-                break
-            idx2_prev = idx2
-            idx2 = min(idx, bisect.bisect_right(p_sq_lst, remain_mx2)) - 1
-            for i in reversed(range(idx2, idx2_prev)):
-                if g2_2 == 1: break
-                g2_2 = gcd(g2_2, curr_totient_pf[i])
-            g1_2 = gcd(g1, exp)
-            recur(idx=idx2, remain_mx=remain_mx2, g1=g1_2, g2=g2_2)
-        else:
-            curr_totient_pf[idx] -= exp_mx - 1
-        for p, f in p_minus_one_pf.items():
-            if not f: continue
-            p_idx = p_dict[p]
-            if curr_totient_pf[p_idx] == 1:
-                curr_incomplete_totient.remove(p_idx)
-            elif curr_totient_pf[p_idx] - f == 1:
-                curr_incomplete_totient.add(p_idx)
-            curr_totient_pf[p_idx] -= f
-
-    recur(idx=m - 1, remain_mx=n_max)
-    return res[0]
-
-# Problem 304
 def calculatePrimeFactorisation(
     num: int,
     ps: Optional[PrimeSPFsieve]=None,
@@ -204,6 +88,225 @@ def calculatePrimeFactorisation(
         res[num] = 1
     return res
 
+# Problem 301
+def nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2: int=30) -> int:
+    """
+    Solution to Project Euler #301
+    """
+    curr = [1, 1]
+    for _ in range(pow2):
+        curr = [curr[1], sum(curr)]
+    return curr[1]
+
+# Problem 302
+def strongAchillesNumberCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]=None) -> int:
+
+    #ps = PrimeSPFsieve(n_max)
+    ps = None
+
+    def primeFactorisationIsStrongAchilles(pf: Dict[int, int]) -> bool:
+        
+        for p in list(pf.keys()):
+            if pf[p] <= 0: pf.pop(p)
+        if min(pf.values()) < 2:
+            return False
+        if pf[max(pf.keys())] < 3: return False
+        g1 = 0
+        for f in pf.values():
+            g1 = gcd(g1, f)
+            if g1 == 1: break
+        else: return False
+        #print(f"pf = {pf}")
+        pf2 = {}
+        for p, f in pf.items():
+            if f > 1: pf2[p] = pf2.get(p, 0) + (f - 1)
+            pf3 = calculatePrimeFactorisation(p - 1, ps=ps)
+            #print(pf3)
+            for p2, f2 in pf3.items():
+                if f2: pf2[p2] = pf2.get(p2, 0) + f2
+            #print(p, f, pf2)
+        if min(pf2.values()) < 2: return False
+        g2 = 0
+        for f in pf2.values():
+            g2 = gcd(g2, f)
+            if g2 == 1: break
+        else: return False
+        print(pf, pf2)
+        return True
+    
+    res = 0
+    solutions = []
+    for num in range(2, n_max + 1):
+        if primeFactorisationIsStrongAchilles(calculatePrimeFactorisation(num, ps=ps)):
+            res += 1
+            solutions.append(num)
+            print(f"solution found: {num}, current total = {res}")
+    print(solutions)
+    return res
+
+def strongAchillesNumberCount(n_max: int=10 ** 18 - 1) -> int:
+    """
+    Solution to Project Euler #302
+    """
+
+    p_max = integerNthRoot(n_max, 3)
+    ps = PrimeSPFsieve(p_max)
+
+    def primeFactorisationIsStrongAchilles(pf: Dict[int, int]) -> bool:
+        
+        for p in list(pf.keys()):
+            if pf[p] <= 0: pf.pop(p)
+        if min(pf.values()) < 2:
+            return False
+        if pf[max(pf.keys())] < 3: return False
+        g1 = 0
+        for f in pf.values():
+            g1 = gcd(g1, f)
+            if g1 == 1: break
+        else: return False
+        #print(f"pf = {pf}")
+        pf2 = {}
+        for p, f in pf.items():
+            if f > 1: pf2[p] = pf2.get(p, 0) + (f - 1)
+            pf3 = ps.primeFactorisation(p - 1)
+            #print(pf3)
+            for p2, f2 in pf3.items():
+                if f2: pf2[p2] = pf2.get(p2, 0) + f2
+            #print(p, f, pf2)
+        if min(pf2.values()) < 2: return False
+        g2 = 0
+        for f in pf2.values():
+            g2 = gcd(g2, f)
+            if g2 == 1: break
+        else: return False
+        #print(pf, pf2)
+        return True
+    
+    def iLog(a: int, b: int) -> int:
+        # Using binary search
+        if a <= 0: raise ValueError("a must be strictly positive")
+        elif b <= 1: raise ValueError("b must be strictly greater than 1")
+        elif a < b: return 0
+        lo, hi = 1, 1
+        while b ** hi <= a:
+            lo, hi = hi, hi << 1
+        while lo < hi:
+            mid = hi - ((hi - lo) >> 1)
+            if b ** mid <= a:
+                lo = mid
+            else: hi = mid - 1
+        return lo
+
+
+    p_lst = ps.p_lst
+    #print(f"p_max = {p_max}, p_list length = {len(p_lst)}")
+    p_dict = {x: i for i, x in enumerate(p_lst)}
+    p_sq_lst = [p * p for p in p_lst]
+    m = len(p_lst)
+    
+    res = [0]
+    #curr_pf = [0] * m
+    curr_totient_pf = [0] * m
+    curr_incomplete_totient = SortedSet()
+
+    #solutions = []
+
+    def recur(idx: int=m - 1, remain_mx: int=n_max, g1: int=0, g2: int=0, num: int=1, tot: int=1) -> None:
+        #if num in {20000}:
+        #    print(idx, num, tot, remain_mx, g1, g2, curr_incomplete_totient, curr_totient_pf)
+        if idx < 0 or remain_mx < 2:
+            
+            g2_2 = g2
+            for i in reversed(range(idx + 1)):
+                if g2_2 == 1: break
+                g2_2 = gcd(g2_2, curr_totient_pf[i])
+            #if (g1 == 1 and g2 == 1 and not curr_incomplete_totient):
+            #    #print(f"solution found: {num} (totient = {tot})")
+            #    solutions.append(num)
+            res[0] += (g1 == 1 and g2 == 1 and not curr_incomplete_totient)
+            return
+        p_mx = max(remain_mx, p_lst[idx])
+        if curr_incomplete_totient:
+            if idx < 0 or p_lst[curr_incomplete_totient[-1]] > p_mx: return
+        
+        #if curr_pf[idx] != 1:
+        #recur(idx=idx - 1, remain_mx=remain_mx, g1=g1, g2=gcd(g2, curr_totient_pf[idx]), num=num, tot=tot)
+
+        if p_lst[idx] > p_mx:
+            return
+        
+        curr_incomplete_totient.discard(idx)
+        exp_mn = (2 + (not curr_totient_pf[idx]))
+        exp_mx = iLog(remain_mx, p_lst[idx])
+        #if num == 30375:
+        #    print(f"p = {p_lst[idx]}, remain_mx = {remain_mx}, exp range = [{exp_mn}, {exp_mx}]")
+        remain_mx2 = remain_mx
+        for _ in range(exp_mn - 1):
+            remain_mx2 //= p_lst[idx]
+        p_minus_one_pf = ps.primeFactorisation(p_lst[idx] - 1)
+        num2 = num * p_lst[idx] ** (exp_mn - 1)
+        tot2 = tot * p_lst[idx] ** (exp_mn - 2) * (p_lst[idx] - 1)
+        for p, f in p_minus_one_pf.items():
+            if not f: continue
+            p_idx = p_dict[p]
+            #print(idx, p_idx)
+            if curr_totient_pf[p_idx] == 1:
+                curr_incomplete_totient.remove(p_idx)
+            elif f == 1 and not curr_totient_pf[p_idx]:
+                curr_incomplete_totient.add(p_idx)
+            curr_totient_pf[p_idx] += f
+        curr_totient_pf[idx] += exp_mn - 2
+        idx2_mx = idx - 1
+        g2_2 = g2
+        #print(f"exp range = [{exp_mn}, {exp_mx}]")
+        for exp in range(exp_mn, exp_mx + 1):
+            curr_totient_pf[idx] += 1
+            num2 *= p_lst[idx]
+            tot2 *= p_lst[idx]
+            remain_mx2 //= p_lst[idx]
+            # Review- may be able to restrict further, as for any prime greater
+            # than 3, p - 1 is not prime as 2 is a factor
+            if curr_incomplete_totient and curr_incomplete_totient[-1] >= remain_mx2 - 1:
+                curr_totient_pf[idx] -= exp - 1
+                break
+            idx2_mx_prev = idx2_mx
+            idx2_mx = min(idx, bisect.bisect_right(p_sq_lst, remain_mx2)) - 1
+            for i in reversed(range(idx2_mx + 1, idx2_mx_prev + 1)):
+                #print(f"i = {i}")
+                if g2_2 == 1: break
+                g2_2 = gcd(g2_2, curr_totient_pf[i])
+                #if idx == 2 and num2 == 625: print(f"num2 = {num2}, g2 = {g2}, g2_2 = {g2_2}, i = {i}, curr_totient_pf[i] = {curr_totient_pf[i]}")
+            g1_2 = gcd(g1, exp)
+            g2_3 = g2_2
+            for idx2 in reversed(range(idx2_mx + 1)):
+                #if idx == 2 and num2 == 625: print(f"num2 = {num2}, g2 = {g2}, g2_2 = {g2_3}")
+                recur(idx=idx2, remain_mx=remain_mx2, g1=g1_2, g2=gcd(g2_3, curr_totient_pf[idx]), num=num2, tot=tot2)
+                if curr_totient_pf[idx2] == 1: break
+                g2_3 = gcd(g2_3, curr_totient_pf[idx2])
+            else:
+                #if idx == 2 and num2 == 625: print(f"num2 = {num2}, g2 = {g2}, g2_3 = {g2_3}")
+                recur(idx=-1, remain_mx=remain_mx2, g1=g1_2, g2=gcd(g2_3, curr_totient_pf[idx]), num=num2, tot=tot2)
+        else:
+            curr_totient_pf[idx] -= exp_mx - 1
+        for p, f in p_minus_one_pf.items():
+            if not f: continue
+            p_idx = p_dict[p]
+            if curr_totient_pf[p_idx] == 1:
+                curr_incomplete_totient.remove(p_idx)
+            elif curr_totient_pf[p_idx] - f == 1:
+                curr_incomplete_totient.add(p_idx)
+            curr_totient_pf[p_idx] -= f
+        if curr_totient_pf[idx] == 1:
+            curr_incomplete_totient.add(idx)
+
+    for m_ in range(m):
+        if not m_ % 1000:
+            print(f"computing for largest prime index {m_} (p = {p_lst[m_]}), max prime index = {m - 1}")
+        recur(idx=m_, remain_mx=n_max)
+    #print(sorted(solutions))
+    return res[0]
+
+# Problem 304
 def primonacciSum(
     n_max: int=10 ** 5,
     prime_start: int=10 ** 14,
