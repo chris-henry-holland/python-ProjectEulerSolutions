@@ -432,6 +432,128 @@ def paperStripGamePlayer1WinsWithPerfectPlayCount(n_max: int=10 ** 6) -> int:
         res -= 1 + ((n_max - z_lst[i]) // 34)
     return res
 
+# Problem 307
+def partitionsGenerator(
+    num: int,
+    part_size_min: Optional[int]=None,
+    part_size_max: Optional[int]=None,
+    n_part_min: Optional[int]=None,
+    n_part_max: Optional[int]=None,
+) -> Generator[Dict[int, int], None, None]:
+    
+    part_size_min = 1 if part_size_min is None else max(part_size_min, 1)
+    n_part_min = 1 if n_part_min is None else max(n_part_min, 1)
+
+    part_size_max = num if part_size_max is None else min(part_size_max, num // n_part_min)
+    n_part_max = num if n_part_max is None else min(n_part_max, num // part_size_min)
+    
+
+    if part_size_min > part_size_max: return
+    if n_part_min > n_part_max: return
+
+    if part_size_min * n_part_min > num: return
+    if part_size_max * n_part_max < num: return
+    
+    curr = {}
+
+    def recur(remain: int, part_size: int, n_parts_remain_min: int, n_parts_remain_max: int) -> Generator[Dict[int, int], None, None]:
+        #if not remain:
+        #    print("hi1", part_size, curr)
+        #    yield dict(curr)
+        #    return
+        if n_parts_remain_max <= 0 or remain < part_size_min or part_size * n_parts_remain_max < remain:
+            return
+        elif n_parts_remain_max == 1:
+            if remain > part_size: return
+            curr[remain] = 1
+            #print("hi3", curr)
+            yield dict(curr)
+            curr.pop(remain)
+            return
+        elif part_size == part_size_min:
+            f, r = divmod(remain, part_size)
+            if r: return
+            curr[part_size] = f
+            #print("hi3", curr)
+            yield dict(curr)
+            curr.pop(part_size)
+            return
+
+        curr[part_size] = 0
+        remain2 = remain
+        f_mx = min(n_parts_remain_max, remain // part_size)
+        f_mx = min(f_mx, (remain - n_parts_remain_min) // (part_size - part_size_min))
+        for f in range(1, f_mx + 1):
+            curr[part_size] += 1
+            remain2 -= part_size
+            if not remain2:
+                yield dict(curr)
+                break
+            for part_size2 in reversed(range(part_size_min, part_size)):
+                if part_size2 * n_parts_remain_max - f < remain2:
+                    break
+                yield from recur(remain2, part_size2, n_parts_remain_min - f, n_parts_remain_max - f)
+
+        curr.pop(part_size)
+    
+    for part_size0 in range(part_size_min, part_size_max + 1):
+        yield from recur(num, part_size0, n_part_min, n_part_max)
+    return
+
+def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFraction(
+    n_bins: int,
+    n_balls: int,
+    n_balls_in_bin_maxmin: int,
+) -> CustomFraction:
+    
+    def multinomial(nums: List[int]) -> int:
+        tot = sum(nums)
+        res = 1
+        for num in nums:
+            res *= math.comb(tot, num)
+            tot -= num
+        return res
+
+    tot_n_allocations = n_bins ** n_balls
+    #print(tot_n_allocations)
+    cnt = 0
+    for part in partitionsGenerator(
+        n_balls,
+        part_size_min=None,
+        part_size_max=n_balls_in_bin_maxmin - 1,
+        n_part_min=None,
+        n_part_max=n_bins,
+    ):
+        print(part)
+        remain = n_bins
+        remain2 = n_balls
+        curr = 1
+        for num, f in part.items():
+            #print(remain, remain2, f)
+            curr *= math.comb(remain, f) * math.comb(remain2, f * num) * multinomial([num] * f)
+            remain -= f
+            remain2 -= f * num
+        #print(part, curr)
+        
+        cnt += curr
+
+    return CustomFraction(tot_n_allocations - cnt, tot_n_allocations)
+
+def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
+    n_bins: int=10 ** 6,
+    n_balls: int=2 * 10 ** 4,
+    n_balls_in_bin_maxmin: int=3,
+) -> float:
+    """
+    Solution to Project Euler #307
+    """
+    res = proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFraction(
+        n_bins,
+        n_balls,
+        n_balls_in_bin_maxmin,
+    )
+    #print(res)
+    return res.numerator / res.denominator
 
 ##############
 project_euler_num_range = (301, 350)
@@ -466,8 +588,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = paperStripGamePlayer1WinsWithPerfectPlayCount(n_max=10 ** 6)
         print(f"Solution to Project Euler #301 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 307 in eval_nums:
+        since = time.time()
+        res = proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
+            n_bins=10 ** 6,
+            n_balls=2 * 10 ** 4,
+            n_balls_in_bin_maxmin=3,
+        )
+        print(f"Solution to Project Euler #307 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {302}
+    eval_nums = {307}
     evaluateProjectEulerSolutions251to300(eval_nums)
