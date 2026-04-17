@@ -306,6 +306,64 @@ def strongAchillesNumberCount(n_max: int=10 ** 18 - 1) -> int:
     #print(sorted(solutions))
     return res[0]
 
+# Problem 303
+def smallestMultiplierGivingMultipleWithDigitValueUpperBound(
+    num: int,
+    max_dig_val: int,
+    base: int=10,
+) -> int:
+    
+    digs = []
+    num2 = num
+    while num2:
+        num2, d = divmod(num2, base)
+        digs.append(d)
+    n_dig = len(digs)
+
+    q = deque([0])
+    res = float("inf")
+    for idx in itertools.count(0):
+        if not q or isinstance(res, int): break
+        mul = base ** idx
+        for _ in range(len(q)):
+            suff = q.popleft()
+            for d in range(not suff, base):
+                suff2 = suff + mul * d
+                if suff2 >= res: continue
+                num2 = suff2 * num
+                num3 = num2 // mul
+                d2 = num3 % base
+                if d2 > max_dig_val: continue
+                #if num == 103:
+                #    print(suff2)
+                num3 //= base
+                while num3:
+                    num3, d2 = divmod(num3, base)
+                    if d2 > max_dig_val: break
+                else:
+                    res = min(res, suff2)
+                    continue
+                q.append(suff2)
+
+    return res if isinstance(res, int) else -1
+
+
+def smallestMultiplierGivingMultipleWithDigitValueUpperBoundSum(
+    num_max: int=10 ** 4,
+    max_dig_val: int=2,
+    base: int=10,
+) -> int:
+    res = 0
+    for num in range(1, num_max + 1):
+        mul = smallestMultiplierGivingMultipleWithDigitValueUpperBound(
+            num,
+            max_dig_val,
+            base=base,
+        )
+        print(num, mul, num * mul)
+        res += mul
+    return res
+
 # Problem 304
 def primonacciSum(
     n_max: int=10 ** 5,
@@ -574,6 +632,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = strongAchillesNumberCount(n_max=10 ** 18 - 1)
         print(f"Solution to Project Euler #302 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 303 in eval_nums:
+        since = time.time()
+        res = smallestMultiplierGivingMultipleWithDigitValueUpperBoundSum(
+            num_max=10 ** 4,
+            max_dig_val=2,
+            base=10,
+        )
+        print(f"Solution to Project Euler #303 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 304 in eval_nums:
         since = time.time()
         res = primonacciSum(
@@ -600,5 +667,5 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {307}
+    eval_nums = {303}
     evaluateProjectEulerSolutions251to300(eval_nums)
