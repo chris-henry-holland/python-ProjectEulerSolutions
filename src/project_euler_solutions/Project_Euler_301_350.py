@@ -613,6 +613,49 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
     #print(res)
     return res.numerator / res.denominator
 
+# Problem 310
+def squareNimbers(n_max: int) -> List[int]:
+    res = [0]
+    for i in range(1, n_max + 1):
+        seen = set()
+        for j in range(1, isqrt(i) + 1):
+            i2 = i - j * j
+            seen.add(res[i2])
+        seen = sorted(seen)
+        #print(i, seen)
+        lo, hi = 0, len(seen)
+        while lo < hi:
+            mid = lo + ((hi - lo) >> 1)
+            if seen[mid] == mid:
+                lo = mid + 1
+            else: hi = mid
+        res.append(lo)
+    return res
+
+def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
+    """
+    Solution to Project Euler #310
+    """
+    # Review- try to generalise to any number of piles
+
+    nimbers = squareNimbers(n_max)
+    #print(nimbers)
+    print(max(nimbers))
+    nimbers_f_lst = [0] * (max(nimbers) + 1)
+    for num in nimbers:
+        nimbers_f_lst[num] += 1
+    #print(len(nimbers_f_lst))
+    #print(nimbers_f_lst)
+    res = 0
+    for i2, f2 in enumerate(nimbers_f_lst):
+        for i1 in range(i2):
+            i3 = i1 ^ i2
+            if i3 <= i2 or i3 >= len(nimbers_f_lst): continue
+            res += nimbers_f_lst[i1] * f2 * nimbers_f_lst[i3]
+        if i2: res += ((f2 * (f2 + 1)) >> 1) * nimbers_f_lst[0]
+        else: res += (f2 * (f2 + 1) * (f2 + 2)) // 6
+    return res
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -664,8 +707,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #307 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 310 in eval_nums:
+        since = time.time()
+        res = nimSquarePositionsLostByNextPlayerCount(n_max=10 ** 5)
+        print(f"Solution to Project Euler #310 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {303}
+    eval_nums = {310}
     evaluateProjectEulerSolutions251to300(eval_nums)
