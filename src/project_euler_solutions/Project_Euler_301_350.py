@@ -615,6 +615,26 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
 
 # Problem 310
 def squareNimbers(n_max: int) -> List[int]:
+    """
+    For a nim-type game with one pile of stones where on each
+    turn a player may only remove a perfect square number
+    of stones, where a player loses when there is no permitted
+    number of stones they can remove, calculates the nimber
+    for the game for each of the numbers of stones remaining
+    between 0 and n_max inclusive.
+
+    Args:
+        Required positional:
+        n_max (int): Non-negative integer giving the inclusive
+                upper bound on the size of piles of stones for
+                which the nimber in the described game is to
+                be calculated.
+
+    Returns:
+    List of integers (int) with length (n_max + 1) where the
+    element at index i (0-indexed) gives the nimber for the
+    described game for a pile of i stones.
+    """
     res = [0]
     for i in range(1, n_max + 1):
         seen = set()
@@ -635,9 +655,38 @@ def squareNimbers(n_max: int) -> List[int]:
 def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
     """
     Solution to Project Euler #310
+
+    For a nim-type game with three pile of stones where on each
+    turn a player may only remove a perfect square number
+    of stones from one of the piles, where a player loses when
+    there is no permitted number of stones they can remove from
+    any of the piles, calculates the number of configurations of
+    piles for which none of the piles has more than n_max stones
+    for which with perfect play the player to move next cannot
+    force a win, where configurations of piles that are permutations
+    of each other are not considered to be distinct.
+
+    Args:
+        Optional named:
+        n_max (int): Non-negative integer giving the inclusive
+                upper bound on the size of piles of stones for
+                which the number of states the player to move
+                next cannot force a win is to be calculated.
+            Default: 10 ** 5
+
+    Returns:
+    Integer (int) giving the number of distinct configurations of
+    three piles of stones where no pile contains more than n_max
+    stones and configurations that are permutations of each other
+    are not considered distinct, for which with perfect play the
+    player to move next cannot force a win.
+
+    Outline of rationale:
+    TODO
     """
     # Review- try to generalise to any number of piles
 
+    # Using Sprague-Grundy
     nimbers = squareNimbers(n_max)
     #print(nimbers)
     print(max(nimbers))
@@ -646,14 +695,16 @@ def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
         nimbers_f_lst[num] += 1
     #print(len(nimbers_f_lst))
     #print(nimbers_f_lst)
-    res = 0
-    for i2, f2 in enumerate(nimbers_f_lst):
+    f0 = nimbers_f_lst[0]
+    res = (f0 * (f0 + 1) * (f0 + 2)) // 6
+    for i2 in range(1, len(nimbers_f_lst)):
+        f2 = nimbers_f_lst[i2]
         for i1 in range(i2):
             i3 = i1 ^ i2
             if i3 <= i2 or i3 >= len(nimbers_f_lst): continue
             res += nimbers_f_lst[i1] * f2 * nimbers_f_lst[i3]
-        if i2: res += ((f2 * (f2 + 1)) >> 1) * nimbers_f_lst[0]
-        else: res += (f2 * (f2 + 1) * (f2 + 2)) // 6
+        res += ((f2 * (f2 + 1)) >> 1) * nimbers_f_lst[0]
+    
     return res
 
 ##############
