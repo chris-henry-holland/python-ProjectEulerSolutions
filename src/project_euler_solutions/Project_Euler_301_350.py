@@ -613,6 +613,28 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
     #print(res)
     return res.numerator / res.denominator
 
+# Problem 309
+def integerCrossingLaddersCount(len_max: int=10 ** 6 - 1) -> int:
+    """
+    Solution to Project Euler #309
+    """
+    res = 0
+    seen = {}
+    prev_c0 = 0
+    print_freq = 10 ** 4
+    for triple, _ in pythagoreanTripleGeneratorByHypotenuse(primitive_only=False, max_hypotenuse=len_max):
+        if (triple[2] // print_freq > prev_c0 // print_freq):
+            print(f"hypotenuse = {triple[2]} (max {len_max})")
+            prev_c0 = triple[2]
+        for a, b1 in [(triple[0], triple[1]), (triple[1], triple[0])]:
+            seen.setdefault(a, [])
+            for b2 in seen[a]:
+                res += not (b1 * b2) % (b1 + b2)
+                #if not (b1 * b2) % (b1 + b2):
+                #    print(a, (b1 * b2) // (b1 + b2))
+            seen[a].append(b1)
+    return res
+
 # Problem 310
 def squareNimbers(n_max: int) -> List[int]:
     """
@@ -758,6 +780,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #307 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 309 in eval_nums:
+        since = time.time()
+        res = integerCrossingLaddersCount(len_max=10 ** 6 - 1)
+        print(f"Solution to Project Euler #309 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 310 in eval_nums:
         since = time.time()
         res = nimSquarePositionsLostByNextPlayerCount(n_max=10 ** 5)
@@ -766,5 +793,5 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {310}
+    eval_nums = {309}
     evaluateProjectEulerSolutions251to300(eval_nums)
