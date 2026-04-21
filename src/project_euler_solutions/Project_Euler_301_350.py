@@ -32,7 +32,7 @@ from gmpy2 import mpfr
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 
-from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm
+from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm, solveLinearNonHomogeneousDiophantineEquation
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
@@ -729,6 +729,45 @@ def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
     
     return res
 
+
+# Problem 313
+def calculateSlidingPuzzleMinimumMoves(n_rows: int, n_cols: int) -> int:
+    if n_rows > n_cols:
+        n_rows, n_cols = n_cols, n_rows
+    #return (n_rows + n_cols - 2) + 3 * (n_rows + min(n_cols - 1, n_rows) - 2) + 5 * max(0, n_cols - n_rows - 1)
+    if n_rows == n_cols:
+        return 8 * n_rows - 11 # cannot be a square as no square is 5 modulo 8
+    return 6 * n_cols + 2 * n_rows - 13
+
+def calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max: int=10 ** 6 - 1) -> int:
+    """
+    Solution to Project Euler #313
+    """
+    # Note the grid cannot be square or have either dimension less than 2
+    ps = SimplePrimeSieve(p_max)
+    x, y = extendedEuclideanAlgorithm(3, 1)[1]
+    res = 0
+    p_prev = 0
+    for p in ps.p_lst[1:]:
+        if p // 1000 != p_prev // 1000:
+            print(f"p = {p}")
+            p_prev = p
+        
+        p_sq = p * p
+        rhs = (p_sq + 13) >> 1
+        (dx, x0, dy, y0) = (1, x * rhs, -3, y * rhs)#solveLinearNonHomogeneousDiophantineEquation(3, 1, rhs)
+        # x0 + m * dx > y0 + m * dy
+        # m * (dx - dy) > y0 - x0  (note (dx - dy) is positive)
+        # m > (y0 - x0) // (dx - dy)
+        mult_mn = max((-x0  + 1) // dx, (y0 - x0) // (dx - dy)) + 1
+        
+        mult_mx = (y0 - 2) // (-dy)
+        #for mult in range(mult_mn, mult_mx + 1):
+        #    print(x0 + mult * dx, y0 + mult * dy, p_sq)
+        res += max(0, mult_mx - mult_mn + 1)
+    return res << 1
+
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -790,8 +829,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = nimSquarePositionsLostByNextPlayerCount(n_max=10 ** 5)
         print(f"Solution to Project Euler #310 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 313 in eval_nums:
+        since = time.time()
+        res = calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max=10 ** 6 - 1)
+        print(f"Solution to Project Euler #313 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {309}
+    eval_nums = {313}
     evaluateProjectEulerSolutions251to300(eval_nums)
