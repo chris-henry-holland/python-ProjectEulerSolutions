@@ -732,8 +732,42 @@ def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
 
 # Problem 313
 def calculateSlidingPuzzleMinimumMoves(n_rows: int, n_cols: int) -> int:
+    """
+    Calculates the minimum number of moves of a slide
+    puzzle required to move the square in the top left of
+    the grid to the bottom right of the grid for a slide
+    puzzle with dimensions n_rows x n_cols, where the
+    empty space is initially in the bottom right corner.
+
+    A slide puzzle is a rectangular grid with integer
+    side lengths where each 1 x 1 section of the grid except
+    one (the so-called empty space) is covered by a 1 x 1
+    square, oriented so its edges are parallel to that of the
+    grid. A move consists of moving one of the squares
+    that is orthogonally adjacent to the empty space into the
+    empty space, effectively moving the empty space into the
+    previous position of the chosen square.
+
+    Args:
+        Required positional:
+        n_rows (int): Strictly positive integer giving the
+                number of rows in the slide puzzle grid.
+        n_cols (int): Strictly positive integer giving the
+                number of columns in the slide puzzle grid.
+    
+    Returns:
+    Integer (int) giving the minimum number of moves required
+    to get the square at the top left of the grid to the
+    bottom right when the empty space is initially at the
+    bottom right of the grid. If no such sequence of moves
+    exists, -1 is returned.
+
+    Outline of rationale:
+    TODO
+    """
     if n_rows > n_cols:
         n_rows, n_cols = n_cols, n_rows
+    if n_rows <= 1: return 1
     #return (n_rows + n_cols - 2) + 3 * (n_rows + min(n_cols - 1, n_rows) - 2) + 5 * max(0, n_cols - n_rows - 1)
     if n_rows == n_cols:
         return 8 * n_rows - 11 # cannot be a square as no square is 5 modulo 8
@@ -742,6 +776,45 @@ def calculateSlidingPuzzleMinimumMoves(n_rows: int, n_cols: int) -> int:
 def calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max: int=10 ** 6 - 1) -> int:
     """
     Solution to Project Euler #313
+
+    Calculates the number of different dimensions of
+    slide puzzle grid exist for which minimum number of
+    moves of a slide puzzle required to move the square
+    in the top left of the grid to the bottom right of
+    the grid for a slide puzzle with dimensions
+    n_rows x n_cols, where the empty space is initially
+    in the bottom right corner, is equal to the square of
+    a prime number no greater than p_max.
+
+    A slide puzzle is a rectangular grid with integer
+    side lengths where each 1 x 1 section of the grid except
+    one (the so-called empty space) is covered by a 1 x 1
+    square, oriented so its edges are parallel to that of the
+    grid. A move consists of moving one of the squares
+    that is orthogonally adjacent to the empty space into the
+    empty space, effectively moving the empty space into the
+    previous position of the chosen square.
+
+    Args:
+        Optional named:
+        p_max (int): Strictly positive integer giving the
+                inclusive upper bound on the size of the prime
+                for which slide puzzles whose minimum number
+                of moves to solve is equal to that prime squared
+                are to be counted.
+    
+    Returns:
+    Integer (int) giving the number of different dimensions of
+    slide puzzle grid exist for which minimum number of
+    moves of a slide puzzle required to move the square
+    in the top left of the grid to the bottom right of
+    the grid for a slide puzzle with dimensions
+    n_rows x n_cols, where the empty space is initially
+    in the bottom right corner, is equal to the square of
+    a prime number no greater than p_max.
+
+    Outline of rationale:
+    TODO
     """
     # Note the grid cannot be square or have either dimension less than 2
     ps = SimplePrimeSieve(p_max)
