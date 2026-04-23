@@ -617,7 +617,35 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
 def integerCrossingLaddersCount(len_max: int=10 ** 6 - 1) -> int:
     """
     Solution to Project Euler #309
+
+    Calculates the number of values of the ordered triple (x, y, h)
+    or strictly positive integers exist for which 0 < x < y <= len_max
+    where x and y are the lengths of straight line segments between
+    two semi-infinite vertical parallel lines an integer distance
+    apart both extending upwards from a perpendicular horizontal line
+    segment between them, the bottom of the two lines are each at the
+    different points the horizontal line meets one of the vertical
+    lines, the top ends of the lines falls on the opposite vertical
+    line from its bottom end and the vertical distance from the
+    horizontal line to the point at which the two lines meet is equal
+    to h.
+    
+    Args:
+        Optional named:
+        len_max (int): Strictly positive integer giving the inclusive
+                upper bound on the length of the two line segments
+                in question (x and y).
+            Default: 10 ** 6 - 1
+    
+    Returns:
+    Integer (int) giving the number of possible values of the ordered
+    triple (x, y, h) of strictly positive integers for which
+    0 < x < y <= len_max that satisfy the constraints described above.
+
+    Outline of rationale:
+    TODO
     """
+    # Review- wording of the documentation for clarity
     res = 0
     seen = {}
     prev_c0 = 0
