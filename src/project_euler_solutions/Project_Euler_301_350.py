@@ -613,6 +613,44 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
     #print(res)
     return res.numerator / res.denominator
 
+# Problem 308
+def conwayFractanPow2TransitionLength(pow2_init: int) -> Tuple[int, int]:
+    state0 = {0: pow2_init}
+    # prime indices:
+    # 2: 0
+    # 3: 1
+    # 5: 2
+    # 7: 3
+    # 11: 4
+    # 13: 5
+    # 17: 6
+    # 19: 7
+    # 23: 8
+    # 29: 9
+    incr_dicts = [{6:  1}, {0: 1, 1: 1, 5: 1}, {7: 1}, {8: 1}, {9: 1}, {3: 1, 4: 1}, {2: 1, 7: 1}, {3: 1, 4: 1}, {}, {4: 1}, {5: 1}, {1: 1, 2: 1}, {}, {2: 1, 4: 1}]
+    decr_dicts = [{3: 1, 5: 1}, {2: 1, 6: 1}, {1: 1, 6: 1}, {0: 1, 7: 1}, {1: 1, 4: 1}, {9: 1}, {8: 1}, {7: 1}, {6: 1}, {5: 1}, {4: 1}, {0: 1}, {3: 1}, {}]
+    
+    state = dict(state0)
+    seq = []
+    for i in itertools.count(1):
+        for j in range(len(decr_dicts)):
+            for p_idx, f in decr_dicts[j].items():
+                if f > state.get(p_idx, 0): break
+            else:
+                seq.append(j)
+                for p_idx, f in decr_dicts[j].items():
+                    state[p_idx] -= f
+                    if not state[p_idx]: state.pop(p_idx)
+                for  p_idx, f in incr_dicts[j].items():
+                    state[p_idx] = state.get(p_idx, 0) + f
+                break
+        #print(state)
+        print(state.get(0, 0))
+        if len(state) == 1 and 0 in state.keys():
+            break
+    print(seq)
+    return (i, state[0])
+
 # Problem 309
 def integerCrossingLaddersCount(len_max: int=10 ** 6 - 1) -> int:
     """
@@ -938,5 +976,9 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {313}
+    eval_nums = {308}
     evaluateProjectEulerSolutions251to300(eval_nums)
+
+
+pow2_init = 5
+print(conwayFractanPow2TransitionLength(pow2_init))
