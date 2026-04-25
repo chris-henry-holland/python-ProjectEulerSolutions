@@ -498,7 +498,48 @@ def partitionsGenerator(
     n_part_min: Optional[int]=None,
     n_part_max: Optional[int]=None,
 ) -> Generator[Dict[int, int], None, None]:
-    
+    """
+    Generator iterating over every possible unordered integer partition
+    of the non-negative integer num, for which (if specified) all
+    part have size between part_size_min and part_size_max inclusive
+    and the number of parts in each partition is between
+    (if specified) n_part_min and n_part_max inclusive.
+
+    Args:
+        Required positional:
+        num (int): Non-negative integer giving the number to be
+                partitioned (i.e. the number to which the size of each
+                part in a yielded partition is to sum)
+        
+        Optional named:
+        part_size_min (int or None): If specified as a non-negative integer,
+                the smallest possible part size in any partition yielded,
+                otherwise the smallest possible part size is 1.
+            Default: None (i.e. the smallest part size is 1)
+        part_size_max (int or None): If specified as an integer,
+                the largest possible part size in any partition yielded,
+                otherwise there is no upper bound on the part size
+            Default: None (i.e. the part size has no upper bound)
+        n_part_min (int or None): If specified as a non-negative integer,
+                the smallest possible number of parts in any partition yielded,
+                otherwise the smallest possible number of parts is 1.
+            Default: None (i.e. the smallest number of parts is 1)
+        n_part_max (int or None): If specified as an integer, the smallest
+                possible number of parts in any partition yielded, otherwise
+                the smallest possible number of parts is 1.
+            Default: None (i.e. the number of parts has no upper bound)
+
+    Yields:
+    Dictionary representing an unordered integer partition of num, where the
+    keys are integers giving the sizes of the parts and the corresponding
+    values are strictly positive integers giving the number of occurrences
+    of that part size in the given partition.
+    Collectively, these represent all possible unordered integer partitions
+    of num subject to the restrictions placed by the parameters part_size_min,
+    part_size_max, n_part_min and n_part_max, with each such distinct
+    unordered integer partition yielded exactly onced and in no particular
+    order.
+    """
     part_size_min = 1 if part_size_min is None else max(part_size_min, 1)
     n_part_min = 1 if n_part_min is None else max(n_part_min, 1)
 
@@ -563,7 +604,32 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFraction(
     n_balls: int,
     n_balls_in_bin_maxmin: int,
 ) -> CustomFraction:
+    """
+    Calculates the proportion of all ways of allocating n_balls distinguishable
+    balls among n_bins distinguishable bins for which at least one of the
+    bins contains at least n_balls_in_bin_maxmin balls as a fraction.
+
+    Args:
+        Required positional:
+        n_bins (int): Strictly positive integer giving the number of
+                distinguishable bins among which the balls are to be
+                distributed.
+        n_balls (int): Non-negative integer giving the number of
+                distinguishable balls to be distributed among the bins.
+        n_balls_in_bin_maxmin (int): Non-negative integer giving the number
+                of balls that must be in at least one of the bins for a
+                given configuration to contribute to the returned
+                proportion.
     
+    Returns:
+    CustomFraction object representing the proportion of all ways of
+    allocating n_balls distinguishable balls among n_bins distinguishable
+    bins for which at least one of the bins contains at least
+    n_balls_in_bin_maxmin balls as a rational number.
+
+    Outline of rationale:
+    TODO
+    """
     def multinomial(nums: List[int]) -> int:
         tot = sum(nums)
         res = 1
@@ -604,6 +670,35 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
 ) -> float:
     """
     Solution to Project Euler #307
+    
+    Calculates the proportion of all ways of allocating n_balls distinguishable
+    balls among n_bins distinguishable bins for which at least one of the
+    bins contains at least n_balls_in_bin_maxmin balls as a real number.
+
+    Args:
+        Optional named:
+        n_bins (int): Strictly positive integer giving the number of
+                distinguishable bins among which the balls are to be
+                distributed.
+            Default: 10 ** 6
+        n_balls (int): Non-negative integer giving the number of
+                distinguishable balls to be distributed among the bins.
+            Default: 2 * 10 ** 4
+        n_balls_in_bin_maxmin (int): Non-negative integer giving the number
+                of balls that must be in at least one of the bins for a
+                given configuration to contribute to the returned
+                proportion.
+            Default: 3
+    
+    Returns:
+    Float representing the proportion of all ways of allocating n_balls
+    distinguishable balls among n_bins distinguishable bins for which at
+    least one of the bins contains at least n_balls_in_bin_maxmin balls
+    as a real number.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation for the function
+    proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFraction().
     """
     res = proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFraction(
         n_bins,
