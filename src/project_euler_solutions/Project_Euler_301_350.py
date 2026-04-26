@@ -1001,6 +1001,68 @@ def calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max: int=10 ** 6 - 1) 
         res += max(0, mult_mx - mult_mn + 1)
     return res << 1
 
+# Problem 315
+def digitalRootDisplayPrimeTransitionsDifferenceCount(
+    p_min: int=10 ** 7,
+    p_max: int=2 * 10 ** 7,
+) -> int:
+    # Review- consider using bitmasks for digs_incl
+    base = 10
+    digs_incl = {
+        None: set(),
+        0: {0, 1, 2, 4, 5, 6},
+        1: {2, 5},
+        2: {0, 2, 3, 4, 6},
+        3: {0, 2, 3, 5, 6},
+        4: {1, 2, 3, 5},
+        5: {0, 1, 3, 5, 6},
+        6: {0, 1, 3, 4, 5, 6},
+        7: {0, 1, 2, 5},
+        8: {0, 1, 2, 3, 4, 5, 6},
+        9: {0, 1, 2, 3, 5, 6},
+    }
+
+    def digitTransitionDifference(d1: Optional[int], d2: Optional[int]) -> int:
+        return len(digs_incl[d1].intersection(digs_incl[d2])) << 1
+
+    def integerTransitionDifference(num1: int, num2: int) -> int:
+        res = 0
+        while num1 and num2:
+            num1, d1 = divmod(num1, base)
+            num2, d2 = divmod(num2, base)
+            res += digitTransitionDifference(d1, d2)
+        return res
+
+    def digitRoot(num: int) -> int:
+        num2 = num
+        res = 0
+        while num2:
+            num2, d = divmod(num2, base)
+            res += d
+        return res
+
+    memo = {}
+    def calculateDigitRootTransitionDifference(num: int) -> int:
+        num2 = digitRoot(num)
+        if num2 == num: return 0
+        args = num
+        if args in memo.keys(): return memo[args]
+        res = integerTransitionDifference(num, num2) + calculateDigitRootTransitionDifference(num2)
+        memo[args] = res
+        return res
+
+    ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> bool:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+
+    res = 0
+    for p in range(p_min + (not p_min & 1), p_max + 1, 2):
+        if not primeCheck(p): continue
+        num = p
+        num2 = digitRoot(num)
+        if num2 == num: continue
+        res += integerTransitionDifference(num, num2) + calculateDigitRootTransitionDifference(num2)
+    return res
 
 ##############
 project_euler_num_range = (301, 350)
@@ -1068,12 +1130,20 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max=10 ** 6 - 1)
         print(f"Solution to Project Euler #313 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 315 in eval_nums:
+        since = time.time()
+        res = digitalRootDisplayPrimeTransitionsDifferenceCount(
+            p_min=10 ** 7,
+            p_max=2 * 10 ** 7,
+        )
+        print(f"Solution to Project Euler #315 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {308}
+    eval_nums = {315}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
-pow2_init = 5
-print(conwayFractanPow2TransitionLength(pow2_init))
+#pow2_init = 5
+#print(conwayFractanPow2TransitionLength(pow2_init))
