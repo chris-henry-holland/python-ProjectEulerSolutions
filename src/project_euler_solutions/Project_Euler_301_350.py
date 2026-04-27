@@ -1022,8 +1022,14 @@ def digitalRootDisplayPrimeTransitionsDifferenceCount(
         9: {0, 1, 2, 3, 5, 6},
     }
 
+    digs_incl_bm = {}
+    for d, st in digs_incl.items():
+        digs_incl_bm[d] = 0
+        for num in st:
+            digs_incl_bm[d] |= 1 << num
+
     def digitTransitionDifference(d1: Optional[int], d2: Optional[int]) -> int:
-        return len(digs_incl[d1].intersection(digs_incl[d2])) << 1
+        return ((digs_incl_bm[d1] & digs_incl_bm[d2]).bit_count()) << 1
 
     def integerTransitionDifference(num1: int, num2: int) -> int:
         res = 0
