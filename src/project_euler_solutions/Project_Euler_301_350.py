@@ -1070,6 +1070,14 @@ def digitalRootDisplayPrimeTransitionsDifferenceCount(
         res += integerTransitionDifference(num, num2) + calculateDigitRootTransitionDifference(num2)
     return res
 
+# Problem 317
+def fircrackerVolume(h0: float=100, v0: float=20, g: float=9.81) -> int:
+    """
+    Solution to Project Euler #317
+    """
+    a = v0 ** 2 / (2 * g)
+    return 2 * math.pi * a * (a + h0) ** 2
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -1144,10 +1152,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #315 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 317 in eval_nums:
+        since = time.time()
+        res = fircrackerVolume(h0=100, v0=20, g=9.81)
+        print(f"Solution to Project Euler #315 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {315}
+    eval_nums = {317}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
