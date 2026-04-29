@@ -1071,9 +1071,38 @@ def digitalRootDisplayPrimeTransitionsDifferenceCount(
     return res
 
 # Problem 317
-def fircrackerVolume(h0: float=100, v0: float=20, g: float=9.81) -> int:
+def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     """
     Solution to Project Euler #317
+
+    For a firecracker that explodes at h0 metres above level ground
+    into fragments with initial speeds of v0 metres per second in all
+    directions under a uniform downward gravitational field with strength
+    g metres per second squared, calculates the volume above ground that
+    it is possible for at least one of the fragments of the firecracker
+    to reach.
+
+    Args:
+        Optional named:
+        h0 (float): Strictly positive real number giving the height above
+                the ground in metres at which the firecracker explodes
+                in metres.
+            Default: 100.
+        v0 (float): Strictly positive real number giving the initial
+                speed of the firecracker fragments in metres per second.
+            Default: 20.
+        g (float): Strictly positive real number giving the strength
+                of the downwards uniform gravitational field in metres
+                per second squared.
+            Default: 9.81
+    
+    Returns:
+    Float giving the volume above ground that it is possible for at least
+    one of the fragments of the firecracker to reach for the given values
+    of h0, v0 and g.
+
+    Outline of rationale:
+    TODO
     """
     a = v0 ** 2 / (2 * g)
     return 2 * math.pi * a * (a + h0) ** 2
