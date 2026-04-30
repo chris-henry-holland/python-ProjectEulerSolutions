@@ -890,6 +890,27 @@ def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
     
     return res
 
+# Problem 312
+def sierpinskiHamiltonianCyclesCountBruteForce(
+    n: int,
+    res_md: Optional[int]=None,
+) -> int:
+    if n < 0: return 0
+    elif n <= 2: return 1
+    curr = [3, 2]
+    # curr[0] is the number of Hamiltonian paths from one outer vertex
+    #         to another skipping the third
+    # curr[1] is the number of Hamiltonian paths from one outer vertex
+    #         to another including the third
+    for n in range(3, n):
+        if not n % 10 ** 4:
+            print(f"n = {n}")
+        curr = [2 * curr[0] ** 2 * curr[1], 2 * curr[0] * curr[1] ** 2]
+        if res_md is not None:
+            curr = [curr[0] % res_md, curr[1] % res_md]
+        #print(curr)
+    res = curr[1] ** 3
+    return res if res_md is None else res % res_md
 
 # Problem 313
 def calculateSlidingPuzzleMinimumMoves(n_rows: int, n_cols: int) -> int:
@@ -1080,7 +1101,7 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     directions under a uniform downward gravitational field with strength
     g metres per second squared, calculates the volume above ground that
     it is possible for at least one of the fragments of the firecracker
-    to reach.
+    to reach at some point during its trajectory in cubic metres.
 
     Args:
         Optional named:
@@ -1098,8 +1119,8 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     
     Returns:
     Float giving the volume above ground that it is possible for at least
-    one of the fragments of the firecracker to reach for the given values
-    of h0, v0 and g.
+    one of the fragments of the firecracker to reach at some point during
+    its trajectory in cubic metres for the given values of h0, v0 and g.
 
     Outline of rationale:
     TODO
@@ -1168,6 +1189,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = nimSquarePositionsLostByNextPlayerCount(n_max=10 ** 5)
         print(f"Solution to Project Euler #310 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 312 in eval_nums:
+        since = time.time()
+        res = sierpinskiHamiltonianCyclesCountBruteForce(n=10 ** 4, res_md=13 ** 8)
+        print(f"Solution to Project Euler #312 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 313 in eval_nums:
         since = time.time()
         res = calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max=10 ** 6 - 1)
@@ -1189,7 +1215,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {317}
+    eval_nums = {312}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
