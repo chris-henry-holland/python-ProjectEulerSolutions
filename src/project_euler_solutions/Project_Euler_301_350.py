@@ -912,6 +912,47 @@ def sierpinskiHamiltonianCyclesCountBruteForce(
     res = curr[1] ** 3
     return res if res_md is None else res % res_md
 
+def sierpinskiHamiltonianCyclesCount(
+    n: int,
+    res_md: Optional[int]=None,
+) -> int:
+    if n < 0: return 0
+    elif n <= 2: return 1
+    return (8 * pow(12, ((3 ** (n - 2) - 3) >> 1), res_md)) % res_md
+
+def nestedSierpinskiHamiltonianCyclesModuloPPowCount(n0: int=10 ** 4, n_nest: int=3, p: int=13, p_pow: int=8) -> int:
+    """
+    Solution to Project Euler #312
+    """
+    # Reveiw- prove this works for any prime power
+    if p_pow == 1:
+        md = p
+        curr = 2
+        seen = {}
+        for i in itertools.count(0):
+            if curr in seen:
+                break
+            seen[curr] = i
+            curr = pow(3 * curr, 3, md)
+        cycle_len = (i - seen[curr])
+    else:
+        # Find cycle length for p ** 2
+        md = p ** 2
+        curr = 2
+        seen = {}
+        for i in itertools.count(0):
+            if curr in seen:
+                break
+            seen[curr] = i
+            curr = pow(3 * curr, 3, md)
+        print(i, seen[curr], i - seen[curr])
+        cycle_len = (i - seen[curr]) * p ** (p_pow - 2)
+    res = n0 % cycle_len
+    for _ in range(n_nest - 1):
+        res = sierpinskiHamiltonianCyclesCount(res, res_md=cycle_len)
+    return sierpinskiHamiltonianCyclesCount(res, res_md=(p ** p_pow))
+
+
 # Problem 313
 def calculateSlidingPuzzleMinimumMoves(n_rows: int, n_cols: int) -> int:
     """
@@ -1191,7 +1232,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 312 in eval_nums:
         since = time.time()
-        res = sierpinskiHamiltonianCyclesCountBruteForce(n=10 ** 4, res_md=13 ** 8)
+        res = nestedSierpinskiHamiltonianCyclesModuloPPowCount(n0=10 ** 4, n_nest=3, p=13, p_pow=8)
         print(f"Solution to Project Euler #312 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 313 in eval_nums:
