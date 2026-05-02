@@ -921,10 +921,9 @@ def sierpinskiHamiltonianCyclesCount(
     return (8 * pow(12, ((3 ** (n - 2) - 3) >> 1), res_md)) % res_md
 
 def nestedSierpinskiHamiltonianCyclesModuloPPowCount(n0: int=10 ** 4, n_nest: int=3, p: int=13, p_pow: int=8) -> int:
-    """
-    Solution to Project Euler #312
-    """
+
     # Reveiw- prove this works for any prime power
+    # Review- generalise to any modulo
     if p_pow == 1:
         md = p
         curr = 2
@@ -947,11 +946,52 @@ def nestedSierpinskiHamiltonianCyclesModuloPPowCount(n0: int=10 ** 4, n_nest: in
             curr = pow(3 * curr, 3, md)
         print(i, seen[curr], i - seen[curr])
         cycle_len = (i - seen[curr]) * p ** (p_pow - 2)
+    
+    res_md = p ** p_pow
     res = n0 % cycle_len
+    print(f"cycle_len = {cycle_len}, res_md = {res_md}, initial value = {res}")
     for _ in range(n_nest - 1):
+        print(res)
         res = sierpinskiHamiltonianCyclesCount(res, res_md=cycle_len)
-    return sierpinskiHamiltonianCyclesCount(res, res_md=(p ** p_pow))
+    print(res)
+    return sierpinskiHamiltonianCyclesCount(res, res_md=res_md)
 
+def nestedSierpinskiHamiltonianCyclesModuloCount(n0: int=10 ** 4, n_nest: int=3, res_md: int=13 ** 8) -> int:
+    """
+    Solution to Project Euler #312
+    """
+    vals = [1, 1, 1, 2]
+    seen = {}
+    for i in itertools.count(4):
+        if not i % 10 ** 6: print(f"i = {i}")
+        num = pow(3 * vals[-1], 3, res_md)
+        if num in seen.keys(): break
+        vals.append(num)
+        seen[num] = i
+    cycle_len = len(vals) - seen[num]
+    cycle_start = seen[num]
+    print(f"cycle_start = {cycle_start}, cycle_len = {cycle_len}")
+
+    res = n0 % cycle_len
+    print(f"cycle_len = {cycle_len}, res_md = {res_md}, initial value = {res}")
+    for _ in range(n_nest - 1):
+        print(res)
+        res = sierpinskiHamiltonianCyclesCount(res, res_md=cycle_len)
+    print(res)
+    return sierpinskiHamiltonianCyclesCount(res, res_md=res_md)
+    """
+    res = n0
+    for _ in range(n_nest):
+        if res < len(vals):
+            res = vals[res]
+            continue
+        idx = res % cycle_len
+        print(idx)
+        idx += cycle_len * max(0, (cycle_start - idx - 1) // cycle_len + 1)
+        print(cycle_start, cycle_len, idx)
+        res = vals[idx]
+    return res
+    """
 
 # Problem 313
 def calculateSlidingPuzzleMinimumMoves(n_rows: int, n_cols: int) -> int:
@@ -1232,7 +1272,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 312 in eval_nums:
         since = time.time()
-        res = nestedSierpinskiHamiltonianCyclesModuloPPowCount(n0=10 ** 4, n_nest=3, p=13, p_pow=8)
+        res = nestedSierpinskiHamiltonianCyclesModuloCount(n0=10 ** 4, n_nest=3, res_md=13 ** 8)
+        # res = nestedSierpinskiHamiltonianCyclesModuloPPowCount(n0=10 ** 4, n_nest=3, p=13, p_pow=8)
         print(f"Solution to Project Euler #312 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 313 in eval_nums:
