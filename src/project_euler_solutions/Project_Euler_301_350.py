@@ -92,7 +92,39 @@ def calculatePrimeFactorisation(
 def nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2: int=30) -> int:
     """
     Solution to Project Euler #301
+
+    For three-heap normal-play games of Nim, calculates the
+    number of non-negative integers n no greater than 2 ** pow2
+    for which the game where the piles initially contain n,
+    2 * n and 3 * n stones respectively, perfect play
+    from both players results in the player to move first losing.
+
+    In an m-heap normal-play game of Nim (where m is a strictly
+    positive integer), there are two players and are m piles of stones,
+    each containing a specified number of stones (where the number in
+    each pile may differ from one another). The two players alternate
+    turns, with a turn consisting of removing a strictly positive
+    number of stones from a non-empty pile. A player loses (and so
+    the other player wins) if they are unable to make a legal move
+    (due to all piles being empty).
+
+    Args:
+        Optional named:
+        pow2 (int): Non-negative integer giving the power of 2 corresponding
+                to the inclusive upper bound on the values of n considered.
+            Default: 30
+    
+    Returns:
+    Integer (int) giving the number of non-negative integers n no
+    greater than 2 ** pow2 for which the three-heap normal-play game
+    of Nim where the piles initially contain n, 2 * n and 3 * n stones 
+    respectively, perfect play from both players results in the
+    player to move first losing.
+
+    Outline of rationale:
+    TODO
     """
+    # Using Sprague Grundy
     curr = [1, 1]
     for _ in range(pow2):
         curr = [curr[1], sum(curr)]
