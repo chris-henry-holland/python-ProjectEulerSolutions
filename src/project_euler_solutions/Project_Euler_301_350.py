@@ -131,8 +131,45 @@ def nimVariantPlayer2WinsWithPerfectPlayConfigurationsCount(pow2: int=30) -> int
     return curr[1]
 
 # Problem 302
-def strongAchillesNumberCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]=None) -> int:
+def strongAchillesNumberCountBruteForce(
+    n_max: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Counts the number of strictly positive integers no greater
+    than n_max that are strong Achilles.
 
+    An Achilles number is a strictly positive integer that is
+    divisible by the square of each of its prime factors and
+    is not a perfect power (i.e. it cannot be expressed as
+    an integer power greater than 1 of any integer). A strong
+    Achilles number is a strictly positive integer that is
+    an Achilles number and its Euler totient function value
+    (i.e. the number of strictly positive integers less than
+    and coprime with the given integer) is also an Achilles
+    number.
+
+    Args:
+        Requires positional:
+        n_max (int): Strictly positive integer giving the
+                inclusive upper bound on the integers considered
+                for inclusion in the count.
+        
+        Optional named:
+        ps (PrimeSPFsieve object or None): If given, a prime
+                sieve object for calculating prime factorisations.
+                If not given or given as None, the prime
+                factorisations are calculated by direct
+                division.
+            Default: None
+    
+    Returns:
+    Integer (int) giving the number of strictly positive integers
+    no greater than n_max that are strong Achilles.
+
+    Outline of rationale:
+    TODO
+    """
     #ps = PrimeSPFsieve(n_max)
     ps = None
 
@@ -179,6 +216,41 @@ def strongAchillesNumberCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]=
 def strongAchillesNumberCount(n_max: int=10 ** 18 - 1) -> int:
     """
     Solution to Project Euler #302
+
+    Counts the number of strictly positive integers no greater
+    than n_max that are strong Achilles.
+
+    An Achilles number is a strictly positive integer that is
+    divisible by the square of each of its prime factors and
+    is not a perfect power (i.e. it cannot be expressed as
+    an integer power greater than 1 of any integer). A strong
+    Achilles number is a strictly positive integer that is
+    an Achilles number and its Euler totient function value
+    (i.e. the number of strictly positive integers less than
+    and coprime with the given integer) is also an Achilles
+    number.
+
+    Args:
+        Optional named:
+        n_max (int): Strictly positive integer giving the
+                inclusive upper bound on the integers considered
+                for inclusion in the count.
+            Default: 10 ** 18 - 1
+        
+        Optional named:
+        ps (PrimeSPFsieve object or None): If given, a prime
+                sieve object for calculating prime factorisations.
+                If not given or given as None, the prime
+                factorisations are calculated by direct
+                division.
+            Default: None
+    
+    Returns:
+    Integer (int) giving the number of strictly positive integers
+    no greater than n_max that are strong Achilles.
+
+    Outline of rationale:
+    TODO
     """
 
     p_max = integerNthRoot(n_max, 3)
