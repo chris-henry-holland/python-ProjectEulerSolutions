@@ -416,13 +416,46 @@ def smallestMultiplierGivingMultipleWithDigitValueUpperBound(
     max_dig_val: int,
     base: int=10,
 ) -> int:
-    
+    """
+    For strictly positive integer num, calculates the smallest strictly
+    positive integer such that the product of that integer with num
+    has a representation in the chosen base containing only digits
+    with value no greater than max_dig_val if such a value exists,
+    otherwise -1.
+
+    Args:
+        Required positional:
+        num (int): Strictly positive integer giving the number for
+                which the product with the returned value (if any)
+                should when represented in the chosen base contain no
+                digit with value greater than max_dig_val.
+        max_dig_val (int): Strictly positive integer less than base
+                giving the largest digit value allowed in the
+                representation in the chosen base of the product of num
+                and the returned value.
+
+        Optional named:
+        base (int): Integer strictly greater than 1 giving the base in
+                which the product of num and the returned value (if any)
+                should be represented when assessing whether it
+                contains any digit with value exceeding max_dig_val.
+            Default: 10
+
+    Returns:
+    Integer (int) giving the smallest strictly positive integer such
+    that the product of that integer with num as a representation in
+    the chosen base containing only digits with value no greater than
+    max_dig_val if such a value exists, otherwise -1.
+
+    Outline of rationale:
+    TODO
+    """
     digs = []
     num2 = num
     while num2:
         num2, d = divmod(num2, base)
         digs.append(d)
-    n_dig = len(digs)
+    #n_dig = len(digs)
 
     q = deque([0])
     res = float("inf")
@@ -457,6 +490,44 @@ def smallestMultiplierGivingMultipleWithDigitValueUpperBoundSum(
     max_dig_val: int=2,
     base: int=10,
 ) -> int:
+    """
+    Solution to Project Euler #303
+
+    For each integer between 1 and num_max inclusive, calculates
+    the smallest strictly positive integer whose product with the
+    given integer has a representation in the chosen base containing
+    only digits with value no greater than max_dig_val and returns
+    the sum of these integers if such a value exists for all such
+    integers, otherwise returns -1.
+
+    Args:
+        Optional named:
+        num_max (int): Strictly positive integer giving the inclusive
+                upper bound on the numbers whose integer multipliers
+                are to be included in the returned sum.
+            Default: 10 ** 4
+        max_dig_val (int): Strictly positive integer less than base
+                giving the largest digit value allowed in the
+                product of each integer with the multiplier it
+                contributes to the returned sum when represented in
+                the chosen base.
+            Default: 2
+        base (int): Integer strictly greater than 1 giving the base in
+                integers should be represented when assessing whether it
+                contains any digit with value exceeding max_dig_val.
+            Default: 10
+
+    Returns:
+    Integer (int) giving the sum of each of the smallest strictly positive
+    integer whose product with the integers between 1 and num_max inclusive
+    has a representation in the chosen base containing only digits with
+    value no greater than max_dig_val if such a value exists for all such
+    integers, otherwise -1.
+
+    Outline of rationale:
+    See outline of rationale section in the documentation of the function
+    smallestMultiplierGivingMultipleWithDigitValueUpperBound().
+    """
     res = 0
     for num in range(1, num_max + 1):
         mul = smallestMultiplierGivingMultipleWithDigitValueUpperBound(
@@ -465,6 +536,7 @@ def smallestMultiplierGivingMultipleWithDigitValueUpperBoundSum(
             base=base,
         )
         print(num, mul, num * mul)
+        if mul < 0: return -1
         res += mul
     return res
 
