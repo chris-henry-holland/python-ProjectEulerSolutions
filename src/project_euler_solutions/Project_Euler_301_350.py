@@ -1385,6 +1385,34 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     a = v0 ** 2 / (2 * g)
     return 2 * math.pi * a * (a + h0) ** 2
 
+# Problem 923
+def randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(
+    n_bit: int,
+) -> CustomFraction:
+    
+    res = CustomFraction(0, 1)
+
+    # P(number of steps to get all 1s <= n) = (1 - (1 / 2) ** n) ** n_bit
+    # P(number of steps to get all 1s >= n) = 1 - P(number of steps to get all 1s <= (n - 1))
+    #  = 1 - (1 - (1 / 2) ** (n - 1)) ** n_bit
+    # so expected value is:
+    # E(number of steps to get all ones) = sum(n = 1 to inf) (1 - (1 - (1 / 2) ** (n - 1)) ** n_bit)
+    #  = sum(n = 0 to inf) (1 - (1 - (1 / 2) ** n)) ** n_bit)
+    #  = sum(k = 1 to n_bit) (-1) ** (k - 1) * (n_bit choose k) / (1 - (1 / 2) ** k)
+
+    res = CustomFraction(0, 1)
+    for k in range(1, n_bit + 1):
+        div = 1 - CustomFraction(1, 1 << k)
+        term = math.comb(n_bit, k) / div
+        res += term if k & 1 else -term
+    return res
+
+def randomSequenceBitwiseOrIsAllOnesExpectedValueFloat(
+    n_bit: int=32,
+) -> float:
+    res = randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(n_bit)
+    return res.numerator / res.denominator
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -1468,12 +1496,21 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 317 in eval_nums:
         since = time.time()
         res = fircrackerVolume(h0=100, v0=20, g=9.81)
-        print(f"Solution to Project Euler #315 = {res}, calculated in {time.time() - since:.4f} seconds")
+        print(f"Solution to Project Euler #317 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 323 in eval_nums:
+        since = time.time()
+        res = randomSequenceBitwiseOrIsAllOnesExpectedValueFloat(
+            n_bit=32,
+        )
+        print(f"Solution to Project Euler #323 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
+    
+
 if __name__ == "__main__":
-    eval_nums = {312}
+    eval_nums = {323}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
