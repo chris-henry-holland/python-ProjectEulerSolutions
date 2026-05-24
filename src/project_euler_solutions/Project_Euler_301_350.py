@@ -1412,6 +1412,9 @@ def randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(
     value for the length of the shortest prefix of the random
     sequences generated as described for which the bitwise or
     of all elements in that prefix is equal to (2 ** n_bit - 1).
+
+    Outline of rationale:
+    TODO
     """
     res = CustomFraction(0, 1)
 
@@ -1433,6 +1436,36 @@ def randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(
 def randomSequenceBitwiseOrIsAllOnesExpectedValueFloat(
     n_bit: int=32,
 ) -> float:
+    """
+    Solution to Project Euler #323
+
+    Calculates the expectation number of terms in the shortest
+    prefix of an infinite sequence of random integers between 0
+    and 2 ** (n_bit) - 1 inclusive, where each number in this
+    range has the same probability of being selected, for
+    which the bitwise or of every integer in that prefix is
+    equal to 2 ** n_bit - 1 (i.e. the binary representation of
+    the bitwise or of every element in the prefix without
+    leading zeros consists of n_bit ones and no zeros).
+
+    Args:
+        Required positional
+        n_bit (int): Strictly positive integer giving the
+                range of the random numbers chosen, that
+                being between 0 and 2 ** n_bit - 1, and
+                the target value of the prefix bitwise or,
+                that also being 2 ** n_bit - 1.
+    
+    Returns:
+    Float representing the expectation value for the length of
+    the shortest prefix of the random sequences generated as
+    described for which the bitwise or of all elements in that
+    prefix is equal to (2 ** n_bit - 1).
+
+    Outline of rationale:
+    See Outline of rationale section in the documentation for
+    randomSequenceBitwiseOrIsAllOnesExpectedValueFraction().
+    """
     res = randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(n_bit)
     return res.numerator / res.denominator
 
