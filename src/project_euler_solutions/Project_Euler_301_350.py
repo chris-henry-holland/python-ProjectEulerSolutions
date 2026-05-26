@@ -1385,7 +1385,29 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     a = v0 ** 2 / (2 * g)
     return 2 * math.pi * a * (a + h0) ** 2
 
-# Problem 923
+# Problem 321
+def calculateFirstNCounterSwappingGamesEqualToTriangularNumber(
+    n: int=40,
+) -> List[int]:
+    if n <= 0: return []
+    res = []
+    for (a, b) in generalisedPellSolutionGenerator(8, -7, excl_trivial=True):
+        if b <= 1 or not a & 1: continue
+        res.append(b - 1)
+        if len(res) == n: break
+    return res
+
+def calculateFirstNCounterSwappingGamesEqualToTriangularNumberSum(
+    n: int,
+) -> int:
+    """
+    Solution to Project Euler #321
+    """
+    sol_lst = calculateFirstNCounterSwappingGamesEqualToTriangularNumber(n)
+    print(sol_lst)
+    return sum(sol_lst)
+
+# Problem 323
 def randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(
     n_bit: int,
 ) -> CustomFraction:
@@ -1554,6 +1576,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = fircrackerVolume(h0=100, v0=20, g=9.81)
         print(f"Solution to Project Euler #317 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 321 in eval_nums:
+        since = time.time()
+        res = calculateFirstNCounterSwappingGamesEqualToTriangularNumberSum(
+            n=40,
+        )
+        print(f"Solution to Project Euler #321 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 323 in eval_nums:
         since = time.time()
         res = randomSequenceBitwiseOrIsAllOnesExpectedValueFloat(
@@ -1566,7 +1595,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {323}
+    eval_nums = {321}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
