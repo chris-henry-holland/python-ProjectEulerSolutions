@@ -1385,6 +1385,54 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     a = v0 ** 2 / (2 * g)
     return 2 * math.pi * a * (a + h0) ** 2
 
+# Problem 320
+def factorialPrimeFactorPower(p: int, n: int) -> int:
+    """
+    Calculates the exponent of the prime p in the prime
+    factorisation of n! (n factorial)
+    """
+    res = 0
+    n2 = n
+    while n2:
+        n2 //= p
+        res += n2
+    return res
+
+def smallestFactorialDivisibleByPrimePower(
+    p: int,
+    exp: int,
+) -> int:
+    """
+    Calculates the smallest integer n such that n! (n factorial)
+    is divisible by p ** exp where p is a prime.
+    """
+    lo, hi = 0, 1
+    while factorialPrimeFactorPower(p, hi) < exp:
+        lo, hi = hi + 1, hi << 1
+    while lo < hi:
+        mid = lo + ((hi - lo) >> 1)
+        if factorialPrimeFactorPower(p, mid) < exp:
+            lo = mid + 1
+        else: hi = mid
+    return mid
+
+def smallestFactorialDivisibleByFactorialPower(
+    m: int,
+    exp: int,
+    ps: Optional[SimplePrimeSieve]=None,
+) -> int:
+    if ps is None:
+        ps = SimplePrimeSieve(m)
+    else:
+        ps.extendSieve(m)
+    
+    res = 0
+    p_i_mx = bisect.bisect_right(ps.p_lst, m)
+    #for p_i in range(p_i_mx):
+
+    return 0
+
+
 # Problem 321
 def calculateFirstNCounterSwappingGamesEqualToTriangularNumber(
     n: int=40,
