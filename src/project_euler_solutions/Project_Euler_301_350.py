@@ -1408,30 +1408,109 @@ def smallestFactorialDivisibleByPrimePower(
     """
     lo, hi = 0, 1
     while factorialPrimeFactorPower(p, hi) < exp:
-        lo, hi = hi + 1, hi << 1
+        lo = hi + 1
+        hi = lo << 1
     while lo < hi:
         mid = lo + ((hi - lo) >> 1)
         if factorialPrimeFactorPower(p, mid) < exp:
             lo = mid + 1
         else: hi = mid
-    return mid
+    return lo
+
+def smallestFactorialDivisibleByPrimePowerWithLowerBound(
+    p: int,
+    exp: int,
+    lo: int=0,
+) -> int:
+    """
+    Calculates the smallest integer n >= lo such that n! (n factorial)
+    is divisible by p ** exp where p is a prime.
+    """
+    if factorialPrimeFactorPower(p, lo) >= exp: return lo
+    lo += 1
+    hi = lo << 1
+    while factorialPrimeFactorPower(p, hi) < exp:
+        #print(hi, factorialPrimeFactorPower(p, hi), exp)
+        lo = hi + 1
+        hi = lo << 1
+    while lo < hi:
+        mid = lo + ((hi - lo) >> 1)
+        if factorialPrimeFactorPower(p, mid) < exp:
+            lo = mid + 1
+        else: hi = mid
+    return lo
 
 def smallestFactorialDivisibleByFactorialPower(
     m: int,
     exp: int,
     ps: Optional[SimplePrimeSieve]=None,
+    lo: int=0,
 ) -> int:
     if ps is None:
         ps = SimplePrimeSieve(m)
     else:
         ps.extendSieve(m)
     
-    res = 0
     p_i_mx = bisect.bisect_right(ps.p_lst, m)
-    #for p_i in range(p_i_mx):
+    res = lo
+    p_i_limit = -1
+    for p_i in range(p_i_mx):
+        p = ps.p_lst[p_i]
+        exp2 = factorialPrimeFactorPower(p, m) * exp
+        res = smallestFactorialDivisibleByPrimePowerWithLowerBound(
+            p,
+            exp2,
+            lo=res,
+        )
+    return res
 
-    return 0
+    p = ps.p_lst[p_i_mx - 1]
+    exp2 = factorialPrimeFactorPower(p, m) * exp
+    res = smallestFactorialDivisibleByPrimePowerWithLowerBound(
+        p,
+        exp2,
+        lo=lo,
+    )
+    print(f"p_i_mx = {p_i_mx}, p_i_limit = {p_i_limit}, res = {res}, res2 = {res2}")
+    return res2
 
+def smallestFactorialDivisibleByFactorialPowerSum(
+    m_min: int=10,
+    m_max: int=10 ** 6,
+    exp: int=1234567890,
+    ps: Optional[PrimeSPFsieve]=None,
+    res_md: Optional[int]=10 ** 18,
+) -> int:
+    """
+    Solution to Project Euler #320
+    """
+    if ps is None: ps = PrimeSPFsieve(m_max)
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+
+    res = 0
+    ans = smallestFactorialDivisibleByFactorialPower(
+        m=m_min,
+        exp=exp,
+        ps=ps,
+        lo=0,
+    )
+    res = addMod(res, ans)
+    for m in range(m_min + 1, m_max + 1):
+        if not m % 10 ** 4:
+            print(f"m = {m} (max {m_max})")
+        pf = ps.primeFactors(m)
+        #print(m, pf)
+        for p in ps.primeFactors(m):
+            exp2 = factorialPrimeFactorPower(p, m) * exp
+            ans = smallestFactorialDivisibleByPrimePowerWithLowerBound(
+                p,
+                exp2,
+                lo=ans,
+            )
+        #print(m, ans)
+        res = addMod(res, ans)
+    return res
 
 # Problem 321
 def calculateFirstNCounterSwappingGamesEqualToTriangularNumber(
@@ -1624,6 +1703,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = fircrackerVolume(h0=100, v0=20, g=9.81)
         print(f"Solution to Project Euler #317 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 320 in eval_nums:
+        since = time.time()
+        res = smallestFactorialDivisibleByFactorialPowerSum(
+            m_min=10,
+            m_max=10 ** 6,
+            exp=1234567890,
+            ps=None,
+            res_md=10 ** 18,
+        )
+        print(f"Solution to Project Euler #320 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 321 in eval_nums:
         since = time.time()
         res = calculateFirstNCounterSwappingGamesEqualToTriangularNumberSum(
@@ -1643,7 +1733,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {321}
+    eval_nums = {320}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
