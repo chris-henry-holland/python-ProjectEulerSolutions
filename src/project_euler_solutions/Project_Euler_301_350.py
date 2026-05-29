@@ -1389,7 +1389,19 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
 def factorialPrimeFactorPower(p: int, n: int) -> int:
     """
     Calculates the exponent of the prime p in the prime
-    factorisation of n! (n factorial)
+    factorisation of n! (n factorial).
+
+    Args:
+        Required positional:
+        p (int): Prime number whose exponent in the prime
+                factorisation of n! is to be found.
+        n (int): Non-negative integer whose factorial prime
+                factorisation the exponent of the prime p
+                is to be found.
+    
+    Returns:
+    Integer (int) giving the exponent of the prime p in the
+    prime factorisation of n!.
     """
     res = 0
     n2 = n
@@ -1403,9 +1415,25 @@ def smallestFactorialDivisibleByPrimePower(
     exp: int,
 ) -> int:
     """
-    Calculates the smallest integer n such that n! (n factorial)
-    is divisible by p ** exp where p is a prime.
+    Calculates the smallest non-negative integer n such that
+    n! (n factorial) is divisible by p ** exp (p to the power
+    of exp) where p is a prime.
+
+    Args:
+        Required positional:
+        p (int): Prime number for which the returned value is
+                the smallest non-negative integer whose factorial
+                is divisible by this prime to the power of exp.
+        exp (int): Non-negative integer for which the returned
+                value is the smallest non-negative integer whose
+                factorial is divisible by p to the power of this
+                number.
+    
+    Returns:
+    Integer (int) giving the smallest non-negative integer whose
+    factorial is divisible by p ** exp (p to the power of exp).
     """
+    if not exp: return 0
     lo, hi = 0, 1
     while factorialPrimeFactorPower(p, hi) < exp:
         lo = hi + 1
@@ -1423,9 +1451,32 @@ def smallestFactorialDivisibleByPrimePowerWithLowerBound(
     lo: int=0,
 ) -> int:
     """
-    Calculates the smallest integer n >= lo such that n! (n factorial)
-    is divisible by p ** exp where p is a prime.
+    Calculates the smallest integer non-negative integer
+    n >= lo such that n! (n factorial) is divisible by p ** exp
+    (p to the power of exp) where p is a prime.
+
+    Args:
+        Required positional:
+        p (int): Prime number for which the returned value is
+                the smallest non-negative integer no less than
+                lo whose factorial is divisible by this prime
+                to the power of exp.
+        exp (int): Non-negative integer for which the returned
+                value is the smallest non-negative integer no
+                less than lo whose factorial is divisible by p
+                to the power of this number.
+
+        Optional named:
+        lo (int, optional): Integer giving the inclusive lower
+                bound on the returned value.
+            Default: 0
+    
+    Returns:
+    Integer (int) giving the smallest non-negative integer no less
+    than lo whose factorial is divisible by p ** exp (p to the
+    power of exp).
     """
+    lo = max(lo, 0)
     if factorialPrimeFactorPower(p, lo) >= exp: return lo
     lo += 1
     hi = lo << 1
@@ -1446,14 +1497,47 @@ def smallestFactorialDivisibleByFactorialPower(
     ps: Optional[SimplePrimeSieve]=None,
     lo: int=0,
 ) -> int:
+    """
+    Calculates the smallest non-negative integer n >= lo for
+    which the n! (n factorial) is divisible by (m!) ** exp
+    (m factorial to the power of exp).
+
+    Args:
+        Required positional:
+        m (int): Non-negative integer for which the returned value
+                is the smallest non-negative integer no less than
+                lo whose factorial is divisible by the factorial
+                of this integer to the power of exp.
+        exp (int): Non-negative integer for which the returned value
+                is the smallest non-negative integer no less than
+                lo whose factorial is divisible by m! to the power
+                of this number.
+        
+        Optional named:
+        ps (Optional[SimplePrimeSieve], optional): If specified,
+                a basic prime sieve (using the sieve of Eratosthenes)
+                used to identify the primes up to (and including) m.
+                If not specified (or given as None), such a sieve
+                is created inside the function.
+                The option to use a previously defined prime sieve is
+                made available to avoid redundant creation of multiple
+                prime sieve objects.
+            Default: None
+        lo (int, optional): Integer giving the inclusive lower bound
+                on the returned value.
+            Default: 0
+
+    Returns:
+    Integer (int) giving the smallest non-negative integer no less than
+    lo whose factorial is divisible by m factorial to the power of exp.
+    """
     if ps is None:
         ps = SimplePrimeSieve(m)
     else:
         ps.extendSieve(m)
-    
+    lo = max(lo, 0)
     p_i_mx = bisect.bisect_right(ps.p_lst, m)
-    res = lo
-    p_i_limit = -1
+    res = max(lo, 0)
     for p_i in range(p_i_mx):
         p = ps.p_lst[p_i]
         exp2 = factorialPrimeFactorPower(p, m) * exp
@@ -1464,16 +1548,6 @@ def smallestFactorialDivisibleByFactorialPower(
         )
     return res
 
-    p = ps.p_lst[p_i_mx - 1]
-    exp2 = factorialPrimeFactorPower(p, m) * exp
-    res = smallestFactorialDivisibleByPrimePowerWithLowerBound(
-        p,
-        exp2,
-        lo=lo,
-    )
-    print(f"p_i_mx = {p_i_mx}, p_i_limit = {p_i_limit}, res = {res}, res2 = {res2}")
-    return res2
-
 def smallestFactorialDivisibleByFactorialPowerSum(
     m_min: int=10,
     m_max: int=10 ** 6,
@@ -1483,8 +1557,59 @@ def smallestFactorialDivisibleByFactorialPowerSum(
 ) -> int:
     """
     Solution to Project Euler #320
+
+    Calculates the sum over the smallest non-negative integer n for
+    which the n! (n factorial) is divisible by (m!) ** exp
+    (m factorial to the power of exp) for each non-negative integer
+    m between m_min and m_max inclusive. If res_md is given as a
+    strictly positive integer, then this sum is returned modulo res_md.
+
+    Args:
+        Optional named:
+        m_min (int): Non-negative integer giving the inclusive lower
+                bound on the non-negative integer values for which
+                the smallest non-negative integer whose factorial is
+                divisible by the factorial the value to the power of
+                exp is to be included in the returned sum.
+            Default: 10
+        m_max (int): Non-negative integer giving the inclusive upper
+                bound on the non-negative integer values for which
+                the smallest non-negative integer whose factorial is
+                divisible by the factorial the value to the power of
+                exp is to be included in the returned sum.
+            Default: 10 ** 6
+        exp (int): Non-negative integer for which the value included
+                in the sum for a given integer m should be the smallest
+                integer whose factorial is divisible by m! to the power
+                of this number.
+            Default: 1234567890
+        ps (Optional[PrimeSPFsieve], optional): If specified, a smallest
+                prime factor (SPF) prime sieve (based on the sieve of
+                Eratosthenes) used to find primes and identify the prime
+                factorisations of integers up to (and including) m_max.
+                If not specified (or given as None), such a sieve
+                is created inside the function.
+                The option to use a previously defined prime sieve is
+                made available to avoid redundant creation of multiple
+                prime sieve objects.
+            Default: None
+        res_md (Optional[int], optional): If given as a strictly positive
+                integer, the modulus to which the final sum should be
+                taken when returned, otherwise the sum itself is returned.
+            Default: 10 ** 18
+
+    Returns:
+    Integer (int) giving sum of the the smallest non-negative integer
+    whose factorial is divisible by m factorial to the power of exp for
+    each non-negative integer m between m_min and m_max inclusive.
+    
+    Outline of rationale:
+    TODO
     """
     if ps is None: ps = PrimeSPFsieve(m_max)
+
+    m_min = max(m_min, 0)
+    if m_min > m_max: return 0
 
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
 
