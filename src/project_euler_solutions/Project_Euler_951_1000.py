@@ -2696,6 +2696,24 @@ def diceGameNashEquilibriumExpectedPayoutFloat(
     )
     return res
 
+# Problem 999
+def alternatingRecurrenceSequenceGenerator(
+    n_max: Optional[int]=None,
+) -> Generator[tuple[int], None, None]:
+    
+    curr = [1, 1, 1, 2]
+    for i, num in zip(itertools.count(1) if n_max is None else range(1, n_max + 1), curr):
+        yield (i, num)
+    it = itertools.count(5) if n_max is None else range(5, n_max + 1)
+
+    for i in it:
+        u = 1 + (i & 1)
+        num, r = divmod(curr[-2] * curr[-2] - u * curr[-1] * curr[-3], curr[-4])
+        if r: raise ValueError(f"term number {i} if not an integer as was expected")
+        yield (i, num)
+        curr = curr[1:] + [num]
+    return
+
 ##############
 project_euler_num_range = (951, 1000)
 
@@ -2780,7 +2798,7 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         print(f"Solution to Project Euler #982 = {res}, calculated in {time.time() - since:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {982}
+    eval_nums = {999}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
@@ -2841,3 +2859,8 @@ for num in range(2, 500):
 
 
 #print(randomWalkDistributionBruteForce(n_steps=35))
+"""
+n_max = 100
+for i, num in alternatingRecurrenceSequenceGenerator(n_max):
+    print(i, num)
+"""
