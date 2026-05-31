@@ -2696,6 +2696,112 @@ def diceGameNashEquilibriumExpectedPayoutFloat(
     )
     return res
 
+# Problem 997
+def diceRectangleArrangementCountBruteForce(dims: tuple[int, int]=(9, 10)) -> int:
+
+    def standardiseRow(row: tuple[int, ...]) -> tuple[int, ...]:
+        nxt = 0
+        seen = {}
+        res = [-1] * len(row)
+        for i, num in enumerate(row):
+            if num < 0: continue
+            if num not in seen.keys():
+                seen[num] = nxt
+                seen[5 - num] = 5 - nxt
+                nxt += 1
+            res[i] = seen[num]
+        return tuple(res)
+
+    row_enc_lst = []
+    row_enc_dict = {}
+    
+    def encodeRow(row: tuple[int, ...]) -> int:
+        row = standardiseRow(row)
+        if row in row_enc_dict.keys():
+            return row_enc_dict[row]
+        enc_idx = len(row_enc_lst)
+        row_enc_lst.append(row)
+        row_enc_dict[row] = enc_idx
+        return enc_idx
+    
+    def decodeRow(row_enc: int) -> tuple[int, ...]:
+        return row_enc_lst[row_enc]
+
+    memo = {}
+    def transferFunction(row_enc: int) -> dict[int, int]:
+        if row_enc in memo.keys():
+            return memo[row_enc]
+        prev_row = decodeRow(row_enc)
+
+        res = {}
+        curr_row = [-1] * dims[1]
+
+        def recur(idx: int, lft_val: int=-1) -> None:
+            #print(f"idx = {idx}, lft_val = {lft_val}")
+            if idx == dims[1]:
+                curr_row_enc = encodeRow(curr_row)
+                res[curr_row_enc] = res.get(curr_row_enc, 0) + 1
+                return
+            #if lft_val != -1 and lft_val == prev_row[idx]:
+            #    return
+            bottom_it = {prev_row[idx]} if prev_row[idx] >= 0 else set(range(6))
+            if lft_val >= 0:
+                bottom_it -= {lft_val, 5 - lft_val}
+            for bottom_val in bottom_it:
+                #print(f"bottom_val = {bottom_val}")
+                top_val = 5 - bottom_val
+                curr_row[idx] = top_val
+                lft_it = [lft_val] if lft_val >= 0 else set(range(6)) - {bottom_val, top_val}
+                #print(lft_it)
+                for lft_val2 in lft_it:
+                    #print(f"lft_val2 = {lft_val2}")
+                    rgt_val2 = 5 - lft_val2
+                    recur(idx + 1, rgt_val2)
+            return
+        recur(0, lft_val=-1)
+        memo[row_enc] = res
+        return res
+
+    curr = {encodeRow([-1] * dims[1]): 1}
+    for _ in range(dims[0]):
+        prev = curr
+        curr = {}
+        for row_enc, f in prev.items():
+            for row_enc2, f2 in transferFunction(row_enc).items():
+                curr[row_enc2] = curr.get(row_enc2, 0) + f * f2
+    print(row_enc_lst)
+    print(memo)
+    return sum(curr.values())
+
+def diceRectangleArrangementCount(dims: tuple[int, int]=(9, 10)) -> int:
+    m, n = dims
+    return 3 * (1 << (m + n + 1)) * ((1 << (m - 1)) + (1 << (n - 1)) - 1)
+
+def diceBoxArrangementCountBruteForce(dims: tuple[int, int, int]=(9, 10, 11)) -> int:
+
+    top_faces = [[None] * dims[1] for _ in range(dims[0])]
+    front_faces = [[None] * dims[2] for _ in range(dims[0])]
+    right_faces = [[None] * dims[2] for _ in range(dims[1])]
+
+    top_faces[0][0] = 0
+    front_faces[0][0] = 1
+    right_faces[0][0] = 2
+
+    def recur(inds: tuple[int, int, int]) -> int:
+        pass
+
+def diceBoxArrangementCount(dims: tuple[int, int, int]=(9, 10, 11)) -> int:
+    # Review- this was a guess based on empirical formula derived from
+    # the 2d case- need to prove that this works
+    return 3 * (1 << (sum(dims))) * ((1 << (dims[0] - 1)) + (1 << (dims[1] - 1)) + (1 << (dims[2] - 1)) - 2)
+    """
+    res = 1 << 3
+    for dim in dims:
+        res <<= 2 * (dim - 1)
+    res *= 3
+    return res
+    """
+
 # Problem 999
 def alternatingRecurrenceSequenceGenerator(
     n_max: Optional[int]=None,
@@ -2797,8 +2903,13 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = diceGameNashEquilibriumExpectedPayoutFloat(die_n_faces=6, n_dice=3, n_dice_hidden=1)
         print(f"Solution to Project Euler #982 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 997 in eval_nums:
+        since = time.time()
+        res = diceBoxArrangementCount(dims=(9, 10, 11))
+        print(f"Solution to Project Euler #997 = {res}, calculated in {time.time() - since:.4f} seconds")
+
 if __name__ == "__main__":
-    eval_nums = {999}
+    eval_nums = {997}
     evaluateProjectEulerSolutions951to1000(eval_nums)
 
 
@@ -2864,3 +2975,5 @@ n_max = 100
 for i, num in alternatingRecurrenceSequenceGenerator(n_max):
     print(i, num)
 """
+
+#print(diceRectangleArrangementCountBruteForce(dims=(6, 6)) // 24)
