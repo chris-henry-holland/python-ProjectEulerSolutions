@@ -2696,6 +2696,10 @@ def diceGameNashEquilibriumExpectedPayoutFloat(
     )
     return res
 
+# Problem 991
+def fruitSalad(sum_max: int=10 ** 7) -> int:
+    pass
+
 # Problem 997
 def diceRectangleArrangementCountBruteForce(dims: tuple[int, int]=(9, 10)) -> int:
 
@@ -2791,6 +2795,9 @@ def diceBoxArrangementCountBruteForce(dims: tuple[int, int, int]=(9, 10, 11)) ->
         pass
 
 def diceBoxArrangementCount(dims: tuple[int, int, int]=(9, 10, 11)) -> int:
+    """
+    Solution to Project Euler #997
+    """
     # Review- this was a guess based on empirical formula derived from
     # the 2d case- need to prove that this works
     return 3 * (1 << (sum(dims))) * ((1 << (dims[0] - 1)) + (1 << (dims[1] - 1)) + (1 << (dims[2] - 1)) - 2)
