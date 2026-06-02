@@ -1743,6 +1743,171 @@ def randomSequenceBitwiseOrIsAllOnesExpectedValueFloat(
     res = randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(n_bit)
     return res.numerator / res.denominator
 
+# Problem 324
+def blockTowerConfigurationsCount(
+    dims: tuple[int, int, int], 
+    res_md: Optional[int]=10 ** 8 + 7,
+) -> int:
+    if dims[0] & 1 and dims[1] & 1 and dims[2] & 1:
+        return 0
+    dims = sorted(dims)
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+    
+    rect_dims = dims[:2]
+    h = dims[2]
+    
+    rect_area = rect_dims[0] * rect_dims[1]
+
+    def standardiseLayerBitmask(bm_raw: int) -> int:
+        res = bm_raw
+        bm_lst = [bm_raw]
+        bm_set = {bm_raw}
+        # reflection across horizontal reflection line
+        for i in range(len(bm_lst)):
+            bm2 = bm_lst[i]
+            ans = 0
+            bm3 = (1 << rect_dims[1]) - 1
+            for _ in range(rect_dims[0]):
+                ans = (ans << rect_dims[1]) ^ (bm2 & bm3)
+                bm2 >>= rect_dims[1]
+            if ans not in bm_set:
+                bm_lst.append(ans)
+                res = min(res, bm_lst[-1])
+
+        # rotation through 180 degrees about centre (of both the original
+        # and the reflection, the latter giving the reflection across the
+        # vertical reflection line)
+        for i in range(len(bm_lst)):
+            bm2 = bm_lst[i]
+            ans = 0
+            for _ in range(rect_area):
+                ans = (ans << 1) ^ (bm2 & 1)
+                bm2 >>= 1
+            if ans not in bm_set:
+                bm_lst.append(ans)
+                res = min(res, bm_lst[-1])
+        #print(bm_lst)
+        # If the layer rectangle is not a square, does not have
+        # symmetry through 90 degree rotations or diagonal reflections
+        if rect_dims[0] != rect_dims[1]:
+            return res
+        
+        # Reflect across leading diagonal reflection line (which
+        # is the diagonal that passes through the squre represented
+        # by the least significant digit of the bitmask integer)
+        for i in range(len(bm_lst)):
+            bms = [0] * rect_dims[0]
+            bm2 = bm_lst[i]
+            for _ in range(rect_dims[0]):
+                for j in range(rect_dims[1]):
+                    bms[j] = (bms[j] << 1) ^ (bm2 & 1)
+                    bm2 >>= 1
+            ans = 0
+            for sub_bm in bms:
+                ans = (ans << rect_dims[1]) ^ sub_bm
+            res = min(res, ans)
+        return res
+    
+    memo = {}
+    def getTransferFunction(bm0: int) -> dict[int, int]:
+        bm0 = standardiseLayerBitmask(bm0)
+        if bm0 in memo.keys(): return memo[bm0]
+        res = {}
+
+        def recur(idx: int, bm: int, cover: set[int]) -> None:
+            if idx == rect_area:
+                bm2 = standardiseLayerBitmask(bm)
+                res[bm2] = addMod(res.get(bm2, 0), 1)
+                return
+            
+            if idx in cover:
+                return recur(idx + 1, bm, cover)
+            bm2 = 1 << idx
+            recur(idx + 1, bm | bm2, cover)
+            i1, i2 = divmod(idx, rect_dims[1])
+            if i2 < rect_dims[1] - 1:
+                idx2 = idx + 1
+                if idx2 not in cover:
+                    cover.add(idx2)
+                    recur(idx + 1, bm, cover)
+                    cover.remove(idx2)
+            if i1 < rect_dims[0] - 1:
+                idx2 = idx + rect_dims[1]
+                if idx2 not in cover:
+                    cover.add(idx2)
+                    recur(idx + 1, bm, cover)
+                    cover.remove(idx2)
+            return
+        cover = set()
+        bm2 = bm
+        for i in range(rect_area):
+            if bm2 & 1: cover.add(i)
+            bm2 >>= 1
+        recur(0, 0, cover)
+        memo[bm0] = res
+        return res
+
+    transfers = {}
+    wait_bms = {0}
+    while wait_bms:
+        bm = next(iter(wait_bms))
+        wait_bms.remove(bm)
+        transf_dict = getTransferFunction(bm)
+        transfers[bm] = transf_dict
+        for bm2 in transf_dict.keys():
+            if bm2 in transfers.keys() or bm2 in wait_bms:
+                continue
+            wait_bms.add(bm2)
+
+    #print(transfers)
+    #print(sum(transfers[0].values()))
+    #print(len(transfers))
+    #print([format(bm, "b") for bm in sorted(transfers.keys())])
+    
+    def applyTransfer(
+        transf: dict[int, dict[int, int]],
+        state: dict[int, int],
+    ) -> dict[int, int]:
+        #print(transf, state)
+        res = {}
+        for bm1, f1 in state.items():
+            if not f1: continue
+            for bm2, f2 in transf.get(bm1, {}).items():
+                if not f2: continue
+                res[bm2] = addMod(res.get(bm2, 0), mulMod(f1, f2))
+        return res
+
+    def composeTransfers(
+        transf1: dict[int, dict[int, int]],
+        transf2: dict[int, dict[int, int]],
+    ) -> dict[int, dict[int, int]]:
+        res = {}
+        for bm1, bm1_dict in transf1.items():
+            res[bm1] = {}
+            for bm2, f2 in bm1_dict.items():
+                if not f2: continue
+                for bm3, f3 in transf2.get(bm2, {}).items():
+                    if not f3: continue
+                    res[bm1][bm3] = addMod(res[bm1].get(bm3, 0), mulMod(f2, f3))
+            if not res[bm1]: res.pop(bm1)
+        return res
+
+    transf_pow2 = transfers
+    res = {0: 1}
+    h2 = h
+    while True:
+        if h2 & 1:
+            res = applyTransfer(transf_pow2, res)
+        h2 >>= 1
+        if not h2: break
+        transf_pow2 = composeTransfers(transf_pow2, transf_pow2)
+        #print(transf_pow2)
+    #print(res)
+    return res.get(0)
+
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -1853,12 +2018,20 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #323 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 324 in eval_nums:
+        since = time.time()
+        res = blockTowerConfigurationsCount(
+            dims=(3, 3, 10 ** (10 ** 4)),
+            res_md=10 ** 8 + 7,
+        )
+        print(f"Solution to Project Euler #324 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {320}
+    eval_nums = {324}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
