@@ -36,6 +36,7 @@ from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot,
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
+from algorithms.string_searching_algorithms import KnuthMorrisPratt
 
 
 def calculatePrimeFactorisation(
@@ -1348,6 +1349,119 @@ def digitalRootDisplayPrimeTransitionsDifferenceCount(
         res += integerTransitionDifference(num, num2) + calculateDigitRootTransitionDifference(num2)
     return res
 
+# Problem 316
+def gaussianEliminationFraction(mat: List[List[CustomFraction]], vec: List[CustomFraction]) -> List[CustomFraction]:
+    # Assumes mat is a square matrix and vec is the same dimension as mat
+    n = len(mat)
+    for i1 in range(n):
+        i1_ = i1
+        if mat[i1][i1] == 0:
+            for i1_ in range(i1 + 1, n):
+                if mat[i1_][i1] != 0:
+                    mat[i1], mat[i1_] = mat[i1_], mat[i1]
+                    vec[i1], vec[i1_] = vec[i1_], vec[i1]
+                    #print(f"swapped rows {i1} and {i1_}:")
+                    #for row in mat:
+                    #    print(row)
+                    break
+            else:
+                print("matrix not invertible")
+                print(f"matrix when found non-invertible (row {i1}):")
+                for row in mat:
+                    print(row)
+                print(f"vector:")
+                print(vec)
+                return [] # the matrix is not invertible
+        for i1_ in range(i1_ + 1, n):
+            if mat[i1_][i1] == 0: continue
+            mult = mat[i1_][i1] / mat[i1][i1]
+            mat[i1_][i1] = CustomFraction(0, 1)
+            for i2 in range(i1 + 1, n):
+                mat[i1_][i2] -= mult * mat[i1][i2]
+            vec[i1_] -= mult * vec[i1]
+        #print(f"eliminated column {i1}:")
+        #for row in mat:
+        #    print(row)
+    res = [CustomFraction(0, 1) for _ in range(n)]
+    for i1 in reversed(range(n)):
+        ans = vec[i1]
+        for i2 in reversed(range(i1 + 1, n)):
+            ans -= mat[i1][i2] * res[i2]
+        res[i1] = ans / mat[i1][i1]
+    return res
+
+def calculateFirstOccurrenceOfIntegerInDigitSequenceExpectedValue(
+    num: int,
+    base: int=10,
+) -> CustomFraction:
+
+    num2 = num
+    dig_lst = []
+    while num2:
+        num2, d = divmod(num2, base)
+        dig_lst.append(d)
+    n = len(dig_lst)
+    dig_lst = dig_lst[::-1]
+    kmp = KnuthMorrisPratt(dig_lst)
+    lps = kmp.lps
+    #print(lps)
+    transf = [{} for _ in range(n + 1)]
+    transf[0] = {0: CustomFraction(base - 1, base), 1: CustomFraction(1, base)}
+    N_inv = [[CustomFraction(0, 1)] * n for _ in range(n)]
+    N_inv[0][0] = -CustomFraction(base - 1, base)
+    if 1 < n: N_inv[0][1] = -CustomFraction(1, base)
+    for j in range(1, n):
+        #print(f"j = {j}")
+        #transf[j] = {j + 1: CustomFraction(1, base)}
+        #if j + 1 < n:
+        #    N_inv[j][j + 1] = -CustomFraction(1, base)
+        #excl_nums = {dig_lst[j]}
+        #print(dig_lst, excl_nums)
+        excl_nums = set()
+        j2 = j
+        while True:
+            if dig_lst[j2] not in excl_nums:
+                excl_nums.add(dig_lst[j2])
+                transf[j][j2 + 1] = CustomFraction(1, base)
+                if j2 + 1 < n:
+                    N_inv[j][j2 + 1] = -CustomFraction(1, base)
+            if not j2: break
+            j2 = lps[j2 - 1]
+            #if not j2: break
+            
+        #print(excl_nums)
+        if len(excl_nums) < base:
+            transf[j][0] = CustomFraction(base - len(excl_nums), base)
+            N_inv[j][0] = -CustomFraction(base - len(excl_nums), base)
+    for i in range(n):
+        N_inv[i][i] += CustomFraction(1, 1)
+    #for row in N_inv:
+    #    print(row)
+    
+    vec = [CustomFraction(1, 1) for _ in range(n)]
+    sol = gaussianEliminationFraction(N_inv, vec)
+    #print(sol)
+    #if sol[0].denominator != 1:
+    #    raise ValueError("the calculated solution is not an integer as was expected")
+    return sol[0] - (n - 1)
+
+def firstOccurrenceOfIntegerInDigitSequenceExpectedValueSum(
+    numer: int=10 ** 16,
+    denom_min: int=2,
+    denom_max: int=10 ** 6 - 1,
+    base: int=10,
+) -> CustomFraction:
+    """
+    Solution to Project Euler #316
+    """
+    res = 0
+    for n in range(denom_min, denom_max + 1):
+        res += calculateFirstOccurrenceOfIntegerInDigitSequenceExpectedValue(
+            numer // n,
+            base=base,
+        )
+    return res
+
 # Problem 317
 def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     """
@@ -1748,6 +1862,11 @@ def blockTowerConfigurationsCount(
     dims: tuple[int, int, int], 
     res_md: Optional[int]=10 ** 8 + 7,
 ) -> int:
+
+    # Review- when the layer rectangle has an odd area
+    # (i.e. both sides are of odd length), consider
+    # traversing two layers at a time.
+
     if dims[0] & 1 and dims[1] & 1 and dims[2] & 1:
         return 0
     dims = sorted(dims)
@@ -1988,6 +2107,16 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #315 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 316 in eval_nums:
+        since = time.time()
+        res = firstOccurrenceOfIntegerInDigitSequenceExpectedValueSum(
+            numer=10 ** 16,
+            denom_min=2,
+            denom_max=10 ** 6 - 1,
+            base=10,
+        )
+        print(f"Solution to Project Euler #316 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 317 in eval_nums:
         since = time.time()
         res = fircrackerVolume(h0=100, v0=20, g=9.81)
@@ -2031,7 +2160,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {324}
+    eval_nums = {316}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
