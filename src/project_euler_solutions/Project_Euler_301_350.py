@@ -1773,6 +1773,254 @@ def calculateFirstNCounterSwappingGamesEqualToTriangularNumberSum(
     print(sol_lst)
     return sum(sol_lst)
 
+# Problem 322
+def binomialCoefficientsDivisibleByPrimeForGivenK(
+    n_max: int,
+    k: int,
+    p: int,
+) -> list[int]:
+    """
+    Calculates the binomial coefficients (n choose k) that
+    are divisible by the prime p for n between k and n_max
+    inclusive.
+    """
+    if n_max < k: return []
+
+    n_max_base_p_digs = []
+    n2 = n_max
+    while n2:
+        n2, d = divmod(n2, p)
+        n_max_base_p_digs.append(d)
+    n_digs = len(n_max_base_p_digs)
+
+
+    k_base_p_digs = []
+    k2 = k
+    for _ in range(n_digs):
+        k2, d = divmod(k2, p)
+        k_base_p_digs.append(d)
+
+
+    res = []
+    
+    def recur(idx: int=0, curr: int=0, tight_hi: bool=True) -> None:
+        if idx == n_digs:
+            res.append(curr)
+            return
+        curr *= p
+        rng = [k_base_p_digs[~idx], n_max_base_p_digs[~idx] if tight_hi else p - 1]
+        if rng[0] < rng[1]: return
+        for d in range(*rng):
+            recur(idx=idx + 1, curr=curr + d, tight_hi=False)
+        recur(idx=idx + 1, curr=rng[1], tight_hi=tight_hi)
+        return
+    recur(idx=0, curr=0, tight_hi=True)
+    return res
+
+def binomialCoefficientsDivisibleByPrimePowerForGivenK(
+    n_max: int,
+    k: int,
+    p: int,
+    exp: int,
+) -> list[int]:
+    """
+    Calculates the binomial coefficients (n choose k) that
+    are divisible by the prime power p ** exp for n between
+    k and n_max inclusive.
+    """
+    if exp < 0: raise ValueError("exp must be possible")
+    elif not exp: return n_max - k + 1
+    elif exp == 1:
+        return binomialCoefficientsDivisibleByPrimePowerForGivenK(
+            n_max,
+            k,
+            p,
+        )
+    
+    # Using Kummer's theorem
+
+    if n_max < k: return []
+
+    m_base_p_digs = []
+    m2 = n_max - k
+    while m2:
+        m2, d = divmod(m2, p)
+        m_base_p_digs.append(d)
+    n_digs = len(m_base_p_digs)
+
+
+    k_base_p_digs = []
+    k2 = k
+    for _ in range(n_digs):
+        k2, d = divmod(k2, p)
+        k_base_p_digs.append(d)
+
+    res = []
+    
+    def recur(idx: int=0, curr: int=0, carry: bool=False, carry_tot: int=0, tight_hi: bool=True) -> None:
+        if idx == n_digs:
+            if carry_tot >= exp: res.append(curr + k)
+            return
+        curr *= p
+        rng = [0, m_base_p_digs[~idx] if tight_hi else p - 1]
+        if rng[0] < rng[1]: return
+        for d in range(*rng):
+            c = ((k_base_p_digs[~idx] + d + carry) >= p)
+            recur(idx=idx + 1, curr=curr + d, carry=c, carry_tot=carry_tot + c, tight_hi=False)
+        c= ((k_base_p_digs[~idx] + rng[1] + carry) >= p)
+        recur(idx=idx + 1, curr=rng[1], carry=c, carry_tot=carry_tot + c, tight_hi=tight_hi)
+        return
+    recur(idx=0, curr=0, carry=False, carry_tot=0, tight_hi=True)
+    return res
+
+def binomialCoefficientDivisibleByPrimePower(n: int, k: int, p: int, exp: int) -> bool:
+
+    # Using Kummer's theorem
+    if k < 0 or n < k or not exp: return True
+    m = n - k
+    m_base_p_digs = []
+    m2 = m
+    while m2:
+        m2, d = divmod(m2, p)
+        m_base_p_digs.append(d)
+    n_digs = len(m_base_p_digs)
+
+
+    k_base_p_digs = []
+    k2 = k
+    for _ in range(n_digs):
+        k2, d = divmod(k2, p)
+        k_base_p_digs.append(d)
+    
+    carry = False
+    curr = 0
+    for idx in reversed(range(n_digs)):
+        carry = m_base_p_digs[idx] + k_base_p_digs[idx] + carry
+        if not carry: continue
+        curr += 1
+        if curr >= exp: return True
+    return False
+
+def binomialCoefficientsDivisibleByIntegerForGivenK(
+    n_max: int,
+    k: int,
+    div: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> list[int]:
+    """
+    Calculates the binomial coefficients (n choose k) that
+    are divisible by the strictly positive integer div for n between
+    k and n_max inclusive.
+    """
+    pf = calculatePrimeFactorisation(div, ps)
+    n_p = len(pf)
+    if not n_p:
+        return list(range(k, n_max + 1))
+    elif len(pf) == 1:
+        p, exp = next(iter(pf))
+        return binomialCoefficientsDivisibleByPrimePowerForGivenK(
+            n_max,
+            k,
+            p,
+            exp,
+        )
+    
+    return []
+
+def binomialCoefficientsDivisibleByPrimeForGivenKCount(
+    n_max: int,
+    k: int,
+    p: int,
+) -> int:
+    """
+    Calculates the number of binomial coefficients (n choose k) that
+    are divisible by the prime p for n between k and n_max inclusive.
+    """
+    pass
+
+def binomialCoefficientsDivisibleByPrimePowerForGivenKCount(
+    n_max: int,
+    k: int,
+    p: int,
+    exp: int,
+) -> int:
+    """
+    Calculates the number of binomial coefficients (n choose k) that
+    are divisible by the prime power p ** exp for n between k and
+    n_max inclusive.
+    """
+    if exp < 0: raise ValueError("exp must be possible")
+    elif not exp: return n_max - k + 1
+    elif exp == 1:
+        return binomialCoefficientsDivisibleByPrimePowerForGivenKCount(
+            n_max,
+            k,
+            p,
+        )
+    return 0
+
+def binomialCoefficientsDivisibleByIntegerForGivenKCount(
+    n_max: int,
+    k: int,
+    div: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Calculates the number of binomial coefficients (n choose k) that
+    are divisible by the strictly positive integer div for n between
+    k and n_max inclusive.
+    """
+    pf = calculatePrimeFactorisation(div, ps)
+    n_p = len(pf)
+    if not n_p:
+        return list(range(k, n_max + 1))
+    elif len(pf) == 1:
+        p, exp = next(iter(pf))
+        return binomialCoefficientsDivisibleByPrimePowerForGivenK(
+            n_max,
+            k,
+            p,
+            exp,
+        )
+    
+    # Using inclusion-exclusion
+    p_lst = sorted(pf.keys())
+    curr_lsts = {
+        (1 << idx): binomialCoefficientsDivisibleByPrimePowerForGivenK(
+            n_max,
+            k,
+            p,
+            pf[p],
+        )
+        for idx, p in enumerate(p_lst)
+    }
+
+    for n_set in range(2, len(p_lst) + 1):
+        prev_lsts = curr_lsts
+        curr_lsts = {}
+        # Using Gosper's hack to iterate over all bitmasks with
+        # n_p bits and exactly n_set set bits
+        bm = (1 << n_set) - 1
+        limit = (1 << n_p)
+        while bm < limit:
+            bm2 = bm
+            mn_len = [float("inf"), -1]
+            while bm2:
+                lo_bit = bm2 & (-bm2)
+                bm3 = bm ^ lo_bit
+                mn_len = min(mn_len, [len(prev_lsts[bm3]), lo_bit])
+                bm2 ^= lo_bit
+            #for idx in range()
+            #for :
+            #    pass
+        
+        lo_bit = bm & (-bm)
+        lo_sm = bm + lo_bit
+        shifted = bm ^ (bm + lo_sm)
+        bm = lo_sm | ((shifted >> 2) // lo_bit)
+    
+    return []
+
 # Problem 323
 def randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(
     n_bit: int,
