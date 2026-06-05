@@ -1774,14 +1774,14 @@ def calculateFirstNCounterSwappingGamesEqualToTriangularNumberSum(
     return sum(sol_lst)
 
 # Problem 322
-def binomialCoefficientsDivisibleByPrimeForGivenK(
+def binomialCoefficientsNotDivisibleByPrimeForGivenKGenerator(
     n_max: int,
     k: int,
     p: int,
-) -> list[int]:
+) -> Generator[int, None, None]:
     """
     Calculates the binomial coefficients (n choose k) that
-    are divisible by the prime p for n between k and n_max
+    are not divisible by the prime p for n between k and n_max
     inclusive.
     """
     if n_max < k: return []
@@ -1792,37 +1792,38 @@ def binomialCoefficientsDivisibleByPrimeForGivenK(
         n2, d = divmod(n2, p)
         n_max_base_p_digs.append(d)
     n_digs = len(n_max_base_p_digs)
-
+    #print(n_max_base_p_digs)
 
     k_base_p_digs = []
     k2 = k
     for _ in range(n_digs):
         k2, d = divmod(k2, p)
         k_base_p_digs.append(d)
+    #print(k_base_p_digs)
 
-
-    res = []
     
-    def recur(idx: int=0, curr: int=0, tight_hi: bool=True) -> None:
+    def recur(idx: int=0, curr: int=0, tight_hi: bool=True) -> Generator[int, None, None]:
+        #print(idx, curr, tight_hi)
         if idx == n_digs:
-            res.append(curr)
+            yield curr
             return
         curr *= p
         rng = [k_base_p_digs[~idx], n_max_base_p_digs[~idx] if tight_hi else p - 1]
-        if rng[0] < rng[1]: return
+        if rng[0] > rng[1]: return
         for d in range(*rng):
-            recur(idx=idx + 1, curr=curr + d, tight_hi=False)
-        recur(idx=idx + 1, curr=rng[1], tight_hi=tight_hi)
+            yield from recur(idx=idx + 1, curr=curr + d, tight_hi=False)
+        yield from recur(idx=idx + 1, curr=curr + rng[1], tight_hi=tight_hi)
         return
-    recur(idx=0, curr=0, tight_hi=True)
-    return res
+    yield from recur(idx=0, curr=0, tight_hi=True)
+    #print(res)
+    return
 
-def binomialCoefficientsDivisibleByPrimePowerForGivenK(
+def binomialCoefficientsNotDivisibleByPrimePowerForGivenKGenerator(
     n_max: int,
     k: int,
     p: int,
     exp: int,
-) -> list[int]:
+) -> Generator[int, None, None]:
     """
     Calculates the binomial coefficients (n choose k) that
     are divisible by the prime power p ** exp for n between
@@ -1831,11 +1832,12 @@ def binomialCoefficientsDivisibleByPrimePowerForGivenK(
     if exp < 0: raise ValueError("exp must be possible")
     elif not exp: return n_max - k + 1
     elif exp == 1:
-        return binomialCoefficientsDivisibleByPrimePowerForGivenK(
+        yield from binomialCoefficientsNotDivisibleByPrimeForGivenKGenerator(
             n_max,
             k,
             p,
         )
+        return
     
     # Using Kummer's theorem
 
@@ -1855,26 +1857,28 @@ def binomialCoefficientsDivisibleByPrimePowerForGivenK(
         k2, d = divmod(k2, p)
         k_base_p_digs.append(d)
 
-    res = []
     
-    def recur(idx: int=0, curr: int=0, carry: bool=False, carry_tot: int=0, tight_hi: bool=True) -> None:
+    def recur(idx: int=0, curr: int=0, carry: bool=False, carry_tot: int=0, tight_hi: bool=True) -> Generator[int, None, None]:
+        if carry_tot >= exp: return
         if idx == n_digs:
-            if carry_tot >= exp: res.append(curr + k)
+            yield curr + k
             return
         curr *= p
         rng = [0, m_base_p_digs[~idx] if tight_hi else p - 1]
-        if rng[0] < rng[1]: return
+        if rng[0] > rng[1]: return
         for d in range(*rng):
             c = ((k_base_p_digs[~idx] + d + carry) >= p)
-            recur(idx=idx + 1, curr=curr + d, carry=c, carry_tot=carry_tot + c, tight_hi=False)
-        c= ((k_base_p_digs[~idx] + rng[1] + carry) >= p)
-        recur(idx=idx + 1, curr=rng[1], carry=c, carry_tot=carry_tot + c, tight_hi=tight_hi)
+            yield from recur(idx=idx + 1, curr=curr + d, carry=c, carry_tot=carry_tot + c, tight_hi=False)
+        c = ((k_base_p_digs[~idx] + rng[1] + carry) >= p)
+        yield from recur(idx=idx + 1, curr=curr + rng[1], carry=c, carry_tot=carry_tot + c, tight_hi=tight_hi)
         return
-    recur(idx=0, curr=0, carry=False, carry_tot=0, tight_hi=True)
-    return res
+    yield from recur(idx=0, curr=0, carry=False, carry_tot=0, tight_hi=True)
+    return
 
 def binomialCoefficientDivisibleByPrimePower(n: int, k: int, p: int, exp: int) -> bool:
 
+
+    #print(n, k, p, exp)
     # Using Kummer's theorem
     if k < 0 or n < k or not exp: return True
     m = n - k
@@ -1891,11 +1895,12 @@ def binomialCoefficientDivisibleByPrimePower(n: int, k: int, p: int, exp: int) -
     for _ in range(n_digs):
         k2, d = divmod(k2, p)
         k_base_p_digs.append(d)
+    #print(m_base_p_digs, k_base_p_digs)
     
     carry = False
     curr = 0
-    for idx in reversed(range(n_digs)):
-        carry = m_base_p_digs[idx] + k_base_p_digs[idx] + carry
+    for idx in range(n_digs):
+        carry = (m_base_p_digs[idx] + k_base_p_digs[idx] + carry >= p)
         if not carry: continue
         curr += 1
         if curr >= exp: return True
@@ -1906,7 +1911,7 @@ def binomialCoefficientsDivisibleByIntegerForGivenK(
     k: int,
     div: int,
     ps: Optional[PrimeSPFsieve]=None,
-) -> list[int]:
+) -> Generator[int, None, None]:
     """
     Calculates the binomial coefficients (n choose k) that
     are divisible by the strictly positive integer div for n between
@@ -1915,30 +1920,65 @@ def binomialCoefficientsDivisibleByIntegerForGivenK(
     pf = calculatePrimeFactorisation(div, ps)
     n_p = len(pf)
     if not n_p:
-        return list(range(k, n_max + 1))
+        yield from range(k, n_max + 1)
+        return
     elif len(pf) == 1:
         p, exp = next(iter(pf))
-        return binomialCoefficientsDivisibleByPrimePowerForGivenK(
+        yield from binomialCoefficientsNotDivisibleByPrimePowerForGivenKGenerator(
             n_max,
             k,
             p,
             exp,
         )
+        return
     
-    return []
+    return
 
-def binomialCoefficientsDivisibleByPrimeForGivenKCount(
+def binomialCoefficientsNotDivisibleByPrimeForGivenKCount(
     n_max: int,
     k: int,
     p: int,
 ) -> int:
     """
     Calculates the number of binomial coefficients (n choose k) that
-    are divisible by the prime p for n between k and n_max inclusive.
+    are not divisible by the prime p for n between k and n_max inclusive.
     """
-    pass
+    if n_max < k: return []
 
-def binomialCoefficientsDivisibleByPrimePowerForGivenKCount(
+    n_max_base_p_digs = []
+    n2 = n_max
+    while n2:
+        n2, d = divmod(n2, p)
+        n_max_base_p_digs.append(d)
+    n_digs = len(n_max_base_p_digs)
+    #print(n_max_base_p_digs)
+
+    k_base_p_digs = []
+    k2 = k
+    for _ in range(n_digs):
+        k2, d = divmod(k2, p)
+        k_base_p_digs.append(d)
+    #print(k_base_p_digs)
+    
+    memo = {}
+    def recur(idx: int=0, tight_hi: bool=True) -> int:
+        if idx == n_digs:
+            return 1
+        args = (idx, tight_hi)
+        if args in memo.keys(): return memo[args]
+        rng = [k_base_p_digs[~idx], n_max_base_p_digs[~idx] if tight_hi else p - 1]
+        if rng[0] > rng[1]: return 0
+        res = 0
+        res += (rng[1] - rng[0]) * recur(idx=idx + 1, tight_hi=False)
+        res += recur(idx=idx + 1, tight_hi=tight_hi)
+        memo[args] = res
+        return res
+    res = recur(idx=0, tight_hi=True)
+    #print(res)
+    #print(memo)
+    return res
+
+def binomialCoefficientsNotDivisibleByPrimePowerForGivenKCount(
     n_max: int,
     k: int,
     p: int,
@@ -1946,28 +1986,28 @@ def binomialCoefficientsDivisibleByPrimePowerForGivenKCount(
 ) -> int:
     """
     Calculates the number of binomial coefficients (n choose k) that
-    are divisible by the prime power p ** exp for n between k and
+    are not divisible by the prime power p ** exp for n between k and
     n_max inclusive.
     """
-    if exp < 0: raise ValueError("exp must be possible")
+    if exp < 0: raise ValueError("exp cannot be negative")
     elif not exp: return n_max - k + 1
     elif exp == 1:
-        return binomialCoefficientsDivisibleByPrimePowerForGivenKCount(
+        return binomialCoefficientsNotDivisibleByPrimeForGivenKCount(
             n_max,
             k,
             p,
         )
     return 0
 
-def binomialCoefficientsDivisibleByIntegerForGivenKCount(
-    n_max: int,
-    k: int,
-    div: int,
+def binomialCoefficientsNotDivisibleByIntegerForGivenKCount(
+    n_max: int=10 ** 18 - 1,
+    k: int=10 ** 12 - 10,
+    div: int=10,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
     """
     Calculates the number of binomial coefficients (n choose k) that
-    are divisible by the strictly positive integer div for n between
+    are not divisible by the strictly positive integer div for n between
     k and n_max inclusive.
     """
     pf = calculatePrimeFactorisation(div, ps)
@@ -1976,7 +2016,7 @@ def binomialCoefficientsDivisibleByIntegerForGivenKCount(
         return list(range(k, n_max + 1))
     elif len(pf) == 1:
         p, exp = next(iter(pf))
-        return binomialCoefficientsDivisibleByPrimePowerForGivenK(
+        return binomialCoefficientsNotDivisibleByPrimePowerForGivenKCount(
             n_max,
             k,
             p,
@@ -1985,8 +2025,68 @@ def binomialCoefficientsDivisibleByIntegerForGivenKCount(
     
     # Using inclusion-exclusion
     p_lst = sorted(pf.keys())
+    p_map = {(1 << idx): p for idx, p in enumerate(p_lst)}
+    #rng_tot = n_max - k + 1
+    bm_cnts = [
+        binomialCoefficientsNotDivisibleByPrimePowerForGivenKCount(
+            n_max,
+            k,
+            p,
+            pf[p],
+        )
+        for p in p_lst
+    ]
+    print(bm_cnts)
+    res = sum(bm_cnts)
+    print(f"n_set = 1: {res}")
+    p_order = sorted(list(range(n_p)), key=(lambda x: bm_cnts[x]))
+    curr_lsts = {}
+    for i1 in range(n_p - 1):
+        idx1 = p_order[i1]
+        p1 = p_lst[idx1]
+        bm1 = 1 << idx1
+        bm2_dict = {}
+        args_dict = {}
+        for i2 in range(i1 + 1, n_p):
+            idx2 = p_order[i2]
+            p2 = p_lst[idx2]
+            bm2_dict[i2] = bm1 ^ (1 << idx2)
+            args_dict[i2] = [p2, pf[p2]]
+            curr_lsts[bm2_dict[i2]] = []
+        print(i1, args_dict)
+        for num in binomialCoefficientsNotDivisibleByPrimePowerForGivenKGenerator(
+            n_max,
+            k,
+            p1,
+            pf[p1],
+        ):
+            for i2, args in args_dict.items():
+                #print(f"num = {num}, i2 = {i2}")
+                if not binomialCoefficientDivisibleByPrimePower(num, k, *args):
+                    curr_lsts[bm2_dict[i2]].append(num)
+        """
+        print(idx1, len(lst1))
+        for i2 in range(i1 + 1, n_p):
+            idx2 = p_order[i2]
+            p2 = p_lst[idx2]
+            bm = bm1 ^ (1 << idx2)
+            curr_lsts[bm] = []
+            for num in lst1:
+                if not binomialCoefficientDivisibleByPrimePower(num, k, p2, pf[p2]):
+                    curr_lsts[bm].append(num)
+            ans += len(curr_lsts[bm])
+        """
+    ans = sum(len(x) for x in curr_lsts.values())
+    for bm in list(curr_lsts.keys()):
+        if not curr_lsts[bm]: curr_lsts.pop(bm)
+    print(f"n_set = 2: {ans}")
+    #print(curr_lsts)
+    res -= ans
+            
+    """
+    print(bm_cnts)
     curr_lsts = {
-        (1 << idx): binomialCoefficientsDivisibleByPrimePowerForGivenK(
+        (1 << idx): binomialCoefficientsNotDivisibleByPrimePowerForGivenK(
             n_max,
             k,
             p,
@@ -1994,8 +2094,12 @@ def binomialCoefficientsDivisibleByIntegerForGivenKCount(
         )
         for idx, p in enumerate(p_lst)
     }
-
-    for n_set in range(2, len(p_lst) + 1):
+    res = sum(len(x) for x in curr_lsts.values())
+    #print(1, curr_lsts)
+    print(1, {p: len(lst) for p, lst in curr_lsts.items()})
+    """
+    for n_set in range(3, len(p_lst) + 1):
+        ans = 0
         prev_lsts = curr_lsts
         curr_lsts = {}
         # Using Gosper's hack to iterate over all bitmasks with
@@ -2003,6 +2107,7 @@ def binomialCoefficientsDivisibleByIntegerForGivenKCount(
         bm = (1 << n_set) - 1
         limit = (1 << n_p)
         while bm < limit:
+
             bm2 = bm
             mn_len = [float("inf"), -1]
             while bm2:
@@ -2010,16 +2115,48 @@ def binomialCoefficientsDivisibleByIntegerForGivenKCount(
                 bm3 = bm ^ lo_bit
                 mn_len = min(mn_len, [len(prev_lsts[bm3]), lo_bit])
                 bm2 ^= lo_bit
+            p = p_map[mn_len[1]]
+            curr_lsts[bm] = []
+            for num in prev_lsts[bm ^ mn_len[1]]:
+                if not binomialCoefficientDivisibleByPrimePower(num, k, p, pf[p]):
+                    curr_lsts[bm].append(num)
+            ans += len(curr_lsts[bm])
             #for idx in range()
             #for :
             #    pass
         
-        lo_bit = bm & (-bm)
-        lo_sm = bm + lo_bit
-        shifted = bm ^ (bm + lo_sm)
-        bm = lo_sm | ((shifted >> 2) // lo_bit)
-    
-    return []
+            # Gosper's hack to transition to next bitmask
+            lo_bit = bm & (-bm)
+            lo_sm = bm + lo_bit
+            shifted = bm ^ (bm + lo_sm)
+            bm = lo_sm | ((shifted >> 2) // lo_bit)
+        res += ans if (n_set & 1) else -ans
+        print(n_set, {p: len(lst) for p, lst in curr_lsts.items()})
+        print(f"n_set = {n_set}: {ans}")
+
+    return res
+
+def binomialCoefficientsDivisibleByIntegerForGivenKCount(
+    n_max: int=10 ** 18 - 1,
+    k: int=10 ** 12 - 10,
+    div: int=10,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Solution to Project Euler #322
+
+    Calculates the number of binomial coefficients (n choose k) that
+    are divisible by the strictly positive integer div for n between
+    k and n_max inclusive.
+    """
+    res = binomialCoefficientsNotDivisibleByIntegerForGivenKCount(
+        n_max=n_max,
+        k=k,
+        div=div,
+        ps=ps,
+    )
+    print(res)
+    return (n_max - k + 1) - res
 
 # Problem 323
 def randomSequenceBitwiseOrIsAllOnesExpectedValueFraction(
@@ -2388,6 +2525,16 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #321 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 322 in eval_nums:
+        since = time.time()
+        res = binomialCoefficientsDivisibleByIntegerForGivenKCount(
+            n_max=10 ** 18 - 1,
+            k=10 ** 12 - 10,
+            div=10,
+            ps=None,
+        )
+        print(f"Solution to Project Euler #322 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 323 in eval_nums:
         since = time.time()
         res = randomSequenceBitwiseOrIsAllOnesExpectedValueFloat(
@@ -2408,7 +2555,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {316}
+    eval_nums = {322}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
