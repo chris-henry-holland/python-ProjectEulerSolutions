@@ -2010,6 +2010,7 @@ def binomialCoefficientsNotDivisibleByIntegerForGivenKCount(
     are not divisible by the strictly positive integer div for n between
     k and n_max inclusive.
     """
+    # Review- try to make faster
     pf = calculatePrimeFactorisation(div, ps)
     n_p = len(pf)
     if not n_p:
