@@ -611,6 +611,43 @@ def primonacciSum(
         #print(f"res = {res}")
     return res
 
+# Problem 305
+def consecutiveNumbersDigitsGenerator(
+    base: int=10,
+) -> Generator[int, None, None]:
+    digs = [1]
+    while True:
+        #print(digs)
+        for d in reversed(digs):
+            yield d
+        carry = 1
+        for i in range(len(digs)):
+            carry, digs[i] = divmod(digs[i] + carry, base)
+            if not carry: break
+        else: digs.append(1)
+        
+    return
+
+def startingPositionsInNumberConcatenator(
+    num: int,
+    base: int=10,
+) -> Generator[int, None, None]:
+    if num < 0: return
+    num_digs = []
+    num2 = num
+    while num2:
+        num2, d = divmod(num2, base)
+        num_digs.append(d)
+    num_digs = num_digs[::-1]
+    if not num_digs: num_digs = [0]
+
+
+
+    kmp = KnuthMorrisPratt(num_digs)
+    num_concat_gen = consecutiveNumbersDigitsGenerator(base)
+    yield from kmp.matchStartGenerator(num_concat_gen)
+    return
+
 
 # Problem 306
 def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
@@ -2556,9 +2593,16 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {322}
+    eval_nums = {3452}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
 #pow2_init = 5
 #print(conwayFractanPow2TransitionLength(pow2_init))
+n_inds = 3 ** 10
+num = 3 ** 10
+for i, idx in zip(range(n_inds), startingPositionsInNumberConcatenator(
+    num,
+    base=10,
+)):
+    print(f"index {i + 1} = {idx}")
