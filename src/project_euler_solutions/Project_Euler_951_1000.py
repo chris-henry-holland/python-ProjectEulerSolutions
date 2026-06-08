@@ -2853,7 +2853,7 @@ def increasinBitwiseXOROfSquaresChainSum(
             bitwise_xor_pairs_vals[val].append((num1, num2))
     mx_chain_vals = [0] * (n + 1)
     for val in reversed(sorted(bitwise_xor_pairs_vals.keys())):
-        print(f"val = {val}")
+        #print(f"val = {val}")
         curr_val_mx_chain_vals = {}
         for num1, num2 in bitwise_xor_pairs_vals[val]:
             curr_val_mx_chain_vals[num1] = max(curr_val_mx_chain_vals.get(num1, -float("inf")), val + mx_chain_vals[num2])
@@ -2864,7 +2864,55 @@ def increasinBitwiseXOROfSquaresChainSum(
     return max(mx_chain_vals)
 
 def calculateUnreachableThreePileNimStatesCount(piles_size_max: int) -> int:
-    
+    reachable = [[0 for _ in range(piles_size_max + 1)] for i in range(piles_size_max + 1)]
+    #print(reachable)
+    num3_mx = (1 << (piles_size_max.bit_length()))
+    res = (piles_size_max + 1) ** 3
+    #print(piles_size_max, num3_mx)
+    for num3 in range(num3_mx):
+        if not num3 % 10: print(f"num3 = {num3} of {num3_mx - 1}")
+        for num2 in range(min(piles_size_max, num3) + 1):
+            num1 = num3 ^ num2
+            if num1 > num2: continue
+            #print((num1, num2, num3))
+            if num3 <= piles_size_max:
+                if num1 != num2:
+                    if num2 != num3: mult = 6
+                    else: mult = 3
+                elif num2 != num3: mult = 3
+                else: mult = 1
+                res -= mult
+                reachable[num3][num2] |= (1 << num1) - 1
+                #for n1 in range(num1):
+                #    reachable[num3][num2] |= 1 << n1
+                reachable[num3][num1] |= (1 << (num1)) - 1
+                for n2 in range(num1, num2):
+                    nums_sorted = sorted([num1, n2, num3])
+                    reachable[nums_sorted[2]][nums_sorted[1]] |= 1 << nums_sorted[0]#.add(nums_sorted[0])
+            #reachable[(num1, num2)] = max(reachable.get((num1, num2), -float("inf")), min(num3, piles_size_max))
+            reachable[num2][num1] |= (1 << num1) - 1
+            for n3 in range(num1, min(num3, piles_size_max + 1)):
+                nums_sorted = sorted([num1, num2, n3])
+                reachable[nums_sorted[2]][nums_sorted[1]] |= 1 << nums_sorted[0]#.add(nums_sorted[0])
+    #reachable = set()
+    #print(reachable)
+    #print(len(reachable))
+    #print(reachable)
+    #print(res)
+    for num1, num2_lst in enumerate(reachable):
+        for num2, num3_bm in enumerate(num2_lst):
+            mult1, mult2 = [6, 3] if num1 != num2 else [3, 1]
+            res -= mult1 * num3_bm.bit_count()
+            if num3_bm & (1 << num2):
+                res += (mult1 - mult2)
+            #while num3_bm:
+            #    bm2 = num3_bm & (-num3_bm)
+            #    num3 = bm2.bit_length() - 1
+            #    mult = mult1 if num3 != num2 else mult2
+            #    res -= mult
+            #    num3_bm ^= bm2
+    return res
+    """
     reachable = {}
     num3_mx = (1 << (piles_size_max.bit_length()))
     res = (piles_size_max + 1) ** 3
@@ -2915,8 +2963,15 @@ def calculateUnreachableThreePileNimStatesCount(piles_size_max: int) -> int:
     #    #print((num1, num2, num3), mult)
     #    res -= mult
     return res
+    """
 
-def metaProblemSolution(m: int, n1: int=1000, n2: int=1000, n3: int=1000, res_md: int=10 ** 9 + 7) -> int:
+def metaProblemSolution(
+    m: int=1000,
+    n1: int=1000,
+    n2: int=1000,
+    n3: int=1000,
+    res_md: int=10 ** 9 + 7,
+) -> int:
     if m < 0: raise ValueError("m must be non-negative")
     if m < 3:
         match m:
@@ -2929,15 +2984,16 @@ def metaProblemSolution(m: int, n1: int=1000, n2: int=1000, n3: int=1000, res_md
     curr = [
         naturalNumbersPartitionMaximumCrossSetBitwiseAndSum(n1) % res_md,
         increasinBitwiseXOROfSquaresChainSum(n2) % res_md,
-        calculateUnreachableThreePileNimStatesCount(n3) % res_md,
+        calculateUnreachableThreePileNimStatesCount(n3 - 1) % res_md,
     ]
-    for k in range(4, m + 1):
+    print(curr)
+    for k in range(3, m + 1):
         curr = [
-            *curr[:2],
+            *curr[1:],
             (((curr[0] * curr[1]) % res_md) * curr[2]) % res_md,
         ]
         if k == 4:
-            print(curr[-1])
+            print(f"M({k}) = {curr[-1]}")
     return curr[-1]
 
 ##############
@@ -3028,6 +3084,17 @@ def evaluateProjectEulerSolutions951to1000(eval_nums: Optional[Set[int]]=None) -
         res = diceBoxArrangementCount(dims=(9, 10, 11))
         print(f"Solution to Project Euler #997 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 1000 in eval_nums:
+        since = time.time()
+        res = metaProblemSolution(
+            m=1000,
+            n1=1000,
+            n2=1000,
+            n3=1000,
+            res_md=10 ** 9 + 7,
+        )
+        print(f"Solution to Project Euler #1000 = {res}, calculated in {time.time() - since:.4f} seconds")
+        
 if __name__ == "__main__":
     eval_nums = {1000}
     evaluateProjectEulerSolutions951to1000(eval_nums)
@@ -3098,11 +3165,12 @@ for i, num in alternatingRecurrenceSequenceGenerator(n_max):
 
 #print(diceRectangleArrangementCountBruteForce(dims=(6, 6)) // 24)
 """
-print(naturalNumbersPartitionMaximumCrossSetBitwiseAndSum(1000))
+print(naturalNumbersPartitionMaximumCrossSetBitwiseAndSum(10))
 
 print(increasinBitwiseXOROfSquaresChainSum(
-    1000,
+    10,
 ))
-"""
 
-print(calculateUnreachableThreePileNimStatesCount(9))
+
+print(calculateUnreachableThreePileNimStatesCount(999))
+"""
