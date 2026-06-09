@@ -1536,6 +1536,32 @@ def fircrackerVolume(h0: float=100., v0: float=20., g: float=9.81) -> int:
     a = v0 ** 2 / (2 * g)
     return 2 * math.pi * a * (a + h0) ** 2
 
+# Problem 318
+def findPQValues(
+    sum_max: int,
+    base: int=10,
+) -> list[tuple[int, int]]:
+    n_base_minus_one_min = 3
+    target = base ** n_base_minus_one_min - 1
+    res = []
+    for q in range(2, sum_max + 1):
+        for p in range(1, min(sum_max - q + 1, q)):
+            num = (math.sqrt(p) + math.sqrt(q)) ** 10
+            frac = num - math.floor(num)
+            frac_mul = math.floor(frac * base ** n_base_minus_one_min)
+            #abs_diff = abs(math.sqrt(p) - math.sqrt(q))
+            # (sqrt(p) - sqrt(q)) ** 2 < 1
+            # p + q - 2 * sqrt(pq) < 1
+            # 2 * sqrt(pq) > p + q - 1
+            # 4 * pq > (p + q - 1) ** 2
+            lhs = 4 * p * q
+            rhs = (p + q - 1) ** 2
+            print((p, q), (math.sqrt(p) + math.sqrt(q)) ** 2, lhs > rhs, frac_mul, target)
+            if frac_mul == target:
+                print("solution")
+                res.append((p, q))
+    return sorted(res)
+
 # Problem 320
 def factorialPrimeFactorPower(p: int, n: int) -> int:
     """
@@ -2597,6 +2623,7 @@ if __name__ == "__main__":
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
+"""
 #pow2_init = 5
 #print(conwayFractanPow2TransitionLength(pow2_init))
 n_inds = 3 ** 10
@@ -2606,3 +2633,12 @@ for i, idx in zip(range(n_inds), startingPositionsInNumberConcatenator(
     base=10,
 )):
     print(f"index {i + 1} = {idx}")
+"""
+
+sum_max = 10
+
+for pair in findPQValues(
+    sum_max=sum_max,
+    base=10,
+):
+    print(pair)
