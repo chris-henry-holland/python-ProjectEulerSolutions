@@ -1562,6 +1562,26 @@ def findPQValues(
                 res.append((p, q))
     return sorted(res)
 
+def calculateMinimalNsForFractionalPartToStartWithMBaseMinusOneSum(
+    sum_max: int=2011,
+    n_base_minus_one: int=2011,
+    base: int=10,
+) -> int:
+    """
+    Solution to Project Euler #318
+    """
+    m = n_base_minus_one
+    res = 0
+    for q in range(2, sum_max):
+        for p in reversed(range(1, min(q, sum_max - q + 1))):
+            sqrt_diff = math.sqrt(q) - math.sqrt(p)
+            if sqrt_diff >= 1:
+                break
+            cnt = math.ceil((-m) / (2 * math.log(sqrt_diff, base)))
+            print((p, q), cnt)
+            res += cnt
+    return res
+
 # Problem 320
 def factorialPrimeFactorPower(p: int, n: int) -> int:
     """
@@ -2571,6 +2591,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = fircrackerVolume(h0=100, v0=20, g=9.81)
         print(f"Solution to Project Euler #317 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 318 in eval_nums:
+        since = time.time()
+        res = calculateMinimalNsForFractionalPartToStartWithMBaseMinusOneSum(
+            sum_max=2011,
+            n_base_minus_one=2011,
+            base=10,
+        )
+        print(f"Solution to Project Euler #318 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 320 in eval_nums:
         since = time.time()
         res = smallestFactorialDivisibleByFactorialPowerSum(
@@ -2619,7 +2648,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {3452}
+    eval_nums = {318}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -2634,7 +2663,7 @@ for i, idx in zip(range(n_inds), startingPositionsInNumberConcatenator(
 )):
     print(f"index {i + 1} = {idx}")
 """
-
+"""
 sum_max = 10
 
 for pair in findPQValues(
@@ -2642,3 +2671,4 @@ for pair in findPQValues(
     base=10,
 ):
     print(pair)
+"""
