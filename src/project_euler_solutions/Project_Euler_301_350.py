@@ -1317,6 +1317,52 @@ def calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max: int=10 ** 6 - 1) 
         res += max(0, mult_mx - mult_mn + 1)
     return res << 1
 
+# Problem 314
+def calculateMaximumAreaToPerimeterRatioInQuantisedSquare(
+    square_side_length: int=500,
+) -> float:
+    
+    curr = [[(0, 0)]]
+    for diag_len in range(1, (square_side_length >> 1) + 1):
+        if not diag_len % 10:
+            print(f"diag_len = {diag_len}")
+            print(f"len(curr[-1]) = {len(curr[-1])}")
+        add_perim = diag_len * math.sqrt(2)
+        perim_area_lst = SortedList([(add_perim, 0)])
+
+        for prev_diag_len in range(not diag_len & 1, diag_len, 2):
+            add_area = (diag_len + prev_diag_len)
+            diag_len_diff = (diag_len - prev_diag_len) >> 1
+            add_perim = 2 * math.sqrt(diag_len_diff ** 2 + (diag_len_diff + 1) ** 2)
+            for perim0, neg_area0 in curr[prev_diag_len]:
+                perim, neg_area = perim0 + add_perim, neg_area0 - add_area
+                j = perim_area_lst.bisect_right((perim, neg_area))
+                if j > 0 and neg_area >= perim_area_lst[j - 1][1]:
+                    continue
+                while j < len(perim_area_lst) and neg_area <= perim_area_lst[j][1]:
+                    perim_area_lst.pop(j)
+                perim_area_lst.add((perim, neg_area))
+        curr.append(list(perim_area_lst))
+        #print(diag_len, curr[-1])
+    
+    if square_side_length & 1:
+        area0 = (square_side_length ** 2) - (((square_side_length >> 1) ** 2) << 1)
+        perim0 = 4
+    else:
+        area0 = (square_side_length ** 2) >> 1
+        perim0 = 0
+    res = 0
+    print(f"area0 = {area0}, perim0 = {perim0}")
+    #print(curr[-1])
+    for add_perim, add_neg_area in curr[-1]:
+        perim, area = perim0 + (add_perim * 4), area0 - (add_neg_area * 2)
+        ratio = area / perim
+        if ratio > res:
+            res = ratio
+            print(f"add_perim = {add_perim}, perim0 = {perim0}, perim = {perim}, add_area = {-add_neg_area}, area0 = {area0}, area = {area}, ratio = {ratio}")
+    return res
+
+
 # Problem 315
 def digitalRootDisplayPrimeTransitionsDifferenceCount(
     p_min: int=10 ** 7,
@@ -1570,6 +1616,10 @@ def calculateMinimalNsForFractionalPartToStartWithMBaseMinusOneSum(
     """
     Solution to Project Euler #318
     """
+    # Review- Look into Pisot-Vijayaraghavan numbers to prove that the
+    # fractional part of increasing powers of a non-integer positive
+    # real number tends to zero iff that number is less than 1.
+
     m = n_base_minus_one
     res = 0
     for q in range(2, sum_max):
@@ -2567,7 +2617,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max=10 ** 6 - 1)
         print(f"Solution to Project Euler #313 = {res}, calculated in {time.time() - since:.4f} seconds")
-
+    """
+    if 314 in eval_nums:
+        since = time.time()
+        res = calculateMaximumAreaToPerimeterRatioInQuantisedSquare(
+            square_side_length=500,
+        )
+        print(f"Solution to Project Euler #314 = {res}, calculated in {time.time() - since:.4f} seconds")
+    """
     if 315 in eval_nums:
         since = time.time()
         res = digitalRootDisplayPrimeTransitionsDifferenceCount(
@@ -2648,7 +2705,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {318}
+    eval_nums = {314}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
