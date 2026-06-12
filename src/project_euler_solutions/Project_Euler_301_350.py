@@ -1321,27 +1321,80 @@ def calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max: int=10 ** 6 - 1) 
 def calculateMaximumAreaToPerimeterRatioInQuantisedSquare(
     square_side_length: int=500,
 ) -> float:
-    
+    """
+    Solution to Project Euler #314
+    """
+    # Assumes solution has the same symmetries as the square
+    # (D4 group) and that the shape is convex (these should be
+    # straightforward to prove, both by contradiction).
+
+    # Try to make faster
+
+    eps = 1e-5
+
     curr = [[(0, 0)]]
     for diag_len in range(1, (square_side_length >> 1) + 1):
         if not diag_len % 10:
-            print(f"diag_len = {diag_len}")
+            print(f"diag_len = {diag_len} of {(square_side_length >> 1)}")
             print(f"len(curr[-1]) = {len(curr[-1])}")
         add_perim = diag_len * math.sqrt(2)
         perim_area_lst = SortedList([(add_perim, 0)])
 
-        for prev_diag_len in range(not diag_len & 1, diag_len, 2):
-            add_area = (diag_len + prev_diag_len)
-            diag_len_diff = (diag_len - prev_diag_len) >> 1
-            add_perim = 2 * math.sqrt(diag_len_diff ** 2 + (diag_len_diff + 1) ** 2)
-            for perim0, neg_area0 in curr[prev_diag_len]:
-                perim, neg_area = perim0 + add_perim, neg_area0 - add_area
-                j = perim_area_lst.bisect_right((perim, neg_area))
-                if j > 0 and neg_area >= perim_area_lst[j - 1][1]:
+
+        for v2 in range(1, diag_len + 1):
+            for v1 in range(min(v2, diag_len - v2 + 1)):
+                if gcd(v1, v2) > 1:
                     continue
-                while j < len(perim_area_lst) and neg_area <= perim_area_lst[j][1]:
-                    perim_area_lst.pop(j)
-                perim_area_lst.add((perim, neg_area))
+                v = [-v1, v2]
+                diag_len0 = diag_len - v1 - v2
+                thickness = v2 - v1
+                add_area = (diag_len + diag_len0) * thickness
+                #diag_len_diff = (diag_len - prev_diag_len) >> 1
+                add_perim = 2 * math.sqrt(v1 * v1 + v2 * v2)
+                #print(f"diag_len = {diag_len}, diag_len0 = {diag_len0}, v = {v}, diff = {diff}, add_area = {add_area}, add_perim = {add_perim}")
+                # (1 + t) * v[1] = diag_len + (1 + t) * v[0]
+                # (1 + t) * (v[1] - v[0]) = diag_len
+                # t = diag_len / (v[1] - v[0]) - 1
+                v_len = math.sqrt(v1 * v1 + v2 * v2)
+                t = diag_len / (v2 + v1) - 1
+                perim0_mx = v_len * t * 2 + eps
+                for perim0, neg_area0 in curr[diag_len0]:
+                    #print(f"perim0 = {perim0}, perim0_mx = {perim0_mx}, diag_len0_actual = {diag_len0 * math.sqrt(2)}")
+                    if perim0 > perim0_mx:
+                        #print("hi")
+                        break
+                    perim, neg_area = perim0 + add_perim, neg_area0 - add_area
+                    j = perim_area_lst.bisect_right((perim, neg_area))
+                    if j > 0 and neg_area >= perim_area_lst[j - 1][1]:
+                        continue
+                    while j < len(perim_area_lst) and neg_area <= perim_area_lst[j][1]:
+                        perim_area_lst.pop(j)
+                    perim_area_lst.add((perim, neg_area))
+                #v = [x + 1 for x in v]
+        """
+        for prev_diag_len in range(diag_len):
+            len_diff = diag_len - prev_diag_len
+            len_diff_hlf = len_diff >> 1
+            v0 = [-len_diff_hlf + (not len_diff & 1), len_diff_hlf + 1]
+            v = v0
+            for diff in range(len_diff & 1, len_diff + 1, 2):
+                if gcd(*[abs(x) for x in v]) > 1:
+                    v = [x + 1 for x in v]
+                    continue
+                add_area = (diag_len + prev_diag_len) * diff
+                #diag_len_diff = (diag_len - prev_diag_len) >> 1
+                add_perim = 2 * math.sqrt(sum(x * x for x in v))
+                #print(f"diag_len = {diag_len}, prev_diag_len = {prev_diag_len}, v = {v}, diff = {diff}, add_area = {add_area}, add_perim = {add_perim}")
+                for perim0, neg_area0 in curr[prev_diag_len]:
+                    perim, neg_area = perim0 + add_perim, neg_area0 - add_area
+                    j = perim_area_lst.bisect_right((perim, neg_area))
+                    if j > 0 and neg_area >= perim_area_lst[j - 1][1]:
+                        continue
+                    while j < len(perim_area_lst) and neg_area <= perim_area_lst[j][1]:
+                        perim_area_lst.pop(j)
+                    perim_area_lst.add((perim, neg_area))
+                v = [x + 1 for x in v]
+        """
         curr.append(list(perim_area_lst))
         #print(diag_len, curr[-1])
     
@@ -2617,14 +2670,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = calculateSlidingPuzzleMinimumMovesAPrimeSquareCount(p_max=10 ** 6 - 1)
         print(f"Solution to Project Euler #313 = {res}, calculated in {time.time() - since:.4f} seconds")
-    """
+    
     if 314 in eval_nums:
         since = time.time()
         res = calculateMaximumAreaToPerimeterRatioInQuantisedSquare(
             square_side_length=500,
         )
         print(f"Solution to Project Euler #314 = {res}, calculated in {time.time() - since:.4f} seconds")
-    """
+    
     if 315 in eval_nums:
         since = time.time()
         res = digitalRootDisplayPrimeTransitionsDifferenceCount(
