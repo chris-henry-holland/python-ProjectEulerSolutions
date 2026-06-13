@@ -1323,10 +1323,32 @@ def calculateMaximumAreaToPerimeterRatioInQuantisedSquare(
 ) -> float:
     """
     Solution to Project Euler #314
+
+    Finds the maximum possible area to perimeter ratio for
+    polygons whose vertices all have integer coordinate values
+    (x, y) within the square region 0 <= x <= square_side_length,
+    0 <= y <= square_side_length.
+
+    Args:
+        Optional named:
+        square_side_length (int): Strictly positive integer
+                giving the side of the square that encloses
+                the permitted polygon vertex positions.
+            Default: 500
+    
+    Returns:
+    Float giving the largest possible area to perimeter ratio of
+    the polygons whose vertices all have integer coordinate values
+    (x, y) within the square region 0 <= x <= square_side_length,
+    0 <= y <= square_side_length.
+
+    Outline of rationale:
+    TODO
     """
     # Assumes solution has the same symmetries as the square
-    # (D4 group) and that the shape is convex (these should be
-    # straightforward to prove, both by contradiction).
+    # (D4 group), that the shape is convex and that it includes
+    # the midpoints of the four edges of the square (these
+    # should be straightforward to prove, each by contradiction).
 
     # Try to make faster
 
