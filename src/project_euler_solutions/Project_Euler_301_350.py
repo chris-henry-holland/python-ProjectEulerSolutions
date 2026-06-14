@@ -648,6 +648,24 @@ def startingPositionsInNumberConcatenator(
     yield from kmp.matchStartGenerator(num_concat_gen)
     return
 
+def reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
+    a: int=3,
+    k_min: int=1,
+    k_max: int=13,
+    base: int=10,
+) -> int:
+    res = 0
+    for k in range(k_min, k_max + 1):
+        num = a ** k
+        for _, term in zip(range(num), startingPositionsInNumberConcatenator(
+            num,
+            base=base,
+        )):
+            pass
+        term += 1
+        print(f"term for k = {k} is {term}")
+        res += term
+    return res
 
 # Problem 306
 def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
@@ -2658,6 +2676,16 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #304 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 305 in eval_nums:
+        since = time.time()
+        res = reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
+            a=3,
+            k_min=1,
+            k_max=9,
+            base=10,
+        )
+        print(f"Solution to Project Euler #305 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 306 in eval_nums:
         since = time.time()
         res = paperStripGamePlayer1WinsWithPerfectPlayCount(n_max=10 ** 6)
@@ -2780,15 +2808,16 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {314}
+    eval_nums = {305}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
-"""
+
 #pow2_init = 5
 #print(conwayFractanPow2TransitionLength(pow2_init))
-n_inds = 3 ** 10
-num = 3 ** 10
+"""
+n_inds = 7780
+num = 7780
 for i, idx in zip(range(n_inds), startingPositionsInNumberConcatenator(
     num,
     base=10,
