@@ -656,6 +656,7 @@ def reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
 ) -> int:
     res = 0
     for k in range(k_min, k_max + 1):
+        since = time.time()
         num = a ** k
         for _, term in zip(range(num), startingPositionsInNumberConcatenator(
             num,
@@ -663,9 +664,57 @@ def reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
         )):
             pass
         term += 1
-        print(f"term for k = {k} is {term}")
+        print(f"term for k = {k} is {term} found in {time.time() - since:.4f} seconds")
         res += term
     return res
+
+def nthStartingPositionInNumberConcatenator(
+    n: int,
+    num: int,
+    base: int=10,
+) -> int:
+    
+    digs = []
+    num2 = num
+    while num2:
+        num2, d = divmod(num2, base)
+        digs.append(d)
+    digs = digs[::-1]
+    num_n_dig = len(digs)
+
+    def nDigitsLECount(
+        n_d: int,
+        idx_mx: int,
+    ) -> int:
+        if idx_mx >= n_d * (base - 1) * base ** (n_d - 1)
+
+        
+        def countWhenNumberInsideInteger(i0: int) -> int:
+            return 0
+
+        def countWhenNumberStraddlesIntegers(i0: int) -> int:
+            return 0
+
+        def countWhenNumberContainsWholeInteger(i0: int) -> int:
+            return 0
+
+        
+        
+        res = 0
+
+        trans1 = max(0, n_d - num_n_dig)
+        trans2 = min(n_d, max(0, 2 * n_d - num_n_dig))
+        for i0 in range(trans1):
+            res += countWhenNumberInsideInteger(i0)
+        for i0 in range(trans1, trans2):
+            res += countWhenNumberStraddlesIntegers(i0)
+        for i0 in range(trans2, n_d):
+            res += countWhenNumberContainsWholeInteger(i0)
+
+        return res
+    
+    n2 = n
+    for n_d in range()
 
 # Problem 306
 def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
@@ -2681,7 +2730,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
             a=3,
             k_min=1,
-            k_max=9,
+            k_max=13,
             base=10,
         )
         print(f"Solution to Project Euler #305 = {res}, calculated in {time.time() - since:.4f} seconds")
