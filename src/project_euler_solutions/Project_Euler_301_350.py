@@ -686,7 +686,7 @@ def nthStartingPositionInNumberConcatenator(
         n_d: int,
         idx_mx: int,
     ) -> int:
-        if idx_mx >= n_d * (base - 1) * base ** (n_d - 1)
+        #if idx_mx >= n_d * (base - 1) * base ** (n_d - 1)
 
         
         def countWhenNumberInsideInteger(i0: int) -> int:
@@ -696,8 +696,40 @@ def nthStartingPositionInNumberConcatenator(
             return 0
 
         def countWhenNumberContainsWholeInteger(i0: int) -> int:
-            return 0
-
+            # Review- need to account for when the consecutive integers
+            # transition to the next number of digits
+            contained_int = 0
+            i_start = n_d - i0 if i0 else 0
+            if not digs[i_start]: return 0
+            for i in range(i_start, i_start + n_d):
+                contained_int = base * contained_int + digs[i]
+            idx = n_d * (contained_int - base ** (n_d - 1))
+            idx -= i_start
+            if idx > idx_mx: return 0
+            
+            if i_start:
+                num2 = contained_int - 1
+                for i in reversed(range(i_start)):
+                    num2, d = divmod(num2, base)
+                    if digs[i] != d: return 0
+            num2 = contained_int
+            i_start2 = i_start
+            for j in range(i_start + n_d, num_n_dig - n_d, n_d):
+                num2 += 1
+                num3 = num2
+                i_start2 += n_d
+                for i in reversed(range(i_start2, i_start2 + n_d)):
+                    num3, d = divmod(num3, base)
+                    if digs[i] != d: return 0
+            if not (num_n_dig - i_start) % n_d:
+                return 1
+            num2 += 1
+            num3 = num2
+            i_start2 += n_d
+            for i in reversed(range(i_start2, i_start2 + n_d)):
+                num3, d = divmod(num3, base)
+                if i < num_n_dig and digs[i] != d: return 0
+            return 1
         
         
         res = 0
@@ -714,7 +746,19 @@ def nthStartingPositionInNumberConcatenator(
         return res
     
     n2 = n
-    for n_d in range()
+    idx1 = 0
+    for n_d in itertools.count(1):
+        idx0, idx1 = idx1, idx1 + n_d * (base ** n_d - base ** (n_d - 1))
+        m = nDigitsLECount(n_d, idx1)
+        if m >= n2: break
+        n2 -= m
+    lo, hi = idx0, idx1
+    while lo < hi:
+        mid = lo + ((hi - lo) >> 1)
+        if nDigitsLECount(mid) < n2:
+            lo = mid + 1
+        else: hi = mid
+    return lo
 
 # Problem 306
 def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
@@ -2724,7 +2768,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
             res_md=1234567891011,
         )
         print(f"Solution to Project Euler #304 = {res}, calculated in {time.time() - since:.4f} seconds")
-
+    """
     if 305 in eval_nums:
         since = time.time()
         res = reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
@@ -2734,7 +2778,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
             base=10,
         )
         print(f"Solution to Project Euler #305 = {res}, calculated in {time.time() - since:.4f} seconds")
-
+    """
     if 306 in eval_nums:
         since = time.time()
         res = paperStripGamePlayer1WinsWithPerfectPlayCount(n_max=10 ** 6)
