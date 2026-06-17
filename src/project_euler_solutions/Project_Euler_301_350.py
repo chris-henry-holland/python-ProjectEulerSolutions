@@ -668,42 +668,59 @@ def reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
         res += term
     return res
 
-def nthStartingPositionInNumberConcatenator(
+def nthStartingPositionOfTargetInNumberConcatenator(
     n: int,
-    num: int,
+    target: int,
     base: int=10,
 ) -> int:
     
     digs = []
-    num2 = num
+    num2 = target
     while num2:
         num2, d = divmod(num2, base)
         digs.append(d)
     digs = digs[::-1]
-    num_n_dig = len(digs)
+    target_n_dig = len(digs)
 
     def nDigitsLECount(
-        n_d: int,
+        n_dig: int,
         idx_mx: int,
     ) -> int:
         #if idx_mx >= n_d * (base - 1) * base ** (n_d - 1)
 
         
-        def countWhenNumberInsideInteger(i0: int) -> int:
+        def countWhenTargetInsideInteger(i0: int) -> int:
+            int_mx, r = divmod(idx_mx, n_dig)
+            int_mx -= (r < i0)
+            int_mx_digs = [0] * n_dig
+            for j in reversed(range(n_dig)):
+                int_mx, d = divmod(int_mx, base)
+                int_mx_digs[j] = d
+
+            def recur(idx: int, tight: bool=True) -> int:
+                if idx == n_dig:
+                    return 1
+                if not tight:
+                    return base ** (max(0, n_dig - max(idx, i0 + target_n_dig)) + max(0, i0 - idx))
+                if idx >= i0 and idx < i0 + target_n_dig:
+                    mx = int_mx_digs[idx]
+                    return 0 if digs[idx] > mx else recur(idx + 1, tight=digs[idx] == mx)
+                return int_mx_digs[idx] * recur(idx + 1, tight=False) + recur(idx + 1, tight=True)
+            
+            return recur(0, tight=True)
+
+        def countWhenTargetStraddlesIntegers(i0: int) -> int:
             return 0
 
-        def countWhenNumberStraddlesIntegers(i0: int) -> int:
-            return 0
-
-        def countWhenNumberContainsWholeInteger(i0: int) -> int:
+        def countWhenTargetContainsWholeInteger(i0: int) -> int:
             # Review- need to account for when the consecutive integers
             # transition to the next number of digits
             contained_int = 0
-            i_start = n_d - i0 if i0 else 0
+            i_start = n_dig - i0 if i0 else 0
             if not digs[i_start]: return 0
-            for i in range(i_start, i_start + n_d):
+            for i in range(i_start, i_start + n_dig):
                 contained_int = base * contained_int + digs[i]
-            idx = n_d * (contained_int - base ** (n_d - 1))
+            idx = n_dig * (contained_int - base ** (n_dig - 1))
             idx -= i_start
             if idx > idx_mx: return 0
             
@@ -714,48 +731,48 @@ def nthStartingPositionInNumberConcatenator(
                     if digs[i] != d: return 0
             num2 = contained_int
             i_start2 = i_start
-            for j in range(i_start + n_d, num_n_dig - n_d, n_d):
+            for j in range(i_start + n_dig, target_n_dig - n_dig, n_dig):
                 num2 += 1
                 num3 = num2
-                i_start2 += n_d
-                for i in reversed(range(i_start2, i_start2 + n_d)):
+                i_start2 += n_dig
+                for i in reversed(range(i_start2, i_start2 + n_dig)):
                     num3, d = divmod(num3, base)
                     if digs[i] != d: return 0
-            if not (num_n_dig - i_start) % n_d:
+            if not (target_n_dig - i_start) % n_dig:
                 return 1
             num2 += 1
             num3 = num2
-            i_start2 += n_d
-            for i in reversed(range(i_start2, i_start2 + n_d)):
+            i_start2 += n_dig
+            for i in reversed(range(i_start2, i_start2 + n_dig)):
                 num3, d = divmod(num3, base)
-                if i < num_n_dig and digs[i] != d: return 0
+                if i < target_n_dig and digs[i] != d: return 0
             return 1
         
         
         res = 0
 
-        trans1 = max(0, n_d - num_n_dig)
-        trans2 = min(n_d, max(0, 2 * n_d - num_n_dig))
+        trans1 = max(0, n_dig - target_n_dig)
+        trans2 = min(n_dig, max(0, 2 * n_dig - target_n_dig))
         for i0 in range(trans1):
-            res += countWhenNumberInsideInteger(i0)
+            res += countWhenTargetInsideInteger(i0)
         for i0 in range(trans1, trans2):
-            res += countWhenNumberStraddlesIntegers(i0)
-        for i0 in range(trans2, n_d):
-            res += countWhenNumberContainsWholeInteger(i0)
+            res += countWhenTargetStraddlesIntegers(i0)
+        for i0 in range(trans2, n_dig):
+            res += countWhenTargetContainsWholeInteger(i0)
 
         return res
     
     n2 = n
     idx1 = 0
-    for n_d in itertools.count(1):
-        idx0, idx1 = idx1, idx1 + n_d * (base ** n_d - base ** (n_d - 1))
-        m = nDigitsLECount(n_d, idx1)
+    for n_dig in itertools.count(1):
+        idx0, idx1 = idx1, idx1 + n_dig * (base ** n_dig - base ** (n_dig - 1))
+        m = nDigitsLECount(n_dig, idx1)
         if m >= n2: break
         n2 -= m
     lo, hi = idx0, idx1
     while lo < hi:
         mid = lo + ((hi - lo) >> 1)
-        if nDigitsLECount(mid) < n2:
+        if nDigitsLECount(n_dig, mid) < n2:
             lo = mid + 1
         else: hi = mid
     return lo
@@ -2768,7 +2785,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
             res_md=1234567891011,
         )
         print(f"Solution to Project Euler #304 = {res}, calculated in {time.time() - since:.4f} seconds")
-    """
+    
     if 305 in eval_nums:
         since = time.time()
         res = reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
@@ -2778,7 +2795,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
             base=10,
         )
         print(f"Solution to Project Euler #305 = {res}, calculated in {time.time() - since:.4f} seconds")
-    """
+    
     if 306 in eval_nums:
         since = time.time()
         res = paperStripGamePlayer1WinsWithPerfectPlayCount(n_max=10 ** 6)
@@ -2901,7 +2918,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {305}
+    eval_nums = {3050}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -2926,3 +2943,13 @@ for pair in findPQValues(
 ):
     print(pair)
 """
+base = 10
+for target, n in [(1, 1), (2, 1), (3, 1)]:
+    for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
+        target,
+        base=base,
+    )):
+        pass
+
+    res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
+    print(f"{n}:th occurrence of {target}: {res1}, {res2}")
