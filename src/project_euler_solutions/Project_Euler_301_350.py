@@ -704,10 +704,12 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                     return base ** (max(0, n_dig - max(idx, i0 + target_n_dig)) + max(0, i0 - idx))
                 if idx >= i0 and idx < i0 + target_n_dig:
                     mx = int_mx_digs[idx]
-                    return 0 if digs[idx] > mx else recur(idx + 1, tight=digs[idx] == mx)
+                    return 0 if digs[idx - i0] > mx else recur(idx + 1, tight=(digs[idx - i0] == mx))
                 return int_mx_digs[idx] * recur(idx + 1, tight=False) + recur(idx + 1, tight=True)
             
-            return recur(0, tight=True)
+            res = recur(0, tight=True)
+            print(f"countWhenTargetIsInsideInteger({i0}) when n_dig = {n_dig}, idx_mx = {idx_mx} is {res}")
+            return res
 
         def countWhenTargetStraddlesIntegers(i0: int) -> int:
             return 0
@@ -751,7 +753,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
         
         res = 0
 
-        trans1 = max(0, n_dig - target_n_dig)
+        trans1 = max(0, n_dig - target_n_dig + 1)
         trans2 = min(n_dig, max(0, 2 * n_dig - target_n_dig))
         for i0 in range(trans1):
             res += countWhenTargetInsideInteger(i0)
@@ -765,7 +767,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
     n2 = n
     idx1 = 0
     for n_dig in itertools.count(1):
-        idx0, idx1 = idx1, idx1 + n_dig * (base ** n_dig - base ** (n_dig - 1))
+        idx0, idx1 = idx1, n_dig * ((base - 1) * base ** (n_dig - 1))
         m = nDigitsLECount(n_dig, idx1)
         if m >= n2: break
         n2 -= m
@@ -2944,7 +2946,7 @@ for pair in findPQValues(
     print(pair)
 """
 base = 10
-for target, n in [(1, 1), (2, 1), (3, 1)]:
+for target, n in [(1, 1), (2, 2)]:
     for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
         target,
         base=base,
