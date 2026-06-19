@@ -691,24 +691,33 @@ def nthStartingPositionOfTargetInNumberConcatenator(
         
         def countWhenTargetInsideInteger(i0: int) -> int:
             int_mx, r = divmod(idx_mx, n_dig)
-            int_mx -= (r < i0)
+            #print(f"n_dig = {n_dig}, idx_mx = {idx_mx}, int_mx0 = {int_mx}")
+            int_mx += base ** (n_dig - 1) - (r < i0)# - 1 - (r < i0)
+            
             int_mx_digs = [0] * n_dig
+            int_mx2 = int_mx
             for j in reversed(range(n_dig)):
-                int_mx, d = divmod(int_mx, base)
+                int_mx2, d = divmod(int_mx2, base)
                 int_mx_digs[j] = d
 
             def recur(idx: int, tight: bool=True) -> int:
                 if idx == n_dig:
                     return 1
                 if not tight:
-                    return base ** (max(0, n_dig - max(idx, i0 + target_n_dig)) + max(0, i0 - idx))
+                    res = 1 if idx else (base - 1)
+                    idx2 = max(idx, 1)
+                    res *= base ** (max(0, n_dig - max(idx2, i0 + target_n_dig)) + max(0, i0 - idx2))
+                    #print(idx, i0 + target_n_dig, n_dig - max(1, idx, i0 + target_n_dig), i0 - idx)
+                    #print(f"idx = {idx}, tight = {tight}, res = {res}")
+                    return res
                 if idx >= i0 and idx < i0 + target_n_dig:
                     mx = int_mx_digs[idx]
-                    return 0 if digs[idx - i0] > mx else recur(idx + 1, tight=(digs[idx - i0] == mx))
-                return int_mx_digs[idx] * recur(idx + 1, tight=False) + recur(idx + 1, tight=True)
+                    tight2 = digs[idx - i0] == mx
+                    return 0 if digs[idx - i0] > mx else recur(idx + 1, tight=tight2)# + tight2 * (int_mx % base ** (n_dig - idx - 1))
+                return (int_mx_digs[idx] - (not idx)) * recur(idx + 1, tight=False) + recur(idx + 1, tight=True)
             
             res = recur(0, tight=True)
-            print(f"countWhenTargetIsInsideInteger({i0}) when n_dig = {n_dig}, idx_mx = {idx_mx} is {res}")
+            #print(f"countWhenTargetIsInsideInteger({i0}) when n_dig = {n_dig}, idx_mx = {idx_mx} (int_mx = {int_mx}, dig_idx = {r}) is {res}")
             return res
 
         def countWhenTargetStraddlesIntegers(i0: int) -> int:
@@ -762,22 +771,29 @@ def nthStartingPositionOfTargetInNumberConcatenator(
         for i0 in range(trans2, n_dig):
             res += countWhenTargetContainsWholeInteger(i0)
 
+        int_mx, r = divmod(idx_mx, n_dig)
+        int_mx += base ** (n_dig - 1)
+        #print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
+
         return res
     
     n2 = n
-    idx1 = 0
+    idx1 = -1
+    res = 0
     for n_dig in itertools.count(1):
-        idx0, idx1 = idx1, n_dig * ((base - 1) * base ** (n_dig - 1))
+        #print(f"n_dig = {n_dig}, index count for lower n_dig = {res}")
+        idx1 = n_dig * ((base - 1) * base ** (n_dig - 1)) - 1
         m = nDigitsLECount(n_dig, idx1)
         if m >= n2: break
         n2 -= m
-    lo, hi = idx0, idx1
+        res += idx1 + 1
+    lo, hi = 0, idx1
     while lo < hi:
         mid = lo + ((hi - lo) >> 1)
         if nDigitsLECount(n_dig, mid) < n2:
             lo = mid + 1
         else: hi = mid
-    return lo
+    return res + lo
 
 # Problem 306
 def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
@@ -2946,7 +2962,7 @@ for pair in findPQValues(
     print(pair)
 """
 base = 10
-for target, n in [(1, 1), (2, 2)]:
+for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
         target,
         base=base,
