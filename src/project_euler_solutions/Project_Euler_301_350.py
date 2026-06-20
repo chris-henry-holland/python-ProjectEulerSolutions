@@ -674,13 +674,14 @@ def nthStartingPositionOfTargetInNumberConcatenator(
     base: int=10,
 ) -> int:
     
-    digs = []
+    target_digs = []
     num2 = target
     while num2:
         num2, d = divmod(num2, base)
-        digs.append(d)
-    digs = digs[::-1]
-    target_n_dig = len(digs)
+        target_digs.append(d)
+    target_digs = target_digs[::-1]
+    if not target_digs: target_digs = [0]
+    target_n_dig = len(target_digs)
 
     def nDigitsLECount(
         n_dig: int,
@@ -688,17 +689,32 @@ def nthStartingPositionOfTargetInNumberConcatenator(
     ) -> int:
         #if idx_mx >= n_d * (base - 1) * base ** (n_d - 1)
 
+        int_mx0, r = divmod(idx_mx, n_dig)
+        int_mx = int_mx0 + base ** (n_dig - 1)
+        int_mx1 = int_mx - 1
+        int_mx2 = int_mx
+        int_mx1_digs = [0] * n_dig
+        int_mx2_digs = [0] * n_dig
+        int_mx1_2 = int_mx1
+        int_mx2_2 = int_mx2
+        for j in reversed(range(n_dig)):
+            int_mx1_2, d1 = divmod(int_mx1_2, base)
+            int_mx1_digs[j] = d1
+            int_mx2_2, d2 = divmod(int_mx2_2, base)
+            int_mx2_digs[j] = d2
         
         def countWhenTargetInsideInteger(i0: int) -> int:
-            int_mx, r = divmod(idx_mx, n_dig)
-            #print(f"n_dig = {n_dig}, idx_mx = {idx_mx}, int_mx0 = {int_mx}")
-            int_mx += base ** (n_dig - 1) - (r < i0)# - 1 - (r < i0)
-            
-            int_mx_digs = [0] * n_dig
-            int_mx2 = int_mx
-            for j in reversed(range(n_dig)):
-                int_mx2, d = divmod(int_mx2, base)
-                int_mx_digs[j] = d
+            #int_mx, r = divmod(idx_mx, n_dig)
+            ##print(f"n_dig = {n_dig}, idx_mx = {idx_mx}, int_mx0 = {int_mx}")
+            #int_mx += base ** (n_dig - 1) - (r < i0)# - 1 - (r < i0)
+            #
+            #int_mx_digs = [0] * n_dig
+            #int_mx2 = int_mx
+            #for j in reversed(range(n_dig)):
+            #    int_mx2, d = divmod(int_mx2, base)
+            #    int_mx_digs[j] = d
+
+            int_mx, int_mx_digs = [int_mx1, int_mx1_digs] if r < i0 else [int_mx2, int_mx2_digs]
 
             def recur(idx: int, tight: bool=True) -> int:
                 if idx == n_dig:
@@ -712,8 +728,8 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                     return res
                 if idx >= i0 and idx < i0 + target_n_dig:
                     mx = int_mx_digs[idx]
-                    tight2 = digs[idx - i0] == mx
-                    return 0 if digs[idx - i0] > mx else recur(idx + 1, tight=tight2)# + tight2 * (int_mx % base ** (n_dig - idx - 1))
+                    tight2 = target_digs[idx - i0] == mx
+                    return 0 if target_digs[idx - i0] > mx else recur(idx + 1, tight=tight2)# + tight2 * (int_mx % base ** (n_dig - idx - 1))
                 return (int_mx_digs[idx] - (not idx)) * recur(idx + 1, tight=False) + recur(idx + 1, tight=True)
             
             res = recur(0, tight=True)
@@ -721,16 +737,48 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             return res
 
         def countWhenTargetStraddlesIntegers(i0: int) -> int:
+            int_mx, int_mx_digs = [int_mx2, int_mx2_digs]
+            
+            tail_len = n_dig - i0
+            head_len = target_n_dig - tail_len
+            tight = False
+            for i in range(head_len):
+                diff = target_digs[i] - int_mx_digs[n_dig - head_len + i]
+                if diff > 0: return 0
+                elif diff < 0: break
+            else: tight = True
+            
+            tail_one_less_base_pow = True
+            #print(f"i0 = {i0}, head_len = {head_len}, tail_len = {tail_len}, target_digs = {target_digs}")
+            # Review
+            for i in range(1, tail_len):
+                if target_digs[i] != base - 1:
+                    tail_one_less_base_pow = False
+            if not tail_one_less_base_pow:
+                if not target_digs[-head_len]: return 0
+                overlap = (tail_len + head_len) - n_dig
+                #carry = 1
+                #print(f"overlap = {overlap}")
+                for i in range(overlap):
+                    if target_digs[i] != target_digs[i0 + i]:
+                        return 0
+                if not tight:
+                    #print(n_dig, i0, target_digs, head_len, tail_len, max(-overlap, 0))
+                    return base ** max(-overlap, 0)
+                # TODO
+                return 0
             return 0
-
+        
         def countWhenTargetContainsWholeInteger(i0: int) -> int:
             # Review- need to account for when the consecutive integers
             # transition to the next number of digits
+            return 0
+
             contained_int = 0
             i_start = n_dig - i0 if i0 else 0
-            if not digs[i_start]: return 0
+            if not target_digs[i_start]: return 0
             for i in range(i_start, i_start + n_dig):
-                contained_int = base * contained_int + digs[i]
+                contained_int = base * contained_int + target_digs[i]
             idx = n_dig * (contained_int - base ** (n_dig - 1))
             idx -= i_start
             if idx > idx_mx: return 0
@@ -739,7 +787,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                 num2 = contained_int - 1
                 for i in reversed(range(i_start)):
                     num2, d = divmod(num2, base)
-                    if digs[i] != d: return 0
+                    if target_digs[i] != d: return 0
             num2 = contained_int
             i_start2 = i_start
             for j in range(i_start + n_dig, target_n_dig - n_dig, n_dig):
@@ -748,7 +796,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                 i_start2 += n_dig
                 for i in reversed(range(i_start2, i_start2 + n_dig)):
                     num3, d = divmod(num3, base)
-                    if digs[i] != d: return 0
+                    if target_digs[i] != d: return 0
             if not (target_n_dig - i_start) % n_dig:
                 return 1
             num2 += 1
@@ -756,14 +804,15 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             i_start2 += n_dig
             for i in reversed(range(i_start2, i_start2 + n_dig)):
                 num3, d = divmod(num3, base)
-                if i < target_n_dig and digs[i] != d: return 0
+                if i < target_n_dig and target_digs[i] != d: return 0
             return 1
         
         
         res = 0
 
         trans1 = max(0, n_dig - target_n_dig + 1)
-        trans2 = min(n_dig, max(0, 2 * n_dig - target_n_dig))
+        trans2 = min(n_dig, max(0, 2 * n_dig - target_n_dig + 1))
+        #print(f"n_dig = {n_dig}, trans1 = {trans1}, trans2 = {trans2}")
         for i0 in range(trans1):
             res += countWhenTargetInsideInteger(i0)
         for i0 in range(trans1, trans2):
@@ -2962,6 +3011,8 @@ for pair in findPQValues(
     print(pair)
 """
 base = 10
+
+"""
 for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
         target,
@@ -2971,3 +3022,15 @@ for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
 
     res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
     print(f"{n}:th occurrence of {target}: {res1}, {res2}")
+"""
+for target in range(10, 12):
+    for n in range(1, 11):
+        for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
+            target,
+            base=base,
+        )):
+            pass
+
+        res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
+        if res1 == res2: continue
+        print(f"mismatch for target = {target}, n = {n}: brute force solution = {res1}, calculated solution = {res2}")
