@@ -688,9 +688,11 @@ def nthStartingPositionOfTargetInNumberConcatenator(
         idx_mx: int,
     ) -> int:
         #if idx_mx >= n_d * (base - 1) * base ** (n_d - 1)
-
+        
         int_mx0, r = divmod(idx_mx, n_dig)
+        
         int_mx = int_mx0 + base ** (n_dig - 1)
+        
         int_mx1 = int_mx - 1
         int_mx2 = int_mx
         int_mx1_digs = [0] * n_dig
@@ -743,30 +745,35 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             head_len = target_n_dig - tail_len
             tight = False
             for i in range(head_len):
-                diff = target_digs[i] - int_mx_digs[n_dig - head_len + i]
+                diff = target_digs[target_n_dig - head_len + i] - int_mx_digs[i]
                 if diff > 0: return 0
                 elif diff < 0: break
             else: tight = True
             
             tail_one_less_base_pow = True
-            #print(f"i0 = {i0}, head_len = {head_len}, tail_len = {tail_len}, target_digs = {target_digs}")
+            #print(f"i0 = {i0}, head_len = {head_len}, tail_len = {tail_len}, target_digs = {target_digs}, tight = {tight}")
             # Review
-            for i in range(1, tail_len):
+            for i in range(tail_len):
                 if target_digs[i] != base - 1:
                     tail_one_less_base_pow = False
             if not tail_one_less_base_pow:
-                if not target_digs[-head_len]: return 0
+                if not target_digs[-head_len]:
+                    #print("hi1")
+                    return 0
                 overlap = (tail_len + head_len) - n_dig
                 #carry = 1
                 #print(f"overlap = {overlap}")
                 for i in range(overlap):
-                    if target_digs[i] != target_digs[i0 + i]:
+                    if target_digs[i] != target_digs[target_n_dig - overlap + i]:
+                        #print("hi2", i)
                         return 0
                 if not tight:
                     #print(n_dig, i0, target_digs, head_len, tail_len, max(-overlap, 0))
                     return base ** max(-overlap, 0)
                 # TODO
+                #print("hi3")
                 return 0
+            #print("hi4")
             return 0
         
         def countWhenTargetContainsWholeInteger(i0: int) -> int:
@@ -822,7 +829,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
 
         int_mx, r = divmod(idx_mx, n_dig)
         int_mx += base ** (n_dig - 1)
-        #print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
+        print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
 
         return res
     
@@ -830,11 +837,12 @@ def nthStartingPositionOfTargetInNumberConcatenator(
     idx1 = -1
     res = 0
     for n_dig in itertools.count(1):
-        #print(f"n_dig = {n_dig}, index count for lower n_dig = {res}")
+        print(f"n_dig = {n_dig}, index count for lower n_dig = {res}, current n2 = {n2}")
         idx1 = n_dig * ((base - 1) * base ** (n_dig - 1)) - 1
         m = nDigitsLECount(n_dig, idx1)
         if m >= n2: break
         n2 -= m
+        print(f"new n2 = {n2}")
         res += idx1 + 1
     lo, hi = 0, idx1
     while lo < hi:
@@ -3023,8 +3031,9 @@ for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
     print(f"{n}:th occurrence of {target}: {res1}, {res2}")
 """
-for target in range(10, 12):
-    for n in range(1, 11):
+for target in range(12, 13):
+    print(f"\ntarget = {target}")
+    for n in range(1, 6):
         for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
             target,
             base=base,
