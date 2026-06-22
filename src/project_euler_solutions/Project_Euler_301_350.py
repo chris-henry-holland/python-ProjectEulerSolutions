@@ -749,7 +749,26 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                 if diff > 0: return 0
                 elif diff < 0: break
             else: tight = True
-            
+
+            memo = {}
+            def recur(idx: int, carry: bool, tight: bool=True) -> int:
+                if idx == n_dig:
+                    return int(not carry)
+                args = (idx, carry, tight)
+                if args in memo.keys():
+                    return memo[args]
+                res = 0
+
+                memo[args] = res
+                return 0
+
+            res = recur(0, carry=False, tight=True) + recur(0, carry=True, tight=True)
+
+            # TODO- add check for transition to the next digit count (e.g. in base 10
+            # 999...99 to 1000...00)
+            return res
+
+            """
             tail_one_less_base_pow = True
             #print(f"i0 = {i0}, head_len = {head_len}, tail_len = {tail_len}, target_digs = {target_digs}, tight = {tight}")
             # Review
@@ -775,6 +794,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                 return 0
             #print("hi4")
             return 0
+            """
         
         def countWhenTargetContainsWholeInteger(i0: int) -> int:
             # Review- need to account for when the consecutive integers
