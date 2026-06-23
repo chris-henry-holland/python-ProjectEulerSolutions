@@ -766,7 +766,15 @@ def nthStartingPositionOfTargetInNumberConcatenator(
 
             # TODO- add check for transition to the next digit count (e.g. in base 10
             # 999...99 to 1000...00)
-            return res
+            nxt_ndig_idx = n_dig * ((base - 1) * base ** (n_dig - 1) - 1) + i0
+            if nxt_ndig_idx > idx_mx: return res
+            for idx in range(tail_len):
+                if target_digs[idx] != base - 1: return res
+            if head_len >= 1 and target_digs[tail_len] != 1: return res
+            for idx in range(tail_len + 1, target_n_dig):
+                if target_digs[idx]: return res
+            
+            return res + 1
 
             """
             tail_one_less_base_pow = True
