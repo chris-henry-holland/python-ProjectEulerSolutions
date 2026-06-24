@@ -740,31 +740,89 @@ def nthStartingPositionOfTargetInNumberConcatenator(
 
         def countWhenTargetStraddlesIntegers(i0: int) -> int:
             int_mx, int_mx_digs = [int_mx2, int_mx2_digs]
+            #print(int_mx_digs)
             
             tail_len = n_dig - i0
             head_len = target_n_dig - tail_len
-            tight = False
-            for i in range(head_len):
-                diff = target_digs[target_n_dig - head_len + i] - int_mx_digs[i]
-                if diff > 0: return 0
-                elif diff < 0: break
-            else: tight = True
-
+            if not target_digs[tail_len]: return 0 # The integers cannot start with the digit 0
+            #tight = False
+            #for i in range(head_len):
+            #    diff = target_digs[target_n_dig - head_len + i] - int_mx_digs[i]
+            #    if diff > 0: return 0
+            #    elif diff < 0: break
+            #else: tight = True
+            #head_tail_delta = n_dig - target_n_dig
             memo = {}
             def recur(idx: int, carry: bool, tight: bool=True) -> int:
+                #print(f"calling recur() with idx = {idx}, carry = {carry}, tight = {tight}")
                 if idx == n_dig:
-                    return int(not carry)
+                    return int(carry)
                 args = (idx, carry, tight)
                 if args in memo.keys():
                     return memo[args]
                 res = 0
+                head_idx = idx + tail_len
+                tail_idx = head_idx - n_dig
+                if idx < head_len:
+                    if carry:
+                        if not target_digs[head_idx] and (tail_idx < 0 or target_digs[tail_idx] == base - 1) and (not tight or int_mx_digs[idx] == base - 1):
+                            #print("hi1")
+                            res += recur(idx + 1, True, tight=tight)
+                    #elif tight and target_digs[head_idx] > int_mx_digs[idx]:
+                    #    res = 0
+                    elif tail_idx >= 0:
+                        if target_digs[head_idx] == target_digs[tail_idx] and (not tight or target_digs[head_idx] <= int_mx_digs[idx]):
+                            #print("hi2")
+                            res += recur(idx + 1, False, tight=(tight and target_digs[head_idx] == int_mx_digs[idx]))
+                        elif target_digs[head_idx] - 1 == target_digs[tail_idx] and (not tight or target_digs[head_idx] - 1 <= int_mx_digs[idx]):
+                            #print("hi3")
+                            res += recur(idx + 1, True, tight=(tight and target_digs[head_idx] - 1 == int_mx_digs[idx]))
+                    elif tight:
+                        if target_digs[head_idx] - 1 <= int_mx_digs[idx]:
+                            #print("hi4")
+                            res += recur(idx + 1, True, tight=(target_digs[head_idx] - 1 == int_mx_digs[idx]))
+                            if target_digs[head_idx] <= int_mx_digs[idx]:
+                                #print("hi5")
+                                res += recur(idx + 1, False, tight=(target_digs[head_idx] == int_mx_digs[idx]))
+                    else:
+                        #print("hi6")
+                        res += recur(idx + 1, False, tight=False) + recur(idx + 1, True, tight=False)
+                elif tail_idx >= 0:
+                    if carry:
+                        if target_digs[tail_idx] == base - 1 and (not tight or int_mx_digs[idx] == base - 1):
+                            #print("hi7")
+                            res += recur(idx + 1, True, tight=tight)
+                    elif tight:
+                        if target_digs[tail_idx] <= int_mx_digs[idx]:
+                            #print("hi8")
+                            res += recur(idx + 1, True, tight=(target_digs[tail_idx] == int_mx_digs[idx]))
+                    else:
+                        #print("hi9")
+                        res += recur(idx + 1, False, tight=False) + recur(idx + 1, True, tight=False)
+                elif carry:
+                    if (not tight or int_mx_digs[idx] == base - 1):
+                        #print("hi10")
+                        res += recur(idx + 1, True, tight=tight)
+                elif tight:
+                    #print("hi11")
+                    res += (int_mx_digs[idx]) * (recur(idx + 1, False, tight=False) + recur(idx + 1, True, tight=False))
+                    res += recur(idx + 1, False, tight=True)
+                    if int_mx_digs[idx] < base - 1:
+                        #print("hi12")
+                        res += recur(idx + 1, True, tight=True)
+                else:
+                    #print("hi13")
+                    res += base * recur(idx + 1, False, tight=False) + (base - 1) * recur(idx + 1, True, tight=False)
 
                 memo[args] = res
-                return 0
+                return res
 
-            res = recur(0, carry=False, tight=True) + recur(0, carry=True, tight=True)
+            res = recur(0, carry=False, tight=True)# + recur(0, carry=True, tight=True)
+            #print(f"memo for i0 = {i0}: {memo}")
+            #print(f"countWhenTargetStraddlesIntegers({i0}) = {res}")
 
-            # TODO- add check for transition to the next digit count (e.g. in base 10
+            """
+            # Check for transition to the next digit count (e.g. in base 10
             # 999...99 to 1000...00)
             nxt_ndig_idx = n_dig * ((base - 1) * base ** (n_dig - 1) - 1) + i0
             if nxt_ndig_idx > idx_mx: return res
@@ -773,8 +831,8 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             if head_len >= 1 and target_digs[tail_len] != 1: return res
             for idx in range(tail_len + 1, target_n_dig):
                 if target_digs[idx]: return res
-            
-            return res + 1
+            """
+            return res
 
             """
             tail_one_less_base_pow = True
@@ -805,19 +863,39 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             """
         
         def countWhenTargetContainsWholeInteger(i0: int) -> int:
-            # Review- need to account for when the consecutive integers
-            # transition to the next number of digits
-            return 0
-
-            contained_int = 0
             i_start = n_dig - i0 if i0 else 0
             if not target_digs[i_start]: return 0
-            for i in range(i_start, i_start + n_dig):
+            contained_int_digs_rev = [None] * n_dig
+            contained_int = 0
+            for i in reversed(range(i_start, i_start + n_dig)):
                 contained_int = base * contained_int + target_digs[i]
+                contained_int_digs_rev[~(i - i_start)] = target_digs[i]
+            if not contained_int:
+                if not i_start or i + 1 == target_n_dig: return 0 # Should not happen as this case should be handled by countWhenTargetStraddlesIntegers()
+                if target_digs[i + 1] != 1: return 0
+                contained_int += base ** n_dig
+                contained_int_digs_rev.append(1)
             idx = n_dig * (contained_int - base ** (n_dig - 1))
             idx -= i_start
             if idx > idx_mx: return 0
-            
+
+            carry = 1
+            for i in range(i_start):
+                carry, d = divmod(contained_int_digs_rev[i] - carry, base)
+                if d != target_digs[i_start - i - 1]: return 0
+            curr_int_digs_rev = list(contained_int_digs_rev)
+            i = i_start + n_dig
+            while i < target_n_dig:
+                carry = 1
+                for j in range(len(curr_int_digs_rev)):
+                    carry, curr_int_digs_rev[j] = divmod(curr_int_digs_rev[j] + carry, base)
+                    if not carry: break
+                else: curr_int_digs_rev.append(1)
+                for j in range(min(len(curr_int_digs_rev), target_n_dig - i)):
+                    if target_digs[i + j] != curr_int_digs_rev[~j]: return 0
+                i += len(curr_int_digs_rev)
+            return 1
+            """
             if i_start:
                 num2 = contained_int - 1
                 for i in reversed(range(i_start)):
@@ -841,6 +919,7 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                 num3, d = divmod(num3, base)
                 if i < target_n_dig and target_digs[i] != d: return 0
             return 1
+            """
         
         
         res = 0
@@ -851,13 +930,15 @@ def nthStartingPositionOfTargetInNumberConcatenator(
         for i0 in range(trans1):
             res += countWhenTargetInsideInteger(i0)
         for i0 in range(trans1, trans2):
-            res += countWhenTargetStraddlesIntegers(i0)
+            cnt2 = countWhenTargetStraddlesIntegers(i0)
+            res += cnt2
+            #print(f"countWhenTargetStraddlesIntegers({i0}) = {cnt2}")
         for i0 in range(trans2, n_dig):
             res += countWhenTargetContainsWholeInteger(i0)
 
         int_mx, r = divmod(idx_mx, n_dig)
         int_mx += base ** (n_dig - 1)
-        print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
+        #print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
 
         return res
     
@@ -865,12 +946,12 @@ def nthStartingPositionOfTargetInNumberConcatenator(
     idx1 = -1
     res = 0
     for n_dig in itertools.count(1):
-        print(f"n_dig = {n_dig}, index count for lower n_dig = {res}, current n2 = {n2}")
+        #print(f"n_dig = {n_dig}, index count for lower n_dig = {res}, current n2 = {n2}")
         idx1 = n_dig * ((base - 1) * base ** (n_dig - 1)) - 1
         m = nDigitsLECount(n_dig, idx1)
         if m >= n2: break
         n2 -= m
-        print(f"new n2 = {n2}")
+        #print(f"new n2 = {n2}")
         res += idx1 + 1
     lo, hi = 0, idx1
     while lo < hi:
@@ -3059,9 +3140,9 @@ for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
     print(f"{n}:th occurrence of {target}: {res1}, {res2}")
 """
-for target in range(12, 13):
+for target in range(11, 500, 13):
     print(f"\ntarget = {target}")
-    for n in range(1, 6):
+    for n in range(1, 11):
         for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
             target,
             base=base,
@@ -3069,5 +3150,7 @@ for target in range(12, 13):
             pass
 
         res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
-        if res1 == res2: continue
+        if res1 == res2:
+            print(f"solution for target = {target}, n = {n}: {res1}")
+            continue
         print(f"mismatch for target = {target}, n = {n}: brute force solution = {res1}, calculated solution = {res2}")
