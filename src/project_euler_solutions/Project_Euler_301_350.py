@@ -754,8 +754,9 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             #head_tail_delta = n_dig - target_n_dig
             memo = {}
             def recur(idx: int, carry: bool, tight: bool=True) -> int:
-                print(f"calling recur() with idx = {idx}, carry = {carry}, tight = {tight}")
+                #print(f"calling recur() with idx = {idx}, carry = {carry}, tight = {tight}")
                 if idx == n_dig:
+                    #if carry: print("solution found")
                     return int(carry)
                 args = (idx, carry, tight)
                 if args in memo.keys():
@@ -764,70 +765,71 @@ def nthStartingPositionOfTargetInNumberConcatenator(
                 head_idx = idx + tail_len
                 tail_idx = head_idx - n_dig
                 if idx < head_len:
-                    print("in head")
+                    #print("in head")
                     if carry:
                         if idx and not target_digs[head_idx] and (tail_idx < 0 or target_digs[tail_idx] == base - 1) and (not tight or int_mx_digs[idx] == base - 1):
-                            print("hi1")
+                            #print("hi1")
                             res += recur(idx + 1, True, tight=tight)
                     #elif tight and target_digs[head_idx] > int_mx_digs[idx]:
                     #    res = 0
                     elif tail_idx >= 0:
-                        print("in tail")
+                        #print("in tail")
                         if target_digs[head_idx] == target_digs[tail_idx] and (idx or target_digs[tail_idx]) and (not tight or target_digs[head_idx] <= int_mx_digs[idx]):
-                            print("hi2")
+                            #print("hi2")
                             res += recur(idx + 1, False, tight=(tight and target_digs[head_idx] == int_mx_digs[idx]))
                         elif target_digs[head_idx] - 1 == target_digs[tail_idx] and (idx or target_digs[tail_idx]) and (not tight or target_digs[head_idx] - 1 <= int_mx_digs[idx]):
-                            print("hi3")
+                            #print("hi3")
                             res += recur(idx + 1, True, tight=(tight and target_digs[head_idx] - 1 == int_mx_digs[idx]))
                     elif tight:
                         if target_digs[head_idx] - 1 <= int_mx_digs[idx]:
                             
                             if target_digs[head_idx] and (idx or target_digs[head_idx] - 1 > 0):
-                                print("hi4")
-                                print(f"head_idx = {head_idx}")
+                                #print("hi4")
+                                #print(f"head_idx = {head_idx}")
                                 res += recur(idx + 1, True, tight=(target_digs[head_idx] - 1 == int_mx_digs[idx]))
                             if target_digs[head_idx] <= int_mx_digs[idx] and (idx or target_digs[head_idx] > 0):
-                                print("hi5")
+                                #print("hi5", target_digs[head_idx], int_mx_digs[idx])
                                 res += recur(idx + 1, False, tight=(target_digs[head_idx] == int_mx_digs[idx]))
                     elif idx or target_digs[head_idx] > 0:
-                        print("hi6")
-                        res += recur(idx + 1, True, tight=False)
+                        #print("hi6", target_digs[head_idx], int_mx_digs[idx])
+                        if target_digs[head_idx] > 0:
+                            res += recur(idx + 1, True, tight=False)
                         if idx or target_digs[head_idx] - 1 > 0:
-                            print("hi7")
+                            #print("hi7")
                             res += recur(idx + 1, False, tight=False)
                         
                             
                 elif tail_idx >= 0:
-                    print("in tail")
+                    #print("in tail")
                     if carry:
                         if target_digs[tail_idx] == base - 1 and (not tight or int_mx_digs[idx] == base - 1):
-                            print("hi8")
+                            #print("hi8")
                             res += recur(idx + 1, True, tight=tight)
                     #elif target_digs[tail_idx] == base - 1: pass # No carry when it is needed
                     elif tight:
                         if target_digs[tail_idx] <= int_mx_digs[idx] and (idx or target_digs[tail_idx]):
-                            print("hi9")
+                            #print("hi9")
                             res += recur(idx + 1, False, tight=(target_digs[tail_idx] == int_mx_digs[idx]))
                             if target_digs[tail_idx] < base - 1:
                                 res += recur(idx + 1, True, tight=(target_digs[tail_idx] == int_mx_digs[idx]))
                     elif idx or target_digs[tail_idx]:
-                        print("hi10")
+                        #print("hi10")
                         res += recur(idx + 1, False, tight=False)
                         if target_digs[tail_idx] < base - 1:
                             res += recur(idx + 1, True, tight=False)
                 elif carry:
                     if (not tight or int_mx_digs[idx] == base - 1):
-                        print("hi11")
+                        #print("hi11")
                         res += recur(idx + 1, True, tight=tight)
                 elif tight:
-                    print("hi12")
+                    #print("hi12")
                     res += max(0, int_mx_digs[idx] - (not idx)) * (recur(idx + 1, False, tight=False) + recur(idx + 1, True, tight=False))
                     res += recur(idx + 1, False, tight=True)
                     if int_mx_digs[idx] < base - 1:
                         #print("hi13")
                         res += recur(idx + 1, True, tight=True)
                 else:
-                    print("hi14")
+                    #print("hi14")
                     res += (base - (not idx)) * recur(idx + 1, False, tight=False) + (base - 1 - (not idx)) * recur(idx + 1, True, tight=False)
 
                 memo[args] = res
@@ -946,19 +948,19 @@ def nthStartingPositionOfTargetInNumberConcatenator(
         for i0 in range(trans1):
             cnt1 = countWhenTargetInsideInteger(i0)
             res += cnt1
-            print(f"countWhenTargetInsideInteger({i0}) = {cnt1}")
+            #print(f"countWhenTargetInsideInteger({i0}) = {cnt1}")
         for i0 in range(trans1, trans2):
             cnt2 = countWhenTargetStraddlesIntegers(i0)
             res += cnt2
-            print(f"countWhenTargetStraddlesIntegers({i0}) = {cnt2}")
+            #print(f"countWhenTargetStraddlesIntegers({i0}) = {cnt2}")
         for i0 in range(trans2, n_dig):
             cnt3 = countWhenTargetContainsWholeInteger(i0)
             res += cnt3
-            print(f"countWhenTargetContainsWholeInteger({i0}) = {cnt3}")
+            #print(f"countWhenTargetContainsWholeInteger({i0}) = {cnt3}")
 
         int_mx, r = divmod(idx_mx, n_dig)
         int_mx += base ** (n_dig - 1)
-        print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
+        #print(f"nDigitsLECount(n_dig={n_dig}, idx_mx={idx_mx}) = {res} (int_mx = {int_mx}, dig_idx = {r})")
 
         return res
     
@@ -980,6 +982,25 @@ def nthStartingPositionOfTargetInNumberConcatenator(
             lo = mid + 1
         else: hi = mid
     return res + lo
+
+def reflexivePositionsInNumberConcatenatorPowersSum(
+    a: int=3,
+    k_min: int=1,
+    k_max: int=13,
+    base: int=10,
+) -> int:
+    res = 0
+    for k in range(k_min, k_max + 1):
+        since = time.time()
+        num = a ** k
+        term = nthStartingPositionOfTargetInNumberConcatenator(
+            n=num,
+            target=num,
+            base=base,
+        )
+        term += 1
+        res += term
+    return res
 
 # Problem 306
 def paperStripGamePlayer1WinsWithPerfectPlayCountInitialSolution(n_square_pick: int=2, n_max: int=10 ** 6) -> int:
@@ -2992,7 +3013,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
     if 305 in eval_nums:
         since = time.time()
-        res = reflexivePositionsInNumberConcatenatorPowersSumBruteForce(
+        res = reflexivePositionsInNumberConcatenatorPowersSum(
             a=3,
             k_min=1,
             k_max=13,
@@ -3122,7 +3143,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {3050}
+    eval_nums = {305}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -3147,9 +3168,10 @@ for pair in findPQValues(
 ):
     print(pair)
 """
-base = 10
+
 
 """
+base = 10
 for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
         target,
@@ -3160,9 +3182,11 @@ for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
     print(f"{n}:th occurrence of {target}: {res1}, {res2}")
 """
-for target in range(910, 911):
+"""
+base = 10
+for target in range(1000, 2000):
     #print(f"\ntarget = {target}")
-    for n in range(3, 4):
+    for n in range(1, 11):
         for _, res1 in zip(range(n), startingPositionsInNumberConcatenator(
             target,
             base=base,
@@ -3171,6 +3195,7 @@ for target in range(910, 911):
 
         res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
         if res1 == res2:
-            print(f"solution for target = {target}, n = {n}: {res1}")
+            #print(f"solution for target = {target}, n = {n}: {res1}")
             continue
         print(f"mismatch for target = {target}, n = {n}: brute force solution = {res1}, calculated solution = {res2}")
+"""
