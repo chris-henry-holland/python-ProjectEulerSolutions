@@ -673,8 +673,6 @@ def nthStartingPositionOfTargetInNumberConcatenator(
     target: int,
     base: int=10,
 ) -> int:
-    # Review- need to correct for at least the targets with n = 1 of
-    # the form 1x2x where x is a digit 1 or a digit between 3 and 9 inclusive
     
     target_digs = []
     num2 = target
@@ -1304,7 +1302,7 @@ def proportionOfBallAllocationsIntoBinsWithOneBinWithAtLeastGivenNumberFloat(
     return res.numerator / res.denominator
 
 # Problem 308
-def conwayFractanPow2TransitionLength(pow2_init: int) -> Tuple[int, int]:
+def conwayFractanPow2TransitionLengthBruteForce(pow2_init: int) -> Tuple[int, int]:
     state0 = {0: pow2_init}
     # prime indices:
     # 2: 0
@@ -1335,11 +1333,192 @@ def conwayFractanPow2TransitionLength(pow2_init: int) -> Tuple[int, int]:
                     state[p_idx] = state.get(p_idx, 0) + f
                 break
         #print(state)
-        print(state.get(0, 0))
+        #print(state.get(0, 0))
+        stt = [0] * 10
+        for i, f in state.items():
+            stt[i] = f
+        print(stt)
         if len(state) == 1 and 0 in state.keys():
             break
     print(seq)
     return (i, state[0])
+
+def conwayFractanPow2TransitionLength(pow2_init: int) -> Tuple[int, int]:
+    # Using https://oeis.org/wiki/Conway%27s_PRIMEGAME
+
+    # prime indices:
+    # 2: 0
+    # 3: 1
+    # 5: 2
+    # 7: 3
+
+    # State type indices (contains the given prime)
+    # none: 0
+    # 11: 1
+    # 13: 2
+    # 17: 3
+    # 19: 4
+    # 23: 5
+    # 29: 6
+    
+    state = [0] * 4
+    res = pow2_init + 1
+    state[1] = pow2_init
+    state[2] = pow2_init + 1
+    state_typ = 1
+    while state_typ or any(state[1:]):
+        #print(state, state_typ)
+        if not state_typ: # none
+            if state[0]:
+                res += state[0]
+                state[1] += state[0]
+                state[2] += state[0]
+                state[0] = 0
+            if state[3]:
+                res += state[3]
+                state[3] = 0
+            res += 1
+            state[2] += 1
+            state_typ = 1
+        elif state_typ == 1: # 11
+            if state[1]:
+                res += 2 * state[1]
+                state[3] += state[1]
+                state[1] = 0
+            else:
+                res += 1
+                state_typ = 2
+        elif state_typ == 2: # 13
+            if state[3]:
+                cnt = min(state[2], state[3])
+                res += cnt * 2
+                state[0] += cnt
+                state[1] += cnt
+                state[2] -= cnt
+                state[3] -= cnt
+                if state[3]:
+                    res += 1
+                    state[3] -= 1
+                    state_typ = 3
+                    continue
+            res += 1
+            state_typ = 1
+            continue
+        elif state_typ == 3: # 17
+            #cnt = min(state[2], state[3])
+            #res += 2 * cnt
+            #state[0] += cnt
+            #state[1] += cnt
+            #state[2] -= cnt
+            #state[3] -= cnt
+            #if state[3]
+
+            res += 1
+            if state[2]:
+                state[0] += 1
+                state[1] += 1
+                state[2] -= 1
+                state_typ = 2
+            elif state[1]:
+                state[1] -= 1
+                state_typ = 4
+            else: state_typ = 0
+        elif state_typ == 4: # 19
+            cnt = state[0]
+            res += 2 * cnt + 1
+            state[2] += cnt
+            state[0] = 0
+            state[3] += 1
+            state_typ = 1
+        elif state_typ == 5: # 23
+            res += 1
+            state[2] += 1
+            state_typ = 4
+        else: # 29
+            res += 1
+            state[3] += 1
+            state_typ = 1
+    return (res, state[0])
+    """
+    # Stripping out the 2s
+    state = [0] * 10
+    res = pow2_init + 1
+    state[1] = pow2_init
+    state[2] = pow2_init + 1
+    state[4] = 1
+    print(f"state post stripping 2s = {state}")
+
+    while state[1]:
+        print(f"cycle state state = {state}")
+        # Stripping the 3s
+        res += state[1] * 2 + 1
+        state[3] = state[1]
+        state[1] = 0
+        state[4] = 0
+        state[5] = 1
+        print(f"state post stripping 3s = {state}")
+
+        # Stripping the 7s
+        cnt = min(state[2], state[3])
+        res += cnt * 2
+        state[0] += cnt
+        state[1] += cnt
+        state[2] -= cnt
+        state[3] -= cnt
+        
+        if state[3]:
+            res += 1
+            state[3] -= 1
+            state[5] -= 1
+            state[6] += 1
+        print(f"state post stripping 7s = {state}")
+        
+
+        if not state[3] and state[5]:
+            print("hi1")
+            res += 1
+            state[4] += 1
+            state[5] -= 1
+            print(f"state post 13-11 swap = {state}")
+            #if state[1]: continue
+            #if state[1]: continue
+            if state[1]: continue
+        if (state[3] and not state[5]) and (state[6] and not state[2]):
+            state[6] -= 1
+        print("hi2")
+
+        #res += 2
+        #state[3] -= 1
+        #state[5] = 0
+        #state[6] = 0
+        print(state)
+        if not state[1] and not state[2] and not state[3]:
+            break
+        cnt = min(state[0], state[3])
+        res += cnt + 1
+        state[0] -= cnt
+        state[1] += cnt
+        state[2] += cnt + 1
+        state[3] -= cnt
+        state[4] = 1
+    print(f"final state = {state}")
+    return (res, state[0])
+    """
+
+def conwayFractanPow2PrimeGeneratorStepCount(n_p: int=10 ** 5 + 1) -> int:
+    """
+    Solution to Project Euler #308
+    """
+    p = 1
+    res = 0
+    for i in range(1, n_p + 1):
+        if not i % 100:
+            print(f"prime number {i} of {n_p} found")
+        #print(f"p = {p}")
+        n_step, p = conwayFractanPow2TransitionLength(p)
+        res += n_step
+        #print(f"p = {p}, n_step = {n_step}, cumulative steps = {res}")
+    return res
 
 # Problem 309
 def integerCrossingLaddersCount(len_max: int=10 ** 6 - 1) -> int:
@@ -3063,6 +3242,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #307 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 308 in eval_nums:
+        since = time.time()
+        res = conwayFractanPow2PrimeGeneratorStepCount(n_p=10 ** 4 + 1)
+        print(f"Solution to Project Euler #309 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 309 in eval_nums:
         since = time.time()
         res = integerCrossingLaddersCount(len_max=10 ** 6 - 1)
@@ -3171,12 +3355,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {3050}
+    eval_nums = {308}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
 
-#pow2_init = 5
+#pow2_init = 7
+#conwayFractanPow2TransitionLengthBruteForce(pow2_init)
 #print(conwayFractanPow2TransitionLength(pow2_init))
 """
 n_inds = 7780
@@ -3210,7 +3395,7 @@ for target, n in [(1, 1), (2, 2), (3, 3), (4, 4), (2, 56456)]:
     res2 = nthStartingPositionOfTargetInNumberConcatenator(n, target, base=base)
     print(f"{n}:th occurrence of {target}: {res1}, {res2}")
 """
-
+"""
 base = 10
 target_rng = [1, 10 ** 5]
 n_mx = 3
@@ -3230,3 +3415,4 @@ for target in range(target_rng[0], target_rng[1] + 1):
             #print(f"solution for target = {target}, n = {n}: {res1}")
             continue
         print(f"mismatch for target = {target}, n = {n}: brute force solution = {res1}, calculated solution = {res2}")
+"""
