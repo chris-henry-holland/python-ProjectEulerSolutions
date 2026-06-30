@@ -1344,6 +1344,9 @@ def conwayFractanPow2TransitionLengthBruteForce(pow2_init: int) -> Tuple[int, in
     return (i, state[0])
 
 def conwayFractanPow2TransitionLength(pow2_init: int) -> Tuple[int, int]:
+
+    # Review- look into the FRACTRAN programming language
+
     # Using https://oeis.org/wiki/Conway%27s_PRIMEGAME
 
     # prime indices:
@@ -1662,6 +1665,292 @@ def nimSquarePositionsLostByNextPlayerCount(n_max: int=10 ** 5) -> int:
             res += nimbers_f_lst[i1] * f2 * nimbers_f_lst[i3]
         res += ((f2 * (f2 + 1)) >> 1) * nimbers_f_lst[0]
     
+    return res
+
+# Problem 311
+def sumOfTwoSquaresSolutionsCount(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Calculates the number of ordered integer pairs (a, b) for which:
+        a ** 2 + b ** 2 = target
+    Note that this includes solutions for which a and b are equal and
+    for which a and/or be is/are neative.
+    """
+    res = 1
+    if ps is not None:
+        pf = calculatePrimeFactorisation(target, ps=ps)
+        gaussian_pf = {}
+        mult = 1
+        for p, f in pf.items():
+            if p == 2: continue
+            residue = p % 4
+            if residue == 3:
+                if f & 1:
+                    #print(p, f)
+                    return 0
+                continue
+            res *= f + 1
+    else:
+        num = target
+        while not num & 1:
+            num >>= 1
+        for p in range(3, isqrt(num) + 1, 2):
+            if p * p > num: break
+            f = 0
+            num2, r = divmod(num, p)
+            while not r:
+                num = num2
+                f += 1
+                num2, r = divmod(num, p)
+            if not f: continue
+            if p & 3 == 3:
+                if f & 1: return 0
+                continue
+            res *= f + 1
+        if num > 1:
+            if num & 3 == 3: return 0
+            res <<= 1
+    return res << 2
+
+def sumOfTwoDistinctSquaresUnorderedPositiveSolutionsCount(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    res = sumOfTwoSquaresSolutionsCount(
+        target,
+        ps=ps,
+    )
+    return res >> 3
+
+def legendreSymbol(a: int, p: int, ps: Optional[PrimeSPFsieve]=None) -> int:
+    # p must be an odd prime
+    a %= p
+    if not a: return 0
+    elif a == 1: return 1
+    elif a == p - 1: return 1 if p % 4 == 1 else -1
+    pf = calculatePrimeFactorisation(a, ps=ps)
+    res = 1
+    for p2, f in pf.items():
+        if not f & 1: continue
+        if p2 == 2:
+            res *= 1 if p % 8 in {1, 7} else -1
+            continue
+        res *= (-1) ** (((p - 1) * (p2 - 1)) >> 2) * legendreSymbol(p, p2)
+    return res
+
+
+def sumOfTwoSquaresEqualToPrime(p: int) -> Optional[Tuple[int, int]]:
+    # Assumes that p is indeed prime
+    if p == 2:
+        return (1, 1)
+    residue = p % 4
+    if residue == 3:
+        return None
+    #for x in range(1, (p + 1) >> 1):
+    #    if pow(x, 2, p) == p - 1:
+    #        break
+    # Using quadratic residues
+    for a in range(2, p):
+        if legendreSymbol(a, p) == -1:
+            x = pow(a, (p - 1) >> 2, p)
+            break
+    else: raise ValueError(f"Could not find a quadratic non-residue of {p}")
+    #print(f"{a}, {x}, {legendreSymbol(a, p)}")
+    target = isqrt(p - 1)
+    a, b = sorted([p, x])
+    while b > target:
+        a, b = sorted([a, b % a])
+    return (a, b)
+    
+
+def sumOfTwoSquaresSolutionGenerator(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> Generator[Tuple[int, int], None, None]:
+    if ps is not None:
+        pf = calculatePrimeFactorisation(target, ps=ps)
+        gaussian_pf = {}
+        mult = 1
+        for p, f in pf.items():
+            if p == 2:
+                gaussian_pf[(1, 1)] = f
+                continue
+            residue = p % 4
+            if residue == 3:
+                if f & 1:
+                    #print(p, f)
+                    return
+                mult *= p ** (f >> 1)
+                continue
+            pair = sumOfTwoSquaresEqualToPrime(p)
+            gaussian_pf[pair] = f
+    else:
+        gaussian_pf = {}
+        mult = 1
+        num = target
+        f = 0
+        while not num & 1:
+            f += 1
+            num >>= 1
+        if f:
+            gaussian_pf[(1, 1)] = f
+        odd_pf = {}
+        #print(num)
+        for p in range(3, isqrt(num) + 1, 2):
+            if p * p > num: break
+            f = 0
+            num2, r = divmod(num, p)
+            while not r:
+                num = num2
+                f += 1
+                num2, r = divmod(num, p)
+            if not f: continue
+            if p & 3 == 3:
+                if f & 1: return
+                mult *= p ** (f >> 1)
+                continue
+            odd_pf[p] = f
+        if num > 1:
+            if num & 3 == 3: return
+            odd_pf[num] = 1
+        #print(target, odd_pf, mult)
+        for p, f in odd_pf.items():
+            pair = sumOfTwoSquaresEqualToPrime(p)
+            gaussian_pf[pair] = f
+    #print(target, gaussian_pf)
+    def multiplyComplex(num1: Tuple[int, int], num2: Tuple[int, int]) -> Tuple[int, int]:
+        #print(num1, num2)
+        return (
+            num1[0] * num2[0] - num1[1] * num2[1],
+            num1[0] * num2[1] + num1[1] * num2[0],
+        )
+    
+    def complexExponentiated(num: Tuple[int, int], exp: int) -> Tuple[int, int]:
+        curr = num
+        exp2 = exp
+        res = num if exp2 & 1 else (1, 0)
+        exp2 >>= 1
+        while exp2:
+            curr = multiplyComplex(curr, curr)
+            if exp2 & 1:
+                res = multiplyComplex(res, curr)
+            exp2 >>= 1
+        return res
+    #print(gaussian_pf)
+    p_lst = list(gaussian_pf.keys())
+    #print(p_lst)
+    #print(p_lst)
+    f_lst = [gaussian_pf[p] for p in p_lst]
+    #print(p_lst, f_lst)
+    n_p = len(p_lst)
+    seen = set()
+    def recur(idx: int, curr: Tuple[int, int]) -> Generator[Tuple[int, int], None, None]:
+        #print(idx, curr)
+        if idx == n_p:
+            ans = tuple(sorted(abs(x) for x in curr))
+            if ans in seen:
+                #print(f"repeat seen: {ans}")
+                return
+            seen.add(ans)
+            yield ans
+            return
+        curr2 = curr
+        p, f = p_lst[idx], f_lst[idx]
+        p_conj = (p[0], -p[1])
+
+        if not idx:
+            # For the first prime factor, only consider one of each conjugate
+            # pairs. This cannot be done for every prime factor due to how
+            # the results change when replacing with its one or both of the
+            # complex numbers in a product.
+            # Review- can this be taken further than just one to avoid
+            # calculating the same values repeatedly?
+            curr2 = curr
+            p, f = p_lst[idx], f_lst[idx]
+            p_conj = (p[0], -p[1])
+            #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
+            for pos_f in range(f >> 1):
+                neg_f = f - pos_f
+                mult_neg = complexExponentiated(p_conj, neg_f)
+                #print(f"pos_f = {pos_f}, curr2 = {curr2}, mult_neg = {mult_neg}")
+                yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+                curr2 = multiplyComplex(curr2, p)
+            pos_f = f >> 1
+            neg_f = f - pos_f
+            mult_neg = complexExponentiated(p_conj, neg_f)
+            yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+            return
+        #print(f"p = {p}, p_conj = {p_conj}, f = {f_lst[idx]}")
+        for pos_f in range(f):
+            neg_f = f - pos_f
+            mult_neg = complexExponentiated(p_conj, neg_f)
+            #print(f"pos_f = {pos_f}, curr2 = {curr2}, mult_neg = {mult_neg}")
+            yield from recur(idx + 1, multiplyComplex(curr2, mult_neg))
+            curr2 = multiplyComplex(curr2, p)
+        pos_f = f
+        yield from recur(idx + 1, curr2)
+        
+        return
+        
+    #print(gaussian_pf)
+    #print(f"mult = {mult}")
+    yield from recur(0, (mult, 0))
+    #cnt = 0
+    #for ans in recur(0, (mult, 0)):
+    #    cnt += 1
+    #print(f"for {target}, with the number of ways of representing as the sum of squares of two non-negative integers = {cnt}")
+    return
+
+def biclinicIntegralQuadrilateralCountBruteForce(
+    squared_side_length_sum_max: int=10 ** 10,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    # Using Apollonius's theorem
+    res = 0
+    mx_sq_sm = squared_side_length_sum_max >> 2
+    hlf_diag_mx = isqrt(mx_sq_sm)
+    #mx = isqrt(squared_side_length_sum_max >> 2)
+    for hlf_diag in range(1, hlf_diag_mx + 1):
+        if not hlf_diag % 100:
+            print(f"half diagonal = {hlf_diag} (max {hlf_diag_mx})")
+        hlf_diag_sq = hlf_diag * hlf_diag
+        for off_diag_dist in range(1, min(hlf_diag, isqrt(mx_sq_sm - hlf_diag_sq)) + 1):
+            sm_diff_sq_sm = (hlf_diag_sq + (off_diag_dist * off_diag_dist))
+            #cnt_ub = sumOfTwoSquaresSolutionsCount(
+            #    sq_sm,
+            #    ps=ps,
+            #)
+            #if cnt_ub <= 1: continue
+            cnt = 0
+            #sols = []
+            for (a, b) in sumOfTwoSquaresSolutionGenerator(
+                sm_diff_sq_sm,
+                ps=ps,
+            ):
+                if not a or b <= hlf_diag: continue
+                #u = (b + a) >> 1
+                #v = (b - a) >> 1
+                #if a == b or a + off_diag_dist <= hlf_diag: continue
+                #if a + off_diag_dist <= hlf_diag or a + b <= 2 * hlf_diag: continue
+                cnt += 1
+                #sols.append((a, b))
+            if cnt > 1:
+                #print(f"hlf_diag = {hlf_diag}, off_diag_dist = {off_diag_dist}, solutions:")
+                #for pair in sols:
+                #    print(pair)
+                
+                res += (cnt * (cnt - 1)) >> 1
+                #print(f"current count = {res}")
+            """
+            n_sol = sumOfTwoDistinctSquaresUnorderedPositiveSolutionsCount(
+                sq_sm,
+                ps=ps,
+            )
+            print(hlf_diag, off_diag_dist, sq_sm, n_sol, (n_sol * (n_sol - 1)) >> 1)
+            res += (n_sol * (n_sol - 1)) >> 1
+            """
     return res
 
 # Problem 312
@@ -3257,6 +3546,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = nimSquarePositionsLostByNextPlayerCount(n_max=10 ** 5)
         print(f"Solution to Project Euler #310 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 311 in eval_nums:
+        since = time.time()
+        res = biclinicIntegralQuadrilateralCountBruteForce(
+            squared_side_length_sum_max=10 ** 10,
+            ps=None,
+        )
+        print(f"Solution to Project Euler #311 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 312 in eval_nums:
         since = time.time()
         res = nestedSierpinskiHamiltonianCyclesModuloCount(n0=10 ** 4, n_nest=3, res_md=13 ** 8)
@@ -3355,7 +3652,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {308}
+    eval_nums = {311}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
