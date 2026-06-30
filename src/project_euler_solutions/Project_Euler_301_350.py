@@ -3469,6 +3469,48 @@ def blockTowerConfigurationsCount(
     #print(res)
     return res.get(0)
 
+# Problem 327
+def calculateNumberOfCardsNeededToProgress(
+    card_carry_capacity: int,
+    n_rooms: int,
+) -> int:
+    
+    if card_carry_capacity > n_rooms:
+        return n_rooms + 1
+    if card_carry_capacity <= 2:
+        return -1
+
+    memo = {}
+    def recur(idx: int, n_cards: int) -> int:
+        if not idx:
+            return 0
+        args = (idx, n_cards)
+        if args in memo.keys():
+            return memo[args]
+        res = 0
+        n_backtracks = max(0, (n_cards - 2) // (card_carry_capacity - 2))
+        res = recur(idx - 1, n_cards + (2 * n_backtracks + 1)) + (2 * n_backtracks + 1)
+
+        memo[args] = res
+        return res
+    res = recur(n_rooms + 1, 0)
+    #print(memo)
+    return res
+
+def calculateNumberOfCardsNeededToProgressSum(
+    card_carry_capacity_min: int=3,
+    card_carry_capacity_max: int=40,
+    n_rooms: int=30,
+) -> int:
+    """
+    Solution to Project Euler #327
+    """
+    if card_carry_capacity_min <= 2 and card_carry_capacity_min <= n_rooms:
+        return -1
+    res = 0
+    for ccc in range(card_carry_capacity_min, card_carry_capacity_max + 1):
+        res += calculateNumberOfCardsNeededToProgress(ccc, n_rooms)
+    return res
 
 ##############
 project_euler_num_range = (301, 350)
@@ -3647,12 +3689,21 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #324 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 327 in eval_nums:
+        since = time.time()
+        res = calculateNumberOfCardsNeededToProgressSum(
+            card_carry_capacity_min=3,
+            card_carry_capacity_max=40,
+            n_rooms=30,
+        )
+        print(f"Solution to Project Euler #327 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {311}
+    eval_nums = {327}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
