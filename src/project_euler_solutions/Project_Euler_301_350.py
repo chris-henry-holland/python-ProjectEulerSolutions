@@ -2556,6 +2556,43 @@ def calculateMinimalNsForFractionalPartToStartWithMBaseMinusOneSum(
             res += cnt
     return res
 
+# Problem 319
+def boundedSequenceGeneratorBruteForce(
+    n_term_min: int,
+    n_term_max: int,
+) -> Generator[tuple[int], None, None]:
+    
+    if 1 >= n_term_min:
+        yield (2,)
+    #print("n_term = 1")
+    curr = [(2,)]
+    #print(f"number of bounded sequences length 1 = {len(curr)}")
+    for n_term in range(2, n_term_max + 1):
+        #print(f"n_term = {n_term}")
+        prev = curr
+        curr = []
+        for seq in prev:
+            rng = [-float("inf"), float("inf")]
+            j = n_term
+            for i, num in enumerate(seq, start=1):
+                mn = integerNthRoot(num ** j, i)
+                mx = integerNthRoot((num + 1) ** j - 1, i)
+                #print(i, num, (mn, mx))
+                rng[0] = max(rng[0], mn)
+                rng[1] = min(rng[1], mx)
+                if rng[0] > rng[1]: break
+            else:
+                if n_term >= n_term_min:
+                    for num in range(rng[0], rng[1] + 1):
+                        curr.append((*seq, num))
+                        yield curr[-1]
+                else:
+                    for num in range(rng[0], rng[1] + 1):
+                        curr.append((*seq, num))
+    return
+
+
+
 # Problem 320
 def factorialPrimeFactorPower(p: int, n: int) -> int:
     """
@@ -3703,7 +3740,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {327}
+    eval_nums = {3270}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -3763,4 +3800,18 @@ for target in range(target_rng[0], target_rng[1] + 1):
             #print(f"solution for target = {target}, n = {n}: {res1}")
             continue
         print(f"mismatch for target = {target}, n = {n}: brute force solution = {res1}, calculated solution = {res2}")
+"""
+
+"""
+n_term = 4
+
+cnt = 0
+#curr_seq_len = 0
+for seq in boundedSequenceGeneratorBruteForce(
+    n_term_min=n_term,
+    n_term_max=n_term,
+):
+    cnt += 1
+    print(seq)
+print(f"count = {cnt}")
 """
