@@ -3549,6 +3549,49 @@ def calculateNumberOfCardsNeededToProgressSum(
         res += calculateNumberOfCardsNeededToProgress(ccc, n_rooms)
     return res
 
+# Problem 329
+def croakSequenceProbability(
+    n_squares: int=500,
+    seq: str="PPPPNNPPPNPPNPN",
+    p_croak_P_if_prime: CustomFraction=CustomFraction(2, 3),
+    p_croak_P_if_nonprime: CustomFraction=CustomFraction(1, 3),
+) -> CustomFraction:
+    """
+    Solution to Project Euler #329
+    """
+    pf = SimplePrimeSieve(n_squares)
+    p_arr = [False] * n_squares
+    for p in pf.p_lst:
+        if p > len(p_arr): break
+        p_arr[p - 1] = True
+    p_prime = p_croak_P_if_prime
+    p_nonprime = p_croak_P_if_nonprime
+    if seq[0] != "P":
+        p_prime = 1 - p_prime
+        p_nonprime = 1 - p_nonprime
+    curr = [CustomFraction(1, n_squares) * (p_prime if x else p_nonprime) for x in p_arr]
+    #print(curr)
+    for l in seq[1:]:
+        prev = curr
+        
+        p_prime = p_croak_P_if_prime
+        p_nonprime = p_croak_P_if_nonprime
+        if l != "P":
+            p_prime = 1 - p_prime
+            p_nonprime = 1 - p_nonprime
+        curr = [CustomFraction(0, 1)] * n_squares
+        curr[1] += prev[0]
+        for i in range(1, n_squares - 1):
+            curr[i + 1] += CustomFraction(1, 2) * prev[i]
+            curr[i - 1] += CustomFraction(1, 2) * prev[i]
+        curr[n_squares - 2] += prev[n_squares - 1]
+        
+        for i in range(n_squares):
+            curr[i] *= (p_prime if p_arr[i] else p_nonprime)
+        #print(curr)
+
+    return sum(curr)
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -3735,12 +3778,22 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #327 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 329 in eval_nums:
+        since = time.time()
+        res = croakSequenceProbability(
+            n_squares=500,
+            seq="PPPPNNPPPNPPNPN",
+            p_croak_P_if_prime=CustomFraction(2, 3),
+            p_croak_P_if_nonprime=CustomFraction(1, 3),
+        )
+        print(f"Solution to Project Euler #329 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {3270}
+    eval_nums = {329}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
