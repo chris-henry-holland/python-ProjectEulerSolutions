@@ -3592,6 +3592,28 @@ def croakSequenceProbability(
 
     return sum(curr)
 
+# Problem 330
+def eulerSequenceTermGenerator(
+    n_max: Optional[int]=None,
+) -> Generator[tuple[int, int], None, None]:
+    head_sm = 0
+    it = itertools.count(0) if n_max is None else range(n_max + 1)
+
+    res = []
+    for i in it:
+        #print(i)
+        head_sm = head_sm * i + 1
+        i_fact = math.factorial(i)
+        curr = [-head_sm, i_fact]
+        for j, pair in enumerate(res):
+            mult = i_fact // math.factorial(i - j)
+            curr[0] += pair[0] * mult
+            curr[1] += pair[1] * mult
+        curr = tuple(curr)
+        res.append(curr)
+        yield curr
+    return
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -3793,7 +3815,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {329}
+    eval_nums = {3290}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -3868,3 +3890,8 @@ for seq in boundedSequenceGeneratorBruteForce(
     print(seq)
 print(f"count = {cnt}")
 """
+
+for i, pair in enumerate(eulerSequenceTermGenerator(
+    n_max=10,
+)):
+    print(i, pair)
