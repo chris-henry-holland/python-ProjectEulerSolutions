@@ -3596,11 +3596,41 @@ def croakSequenceProbability(
 def eulerSequenceTermGenerator(
     n_max: Optional[int]=None,
 ) -> Generator[tuple[int, int], None, None]:
+
+    # Note term index 1 follows OEIS A337000
+    # Furthermore it appears that:
+    #   2 * pair[1] + pair[0] - math.factorial(i) = 0
     head_sm = 0
     it = itertools.count(0) if n_max is None else range(n_max + 1)
 
     res = []
     for i in it:
+        #print(i)
+        head_sm = head_sm * i + 1
+        i_fact = math.factorial(i)
+        curr = [-head_sm, i_fact]
+        for j, pair in enumerate(res):
+            mult = math.comb(i, i - j)#i_fact // math.factorial(i - j)
+            curr[0] += pair[0] * mult
+            curr[1] += pair[1] * mult
+        curr = tuple(curr)
+        res.append(curr)
+        yield curr
+    return
+"""
+def eulerSequenceTermGenerator2(
+    n_max: Optional[int]=None,
+) -> Generator[tuple[int, int], None, None]:
+    head_sm = 0
+    it = itertools.count(0) if n_max is None else range(n_max + 1)
+
+    res = []
+    for i in it:
+        head_sm = CustomFraction(0, 1)
+        for j in range(i + 1):
+            head_sm += CustomFraction(1, math.factorial(j))
+        ans = 
+
         #print(i)
         head_sm = head_sm * i + 1
         i_fact = math.factorial(i)
@@ -3612,7 +3642,7 @@ def eulerSequenceTermGenerator(
         curr = tuple(curr)
         res.append(curr)
         yield curr
-    return
+    return"""
 
 ##############
 project_euler_num_range = (301, 350)
@@ -3892,6 +3922,6 @@ print(f"count = {cnt}")
 """
 
 for i, pair in enumerate(eulerSequenceTermGenerator(
-    n_max=10,
+    n_max=50,
 )):
-    print(i, pair)
+    print(i, pair, -pair[0] / pair[1], 2 * pair[1] + pair[0] - math.factorial(i))
