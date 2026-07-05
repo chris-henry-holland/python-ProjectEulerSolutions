@@ -3644,6 +3644,47 @@ def eulerSequenceTermGenerator2(
         yield curr
     return"""
 
+def eulerSequenceTerm(
+    n: int,
+    res_md: Optional[int]=None,
+) -> int:
+    # Note term index 1 follows OEIS A337000
+    # Furthermore it appears that:
+    #   2 * pair[1] + pair[0] - math.factorial(i) = 0
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+    updateBinom = (lambda binom, n, k: binom * (n - k + 1) // k) if res_md is None else\
+        (lambda binom, n, k: mulMod(mulMod(binom, (n - k + 1)), pow(k, res_md - 2, res_md)))
+    arr = [1]
+    for i in range(1, n + 1):
+        print(f"i = {i}")
+        tot = mulMod(mulMod(2, i), arr[-1])
+        binom = i
+        print(1, binom)
+        for k in range(2, i + 1):
+            binom = updateBinom(binom, i, k)
+            print(2, binom)
+            tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
+        arr.append(binom)
+    fact = 1
+    for i in range(2, n + 1):
+        fact = mulMod(fact, i)
+    return (addMod(fact, -mulMod(2, arr[-1])), arr[-1])
+
+def eulerSequenceTermCoefficientSum(
+    n: int=10 ** 9,
+    res_md: Optional[int]=77_777_777,
+) -> int:
+    """
+    Solution to Project Euler #330
+    """
+    # 77_777_777 = 7 * 11 * 73 * 101 * 137
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    pair = eulerSequenceTerm(n, res_md=res_md)
+    print(pair)
+    return addMod(*pair)
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -3840,12 +3881,20 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #329 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 330 in eval_nums:
+        since = time.time()
+        res = eulerSequenceTermCoefficientSum(
+            n=2,
+            res_md=77_777_777,
+        )
+        print(f"Solution to Project Euler #330 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {3290}
+    eval_nums = {330}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -3921,7 +3970,8 @@ for seq in boundedSequenceGeneratorBruteForce(
 print(f"count = {cnt}")
 """
 
-for i, pair in enumerate(eulerSequenceTermGenerator(
-    n_max=50,
-)):
-    print(i, pair, -pair[0] / pair[1], 2 * pair[1] + pair[0] - math.factorial(i))
+#for i, pair in enumerate(eulerSequenceTermGenerator(
+#    n_max=50,
+#)):
+#    #print(i, pair, -pair[0] / pair[1], 2 * pair[1] + pair[0] - math.factorial(i))
+#    print(i, pair, sum(pair))
