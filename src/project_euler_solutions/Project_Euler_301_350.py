@@ -3644,26 +3644,112 @@ def eulerSequenceTermGenerator2(
         yield curr
     return"""
 
+def binomialCoefficientModuloPrimePower(
+    n: int,
+    k: int,
+    p: int,
+    exp: int,
+) -> int:
+    if k > n: return 0
+    if exp == 1:
+        # Using Lucas's theorem
+        n_digs = []
+        n2 = n
+        k2 = k
+        res = 1
+        while n2:
+            n2, d1 = divmod(n2, p)
+            k2, d2 = divmod(k2, p)
+            if d2 > d1: return 0
+            res = (res * math.comb(d1, d2)) % p
+        return res
+    
+    # TODO- implement generalisation of Lucas's theorem for higher
+    # prime powers
+
+def moduloMultiplicativeIndex(num: int, md: int) -> int:
+    return solveLinearCongruence(num, 1, md)
+
+def binomialCoefficientModuloIntegerWithPrimeFactorisation(
+    n: int,
+    k: int,
+    md: int,
+    md_pf: dict[int, int],
+) -> int:
+    p_lst = sorted(md_pf.keys())
+    n_p = len(p_lst)
+    p_pow_lst = [p ** md_pf[p] for p in p_lst]
+    md_prods_cumu = [1]
+    for num in p_pow_lst[:-1]:
+        md_prods_cumu.append(md_prods_cumu[-1] * num)
+    md_prods_cumu_rev = [1]
+    for num in reversed(p_pow_lst[1:]):
+        md_prods_cumu_rev.append(md_prods_cumu_rev[-1] * num)
+    md_prods_cumu_rev = md_prods_cumu_rev[::-1]
+    #print(md_prods_cumu, md_prods_cumu_rev)
+    mults = [1] * n_p
+    res = 0
+    for idx, num in enumerate(p_pow_lst):
+        N = md_prods_cumu[idx] * md_prods_cumu_rev[idx]
+        #print(num, N)
+        N_inv = moduloMultiplicativeIndex(N, num)
+        sol = binomialCoefficientModuloPrimePower(n, k, p_lst[idx], md_pf[p_lst[idx]])
+        #print(f"p_pow = {p_lst[idx]} ** {md_pf[p_lst[idx]]}: {n} choose {k} modulo p_pow equals {sol} ({math.comb(n, k) % (p_lst[idx] ** md_pf[p_lst[idx]])})")
+        #mults[idx] = (N * N_inv) % n
+        res = (res + ((N * N_inv) % md) * sol) % md
+    return res
+
+def binomialCoefficientModuloInteger(
+    n: int,
+    k: int,
+    md: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    md_pf = calculatePrimeFactorisation(md, ps=ps)
+    return binomialCoefficientModuloIntegerWithPrimeFactorisation(
+        n,
+        k,
+        md,
+        md_pf,
+    )
+
 def eulerSequenceTerm(
     n: int,
     res_md: Optional[int]=None,
+    ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
     # Note term index 1 follows OEIS A337000
     # Furthermore it appears that:
     #   2 * pair[1] + pair[0] - math.factorial(i) = 0
+
+    res_md_pf = calculatePrimeFactorisation(res_md, ps=ps)
+
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
     updateBinom = (lambda binom, n, k: binom * (n - k + 1) // k) if res_md is None else\
-        (lambda binom, n, k: mulMod(mulMod(binom, (n - k + 1)), pow(k, res_md - 2, res_md)))
+        (lambda binom, n, k: mulMod(mulMod(binom, (n - k + 1)), moduloMultiplicativeIndex(k, res_md)))
     arr = [1]
     for i in range(1, n + 1):
-        print(f"i = {i}")
-        tot = mulMod(mulMod(2, i), arr[-1])
-        binom = i
-        print(1, binom)
-        for k in range(2, i + 1):
-            binom = updateBinom(binom, i, k)
-            print(2, binom)
+        #print(f"i = {i}")
+        #tot = mulMod(mulMod(2, i), arr[-1])
+        #binom = i
+        #binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+        #    i,
+        #    1,
+        #    res_md,
+        #    res_md_pf,
+        #)
+        #print(1, binom)
+        tot = 0
+        for k in range(1, i + 1):
+            #binom = updateBinom(binom, i, k)
+            binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+                i,
+                k,
+                res_md,
+                res_md_pf,
+            )
+            #print(f"i = {i}, k = {k}, res_md = {res_md}, (i choose k) = {binom} (mod res_md) ({math.comb(i, k) % res_md})")
             tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
         arr.append(binom)
     fact = 1
