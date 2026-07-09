@@ -3713,16 +3713,16 @@ def binomialCoefficientModuloInteger(
         md_pf,
     )
 
-def eulerSequenceTerm(
+def eulerSequenceTermBruteForce(
     n: int,
     res_md: Optional[int]=None,
     ps: Optional[PrimeSPFsieve]=None,
-) -> int:
-    # Note term index 1 follows OEIS A337000
+) -> tuple[int, int]:
+    # Note that the coefficient of e appears to follow OEIS A337000
     # Furthermore it appears that:
-    #   2 * pair[1] + pair[0] - math.factorial(i) = 0
+    #   2 * (e coeff) + (const coeff) - math.factorial(i) = 0
 
-    res_md_pf = calculatePrimeFactorisation(res_md, ps=ps)
+    if res_md is not None: res_md_pf = calculatePrimeFactorisation(res_md, ps=ps)
 
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
@@ -3731,33 +3731,34 @@ def eulerSequenceTerm(
     arr = [1]
     for i in range(1, n + 1):
         #print(f"i = {i}")
-        #tot = mulMod(mulMod(2, i), arr[-1])
+        tot = mulMod(mulMod(2, i), arr[-1])
         #binom = i
         #binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
         #    i,
         #    1,
         #    res_md,
         #    res_md_pf,
-        #)
+        #) if res_md is not None else math.comb(i, 1)
         #print(1, binom)
-        tot = 0
-        for k in range(1, i + 1):
+        for k in range(2, i + 1):
             #binom = updateBinom(binom, i, k)
             binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
                 i,
                 k,
                 res_md,
                 res_md_pf,
-            )
+            ) if res_md is not None else math.comb(i, k)
             #print(f"i = {i}, k = {k}, res_md = {res_md}, (i choose k) = {binom} (mod res_md) ({math.comb(i, k) % res_md})")
             tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
-        arr.append(binom)
+        arr.append(tot)
     fact = 1
     for i in range(2, n + 1):
         fact = mulMod(fact, i)
-    return (addMod(fact, -mulMod(2, arr[-1])), arr[-1])
+    res = (addMod(fact, mulMod(2, -arr[-1])), arr[-1])
+    #print(arr)
+    return res
 
-def eulerSequenceTermCoefficientSum(
+def eulerSequenceTermCoefficientSumBruteForce(
     n: int=10 ** 9,
     res_md: Optional[int]=77_777_777,
 ) -> int:
@@ -3767,7 +3768,7 @@ def eulerSequenceTermCoefficientSum(
     # 77_777_777 = 7 * 11 * 73 * 101 * 137
 
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
-    pair = eulerSequenceTerm(n, res_md=res_md)
+    pair = eulerSequenceTermBruteForce(n, res_md=res_md)
     print(pair)
     return addMod(*pair)
 
@@ -3969,8 +3970,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 330 in eval_nums:
         since = time.time()
-        res = eulerSequenceTermCoefficientSum(
-            n=2,
+        res = eulerSequenceTermCoefficientSumBruteForce(
+            n=10 ** 3,
             res_md=77_777_777,
         )
         print(f"Solution to Project Euler #330 = {res}, calculated in {time.time() - since:.4f} seconds")
