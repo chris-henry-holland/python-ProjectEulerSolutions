@@ -3772,6 +3772,65 @@ def eulerSequenceTermCoefficientSumBruteForce(
     print(pair)
     return addMod(*pair)
 
+# Problem 333
+def validPartitionsCount(
+    num: int,
+) -> int:
+    
+    memo = {}
+    def recur(remain: int, prev_exp2: int, prev_exp3: int) -> int:
+        #print(remain, prev_exp2, prev_exp3)
+        if remain <= 0: return int(not remain)
+        args = (remain, prev_exp2, prev_exp3)
+        if args in memo.keys(): return memo[args]
+
+        res = 0
+        pow2 = 1 << prev_exp2
+        for exp2 in itertools.count(prev_exp2 + 1):
+            pow2 <<= 1
+            if pow2 > remain: break
+            pow3_remain = remain // pow2
+            #print(f"exp2 = {exp2}, pow2 = {pow2}, pow3_remain = {pow3_remain}")
+            pow3 = 1
+            for exp3 in range(prev_exp3):
+                #print(f"exp3 = {exp3}, pow3 = {pow3}")
+                if pow3 > pow3_remain: break
+                res += recur(remain - pow2 * pow3, exp2, exp3)
+                pow3 *= 3
+
+        memo[args] = res
+        return res
+
+
+    curr_pow2 = 1
+    res = 0
+    for exp2_0 in itertools.count(0):
+        if curr_pow2 > num: break
+        curr_pow3 = 1
+        pow3_remain = num // curr_pow2
+        for exp3_0 in itertools.count(0):
+            if curr_pow3 > pow3_remain: break
+            res += recur(num - curr_pow2 * curr_pow3, exp2_0, exp3_0)
+            curr_pow3 *= 3
+
+        curr_pow2 *= 2
+    #print(memo)
+    return res
+
+def primesWithExactlyOneValidPartitionSum(
+    p_max: int=10 ** 6,
+) -> int:
+    """
+    Solution to Project Euler #333
+    """
+    ps = SimplePrimeSieve(p_max)
+    res = 0
+    for p in ps.p_lst:
+        if p > p_max: break
+        if validPartitionsCount(p) == 1:
+            res += p
+    return res
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -3976,12 +4035,19 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #330 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 333 in eval_nums:
+        since = time.time()
+        res = primesWithExactlyOneValidPartitionSum(
+            p_max=10 ** 4,
+        )
+        print(f"Solution to Project Euler #333 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {330}
+    eval_nums = {333}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -4062,3 +4128,5 @@ print(f"count = {cnt}")
 #)):
 #    #print(i, pair, -pair[0] / pair[1], 2 * pair[1] + pair[0] - math.factorial(i))
 #    print(i, pair, sum(pair))
+
+#print(validPartitionsCount(17))
