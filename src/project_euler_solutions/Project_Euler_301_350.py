@@ -3773,9 +3773,22 @@ def eulerSequenceTermCoefficientSumBruteForce(
     return addMod(*pair)
 
 # Problem 333
-def validPartitionsCount(
+def validPartitionsCountBruteForce(
     num: int,
 ) -> int:
+
+    terms_arr = []
+    term0 = 1
+    while True:
+        
+        if term0 > num: break
+        terms_arr.append([term0])
+        while True:
+            term = terms_arr[-1][-1] << 1
+            if term > num: break
+            terms_arr[-1].append(term)
+        term0 *= 3
+    
     
     memo = {}
     def recur(remain: int, prev_exp2: int, prev_exp3: int) -> int:
@@ -3785,6 +3798,12 @@ def validPartitionsCount(
         if args in memo.keys(): return memo[args]
 
         res = 0
+        for i3 in range(len(terms_arr)):
+            if terms_arr[i3][0] > remain: break
+            for i2 in range(len(terms_arr[i3])):
+                if terms_arr[i3][i2] > remain: break
+                res += recur(remain - terms_arr[i3][i2], i2, i3)
+        """
         pow2 = 1 << prev_exp2
         for exp2 in itertools.count(prev_exp2 + 1):
             pow2 <<= 1
@@ -3797,11 +3816,11 @@ def validPartitionsCount(
                 if pow3 > pow3_remain: break
                 res += recur(remain - pow2 * pow3, exp2, exp3)
                 pow3 *= 3
-
+        """
         memo[args] = res
         return res
 
-
+    """
     curr_pow2 = 1
     res = 0
     for exp2_0 in itertools.count(0):
@@ -3814,22 +3833,176 @@ def validPartitionsCount(
             curr_pow3 *= 3
 
         curr_pow2 *= 2
+    """
+    res = 0
+    remain = num
+    for i3 in range(len(terms_arr)):
+        if terms_arr[i3][0] > remain: break
+        for i2 in range(len(terms_arr[i3])):
+            if terms_arr[i3][i2] > remain: break
+            res += recur(remain - terms_arr[i3][i2], i2, i3)
     #print(memo)
     return res
 
-def primesWithExactlyOneValidPartitionSum(
-    p_max: int=10 ** 6,
+def primesWithExactlyOneValidPartitionSumBruteForce(
+    p_max: int=10 ** 6 - 1,
 ) -> int:
-    """
-    Solution to Project Euler #333
-    """
+
+    terms_arr = []
+    term0 = 1
+    while True:
+        if term0 > p_max: break
+        terms_arr.append([term0])
+        while True:
+            term = terms_arr[-1][-1] << 1
+            #print(term)
+            if term > p_max: break
+            terms_arr[-1].append(term)
+        term0 *= 3
+
+    #print(terms_arr)
+
+    def validPartitionsCountEqualsOne(
+        num: int,
+    ) -> bool:
+        
+        memo = {}
+        def recur(remain: int, prev_exp2: int, prev_exp3: int) -> int:
+            #print("recur():", remain, prev_exp2, prev_exp3)
+            if remain <= 0: return int(not remain)
+            args = (remain, prev_exp2, prev_exp3)
+            if args in memo.keys(): return memo[args]
+
+            res = 0
+            for i3 in range(prev_exp3 + 1, len(terms_arr)):
+                if terms_arr[i3][0] > remain: break
+                for i2 in range(min(len(terms_arr[i3]), prev_exp2)):
+                    if terms_arr[i3][i2] > remain: break
+                    res += recur(remain - terms_arr[i3][i2], i2, i3)
+                    if res > 1: break
+                if res > 1: break
+            """
+            pow3 = 3 ** prev_exp3
+            for exp3 in itertools.count(prev_exp3 + 1):
+                pow3 *= 3
+                if pow3 > remain: break
+                pow2_remain = remain // pow3
+                #print(f"exp2 = {exp2}, pow2 = {pow2}, pow3_remain = {pow3_remain}")
+                pow2 = 1
+                for exp2 in range(prev_exp2):
+                    #print(f"exp3 = {exp3}, pow3 = {pow3}")
+                    if pow2 > pow2_remain: break
+                    res += recur(remain - pow2 * pow3, exp2, exp3)
+                    if res > 1: break
+                    pow2 *= 2
+                #else: continue
+                #break
+                if res > 1: break
+            """
+            res = min(res, 2)
+            memo[args] = res
+            return res
+
+        res = 0
+        remain = num
+        for i3 in range(len(terms_arr)):
+            if terms_arr[i3][0] > remain: break
+            for i2 in range(len(terms_arr[i3])):
+                if terms_arr[i3][i2] > remain: break
+                #print(i2, i3, remain - terms_arr[i3][i2])
+                res += recur(remain - terms_arr[i3][i2], i2, i3)
+        #print(memo)
+        """
+        curr_pow3 = 1
+        res = 0
+        for exp3_0 in itertools.count(0):
+            if curr_pow3 > num: break
+            curr_pow2 = 1
+            pow2_remain = num // curr_pow3
+            for exp2_0 in itertools.count(0):
+                if curr_pow2 > pow2_remain: break
+                res += recur(num - curr_pow2 * curr_pow3, exp2_0, exp3_0)
+                if res > 1: break
+                curr_pow2 *= 2
+            if res > 1: break
+            curr_pow3 *= 3
+        """
+        #print(res)
+        #print(memo)
+        return (res == 1)
+
     ps = SimplePrimeSieve(p_max)
     res = 0
     for p in ps.p_lst:
         if p > p_max: break
-        if validPartitionsCount(p) == 1:
+        #print(f"p = {p}")
+        if validPartitionsCountEqualsOne(p):
+            #print(p)
             res += p
     return res
+
+def primesWithExactlyOneValidPartitionSum(
+    p_max: int=10 ** 6 - 1,
+) -> int:
+    """
+    Solution to Project Euler #333
+    """
+
+    terms_arr = []
+    term0 = 1
+    while term0 <= p_max:
+        terms_arr.append([term0])
+        while True:
+            term = terms_arr[-1][-1] << 1
+            #print(term)
+            if term > p_max: break
+            terms_arr[-1].append(term)
+        term0 *= 3
+    #print(terms_arr)
+
+    ps = SimplePrimeSieve()
+    def primeCheck(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+    
+    for p_max in reversed(range(2, p_max + 1)):
+        if primeCheck(p_max): break
+    else: return 0
+
+    res = 0
+    dp = [{} for _ in range(p_max + 1)]
+    dp[0] = {len(terms_arr): {-1: 1}}
+    #print(dp)
+    for num in range(p_max):
+        if len(dp[num]) == 1 and primeCheck(num):
+            exp3_dict = next(iter(dp[num].values()))
+            if len(exp3_dict) == 1:
+                f = next(iter(exp3_dict.values()))
+                if f == 1: res += num
+        remain = p_max - num
+        for exp3_0, exp2_0_dict in dp[num].items():
+            #if terms_arr[exp3_0][min(terms_arr[exp3_0].keys())] > remain:
+            #    break
+            for exp2_0, f in exp2_0_dict.items():
+                #if terms_arr[exp3_0][exp2_0] > remain:
+                #    break
+                for exp3 in range(exp3_0):
+                    if terms_arr[exp3][exp2_0 + 1] > remain:
+                        break
+                    for exp2 in range(exp2_0 + 1, len(terms_arr[exp3])):
+                        if terms_arr[exp3][exp2] > remain:
+                            break
+                        num2 = num + terms_arr[exp3][exp2]
+                        dp[num2].setdefault(exp3, {})
+                        dp[num2][exp3][exp2] = min(2, dp[num2][exp3].get(exp2, 0) + f)
+        #print(dp)
+                
+    if len(dp[p_max]) == 1 and primeCheck(p_max):
+        exp3_dict = next(iter(dp[p_max].values()))
+        if len(exp3_dict) == 1:
+            f = next(iter(exp3_dict.values()))
+            if f == 1: res += p_max
+    return res
+
 
 ##############
 project_euler_num_range = (301, 350)
@@ -4038,7 +4211,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 333 in eval_nums:
         since = time.time()
         res = primesWithExactlyOneValidPartitionSum(
-            p_max=10 ** 4,
+            p_max=10 ** 6 - 1,
         )
         print(f"Solution to Project Euler #333 = {res}, calculated in {time.time() - since:.4f} seconds")
 
