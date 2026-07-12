@@ -3772,6 +3772,104 @@ def eulerSequenceTermCoefficientSumBruteForce(
     print(pair)
     return addMod(*pair)
 
+# Problem 332
+def pointsOnSphereWithIntegerCoordinatesBruteForce(
+    radius: int,
+) -> list[tuple[int, int, int]]:
+    
+    rad_sq = radius * radius
+    res = []
+    for x in range(radius + 1):
+        remain_sq = rad_sq - x ** 2
+        remain = isqrt(remain_sq)
+        for y in range(min(x, remain) + 1):
+            y_sq = y ** 2
+            z_sq = remain_sq - y_sq
+            if z_sq > y_sq: continue
+            z = isqrt(z_sq)
+            if z * z != z_sq: continue
+            res.append((x, y, z))
+    return res
+
+def sphericalTriangleAreaFromVertices(
+    rad: int,
+    v1: tuple[int],
+    v2: tuple[int],
+    v3: tuple[int],
+) -> Union[float, int]:
+    # Formula from https://www.johndcook.com/blog/2021/11/29/area-of-spherical-triangle/
+
+    det = abs(
+        v1[0] * (v2[1] * v3[2] - v2[2] * v3[1]) +\
+        v1[1] * (v2[2] * v3[0] - v2[0] * v3[2]) +\
+        v1[2] * (v2[0] * v3[1] - v2[1] * v3[0])
+    )
+    if not det: return 0
+
+    rad_sq = rad * rad
+
+    denom = rad_sq
+    for u1, u2 in [(v1, v2), (v2, v3), (v3, v1)]:
+        denom += sum(x * y for x, y in zip(u1, u2))
+    #print(f"v1 = {v1}, v2 = {v2}, v3 = {v3}, det = {det}, denom = {denom}")
+    #tan_hlf_area = det / (denom * rad)
+    hlf_area_norm = math.atan(det / (denom * rad)) if denom else math.pi / 2
+    if hlf_area_norm < 0:
+        hlf_area_norm += math.pi
+    return hlf_area_norm * rad_sq * 2
+
+def smallestNontrivialIntegerSphericalTriangleArea(
+    radius: int,
+) -> float:
+    
+    pts0 = pointsOnSphereWithIntegerCoordinatesBruteForce(radius)
+    pt_start_inds = []
+    pts = []
+    for pt0 in pts0:
+        pt_start_inds.append(len(pt_start_inds))
+        pts_nonneg = {
+            tuple(pt0),
+            (pt0[0], pt0[2], pt0[1]),
+            (pt0[1], pt0[2], pt0[0]),
+            (pt0[1], pt0[0], pt0[2]),
+            (pt0[2], pt0[0], pt0[1]),
+            (pt0[2], pt0[1], pt0[0]),
+        }
+        for pt_nonneg in pts_nonneg:
+            seen = set()
+            for bm in range(1 << 3):
+                pt = tuple(-pt_nonneg[i] if bm & (1 << i) else pt_nonneg[i] for i in range(3))
+                if pt in seen: continue
+                pts.append(pt)
+                seen.add(pt)
+    n_pts = len(pts)
+    res = float("inf")
+    for i0, pt0 in enumerate(pts0):
+        j0 = pt_start_inds[i0]
+        for j1 in range(j0 + 1, n_pts - 1):
+            pt1 = pts[j1]
+            for j2 in range(j1 + 1, n_pts):
+                pt2 = pts[j2]
+                area = sphericalTriangleAreaFromVertices(radius, pt0, pt1, pt2)
+                if not area: continue
+                res = min(res, area)
+    return res
+
+
+
+def smallestNontrivialSphericalTrianglesAreaSum(
+    radius_max: int,
+) -> int:
+    """
+    Solution to Project Euler #332
+    """
+    res = 0
+    for radius in range(1, radius_max + 1):
+        area = smallestNontrivialIntegerSphericalTriangleArea(radius)
+        print(f"radius = {radius}, minimal area = {area}")
+        res += area
+    return res
+
 # Problem 333
 def validPartitionsCountBruteForce(
     num: int,
@@ -4208,6 +4306,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #330 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 332 in eval_nums:
+        since = time.time()
+        res = smallestNontrivialSphericalTrianglesAreaSum(
+            radius_max=50,
+        )
+        print(f"Solution to Project Euler #332 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 333 in eval_nums:
         since = time.time()
         res = primesWithExactlyOneValidPartitionSum(
@@ -4220,7 +4325,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {333}
+    eval_nums = {332}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -4303,3 +4408,12 @@ print(f"count = {cnt}")
 #    print(i, pair, sum(pair))
 
 #print(validPartitionsCount(17))
+"""
+for radius in range(1, 51):
+    print(f"radius = {radius}:")
+    print(
+        pointsOnSphereWithIntegerCoordinatesBruteForce(
+            radius,
+        )
+    )
+"""
