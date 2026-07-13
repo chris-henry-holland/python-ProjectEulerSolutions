@@ -3549,6 +3549,178 @@ def calculateNumberOfCardsNeededToProgressSum(
         res += calculateNumberOfCardsNeededToProgress(ccc, n_rooms)
     return res
 
+# Problem 328
+def unimodalSequenceMaximumTermBruteForce(
+    sequence_func: Callable[[int], Union[int, float]],
+    n_min: int,
+    n_max: int,
+) -> int:
+    
+    mx = (-float("inf"), -float("inf"))
+    for n in range(n_min, n_max + 1):
+        mx = max(mx, (sequence_func(n), n))
+        #print(n_min, n_max, n, sequence_func(n))
+    #print(mx)
+    #print(n_min, n_max, mx)
+    return mx[1]
+
+def unimodalSequenceMaximumTerm(
+    sequence_func: Callable[[int], Union[int, float]],
+    n_min: int,
+    n_max: int,
+) -> int:
+    
+    lo, hi = n_min, n_max
+    while lo < hi:
+        mid = lo + ((hi - lo) >> 1)
+        val1 = sequence_func(mid)
+        val2 = sequence_func(mid + 1)
+        if val1 == val2: return mid
+        elif val1 < val2:
+            lo = mid + 1
+        else: hi = mid
+    return lo
+
+def minimalWorstCaseCostForHiddenNumberGame(
+    n: int,
+) -> int:
+
+    memo0 = {}
+    def maximumTermBruteForce(
+        n_min: int,
+        n_max: int,
+    ) -> int:
+        args = (n_min, n_max)
+        if args in memo0.keys():
+            return memo0[args]
+        sequence_func = lambda pivot: worstCaseForRangeWithPivot(n_min, n_max, pivot)
+        mx = (-float("inf"), -float("inf"))
+        for n in range(n_min, n_max + 1):
+            mx = max(mx, (sequence_func(n), n))
+            #print(n_min, n_max, n, sequence_func(n))
+        #print(mx)
+        #print(n_min, n_max, mx)
+        memo0[args] = mx[1]
+        return mx[1]
+
+    memo1 = {}    
+    def worstCaseForRangeWithPivot(
+        lo: int,
+        hi: int,
+        pivot: int,
+    ) -> int:
+        args = (hi, lo, pivot)
+        if args in memo1.keys(): return memo1[args]
+        res = pivot + max(worstCaseForRange(lo, pivot - 1), worstCaseForRange(pivot + 1, hi))
+
+        memo1[args] = res
+        return res
+
+    memo2 = {}    
+    def worstCaseForRange(
+        lo: int,
+        hi: int,
+    ) -> int:
+        if lo == hi: return 0
+        args = (hi, lo)
+        if args in memo2.keys(): return memo2[args]
+        #sequence_func = lambda pivot: worstCaseForRangeWithPivot(lo, hi, pivot)
+        res = worstCaseForRangeWithPivot(lo, hi, maximumTermBruteForce(lo, hi))
+        #print("hi")
+        memo2[args] = res
+        return res
+    
+    return worstCaseForRange(1, n)
+    
+def minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
+    n1: int=1,
+    n2: int=2 * 10 ** 5,
+) -> int:
+    memo0 = {}
+    def maximumTermBruteForce(
+        n_min: int,
+        n_max: int,
+    ) -> int:
+        if n_max <= n_min:
+            return 0
+        if n_max < n_min + 3:
+            return n_min + ((n_max - n_min) >> 1)
+        args = (n_min, n_max)
+        if args in memo0.keys():
+            return memo0[args]
+        sequence_func = lambda pivot: -worstCaseForRangeWithPivot(n_min, n_max, pivot)
+        mx = [-float("inf"), []]
+        for n in range(n_min + 1, n_max):
+            val = sequence_func(n)
+            if val < mx[0]: continue
+            elif val == mx[0]:
+                mx[1].append(n)
+            else:
+                mx[0] = val
+                mx[1] = [n]
+            #mx = max(mx, (sequence_func(n), n))
+            #print(n_min, n_max, n, sequence_func(n))
+        #print(mx)
+        #print(n_min, n_max, mx)
+        res = mx[1][0]
+        memo0[args] = res
+        return res
+
+    memo1 = {}    
+    def worstCaseForRangeWithPivot(
+        lo: int,
+        hi: int,
+        pivot: int,
+    ) -> int:
+        args = (lo, hi, pivot)
+        if args in memo1.keys(): return memo1[args]
+        res = pivot + max(worstCaseForRange(lo, pivot - 1), worstCaseForRange(pivot + 1, hi))
+
+        memo1[args] = res
+        return res
+
+    memo2 = {}    
+    def worstCaseForRange(
+        lo: int,
+        hi: int,
+    ) -> int:
+        if lo >= hi: return 0
+        args = (lo, hi)
+        if args in memo2.keys(): return memo2[args]
+        #sequence_func = lambda pivot: worstCaseForRangeWithPivot(lo, hi, pivot)
+        res = worstCaseForRangeWithPivot(lo, hi, maximumTermBruteForce(lo, hi))
+        #print("hi")
+        memo2[args] = res
+        return res
+    
+    res = 0
+    ans = 0
+    for n in range(n1, n2 + 1):
+        prev = ans
+        ans = worstCaseForRange(1, n)
+        print(f"minimal worst case for range [1, {n}] = {ans}, diff = {ans - prev}, binary repr of upper end of range = {format(n, 'b')}")
+        res += ans
+    #print(memo1)
+    #print(memo2)
+    return res
+
+def minimalWorstCaseCostForHiddenNumberGamesSum(
+    n1: int=1,
+    n2: int=2 * 10 ** 5,
+) -> int:
+    """
+    Solution to Project Euler #328
+    """
+    
+    from_one_step_count_min_vals = [SortedDict() for _ in range(n2 + 1)]
+
+    # TODO- populate from_one_step_count_min_vals
+
+    res = 0
+    for n in range(n1, n2 + 1):
+        res += from_one_step_count_min_vals[n].peekitem(-1)[1]
+    return res
+
 # Problem 329
 def croakSequenceProbability(
     n_squares: int=500,
@@ -4288,6 +4460,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #327 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 328 in eval_nums:
+        since = time.time()
+        res = minimalWorstCaseCostForHiddenNumberGamesSum(
+            n1=1,
+            n2=260,
+        )
+        print(f"Solution to Project Euler #328 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 329 in eval_nums:
         since = time.time()
         res = croakSequenceProbability(
@@ -4325,7 +4505,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {332}
+    eval_nums = {328}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
