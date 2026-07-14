@@ -3506,6 +3506,33 @@ def blockTowerConfigurationsCount(
     #print(res)
     return res.get(0)
 
+# Problem 325
+def multipleStoneGameLosingConfigurationsBruteForce(
+    pile_size_max: int,
+) -> dict[int, int]:
+    
+    res = {}
+
+    for num1 in range(1, pile_size_max):
+        for num2 in range(num1 + 1, pile_size_max + 1):
+            q, r = divmod(num2, num1)
+            if not r: continue
+            if num1 in res.keys():
+                found = False
+                num3 = num2
+                for _d in range(q - 1):
+                    num3 -= num1
+                    if num3 in res[num1]:
+                        found = True
+                        break
+                if found: continue
+            num3 = num2 - q * num1
+            if num3 in res.keys() and num1 in res[num3]:
+                continue
+            res.setdefault(num1, set())
+            res[num1].add(num2)
+    return res
+
 # Problem 327
 def calculateNumberOfCardsNeededToProgress(
     card_carry_capacity: int,
@@ -4462,7 +4489,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 328 in eval_nums:
         since = time.time()
-        res = minimalWorstCaseCostForHiddenNumberGamesSum(
+        res = minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
             n1=1,
             n2=260,
         )
@@ -4505,7 +4532,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {328}
+    eval_nums = {325}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -4597,3 +4624,13 @@ for radius in range(1, 51):
         )
     )
 """
+pile_size_max = 10 ** 4
+res = multipleStoneGameLosingConfigurationsBruteForce(
+        pile_size_max,
+    )
+#print(res)
+sm = 0
+for num1, num2_set in res.items():
+    sm += num1 * len(num2_set) + sum(num2_set)
+    #print(num1, sm)
+print(sm)
