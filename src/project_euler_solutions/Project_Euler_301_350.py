@@ -4624,13 +4624,20 @@ for radius in range(1, 51):
         )
     )
 """
-pile_size_max = 10 ** 4
+pile_size_max = 100
 res = multipleStoneGameLosingConfigurationsBruteForce(
         pile_size_max,
     )
 #print(res)
 sm = 0
+cnts = [[0, 0] for _ in range(pile_size_max + 1)]
 for num1, num2_set in res.items():
     sm += num1 * len(num2_set) + sum(num2_set)
+    cnts[num1][0] = len(num2_set)
+    for num2 in num2_set:
+        cnts[num2][1] += 1
     #print(num1, sm)
 print(sm)
+
+for i in range(1, pile_size_max + 1):
+    print(f"pile size {i} counts: [{cnts[i][0]}, {cnts[i][1]}]")
