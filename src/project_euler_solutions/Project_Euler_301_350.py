@@ -4624,7 +4624,7 @@ for radius in range(1, 51):
         )
     )
 """
-pile_size_max = 100
+pile_size_max = 10 ** 2
 res = multipleStoneGameLosingConfigurationsBruteForce(
         pile_size_max,
     )
@@ -4632,6 +4632,7 @@ res = multipleStoneGameLosingConfigurationsBruteForce(
 sm = 0
 cnts = [[0, 0] for _ in range(pile_size_max + 1)]
 for num1, num2_set in res.items():
+    print(num1, num2_set)
     sm += num1 * len(num2_set) + sum(num2_set)
     cnts[num1][0] = len(num2_set)
     for num2 in num2_set:
@@ -4639,5 +4640,9 @@ for num1, num2_set in res.items():
     #print(num1, sm)
 print(sm)
 
+crossover = -1
 for i in range(1, pile_size_max + 1):
-    print(f"pile size {i} counts: [{cnts[i][0]}, {cnts[i][1]}]")
+    print(f"pile size {i} counts: [{cnts[i][0]}, {cnts[i][1]}], {sum(cnts[i])}, {min(pile_size_max - i, (-i + ((i + isqrt(5 * i ** 2)) >> 1)))}")
+    if crossover < 0 and sum(cnts[i]) != i - 1:
+        crossover = i
+print(f"crossover at {crossover} of {pile_size_max}")
