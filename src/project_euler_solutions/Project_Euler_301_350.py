@@ -3533,6 +3533,75 @@ def multipleStoneGameLosingConfigurationsBruteForce(
             res[num1].add(num2)
     return res
 
+def multipleStoneGameLosingConfigurationsSum(
+    pile_size_max: int=10 ** 16,
+    res_md: Optional[int]=7 ** 10,
+) -> int:
+    """
+    Solution to Project Euler Problem 325
+    """
+
+    def integerSum(n_max: int) -> int:
+        return (n_max * (n_max + 1)) >> 1
+
+    def integerSquaredSum(n_max: int) -> int:
+        return (n_max * (n_max + 1) * (2 * n_max + 1)) // 6
+
+    def phiMultipleFloor(n: int) -> int:
+        n2 = abs(n)
+        res = (n2 + isqrt(5 * n2 * n2)) >> 1
+        return -1 - res if n < 0 else n
+
+    def inversePhiMultipleFloor(n: int) -> int:
+        n2 = abs(n)
+        res = (isqrt(5 * n2 * n2) - n2) >> 1
+        return -1 - res if n < 0 else n
+
+
+    memo1 = {0: 0}
+    def seqSum(n: int) -> int:
+        if n in memo1.keys(): return memo1[n]
+        n2 = abs(n)
+        rt = isqrt(5 * n2 * n2)
+        mul_phi_floor = (n2 + rt) >> 1
+        div_phi_floor = (rt - n2) >> 1
+        res = integerSum(mul_phi_floor) - seqSum(div_phi_floor) - integerSum(div_phi_floor)
+        memo1[n] = res
+        return res
+    
+    memo2 = {0: 0}
+    def seqSquaredSum(n: int) -> int:
+        if n in memo2.keys(): return memo2[n]
+        n2 = abs(n)
+        rt = isqrt(5 * n2 * n2)
+        mul_phi_floor = (n2 + rt) >> 1
+        div_phi_floor = (rt - n2) >> 1
+        res = integerSquaredSum(mul_phi_floor) - seqSquaredSum(div_phi_floor) - 2 * seqMulTermNumberSum(div_phi_floor) - integerSquaredSum(div_phi_floor)
+        memo2[n] = res
+        return res
+    
+    memo3 = {0: 0}
+    def seqMulTermNumberSum(n: int) -> int:
+        if n in memo3.keys(): return memo3[n]
+        n2 = abs(n)
+        rt = isqrt(5 * n2 * n2)
+        div_phi_floor = (rt - n2) >> 1
+        res = integerSquaredSum(n) + seqMulTermNumberSum(div_phi_floor) - ((seqSum(div_phi_floor) + seqSquaredSum(div_phi_floor)) >> 1)
+        memo3[n] = res
+        return res
+
+
+    n2 = inversePhiMultipleFloor(pile_size_max)
+    seq_sm = seqSum(n2)
+    seq_sq_sm = seqSquaredSum(n2)
+    seq_mul_term_no_sm = seqMulTermNumberSum(n2)
+    int_sm = integerSum(n2)
+    int_sq_sm = integerSquaredSum(n2)
+    sm1 = 2 * (seq_mul_term_no_sm - int_sq_sm) + (((seq_sq_sm - 2 * seq_mul_term_no_sm + int_sq_sm) + (seq_sm - int_sm)) >> 1)
+    sm2 = ((pile_size_max - n2 - 1) * (pile_size_max * (pile_size_max + 1) - n2 * (n2 + 1))) >> 1
+    res = sm1 + sm2
+    return res if res_md is None else res % res_md
+
 # Problem 327
 def calculateNumberOfCardsNeededToProgress(
     card_carry_capacity: int,
@@ -4478,6 +4547,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #324 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 325 in eval_nums:
+        since = time.time()
+        res = multipleStoneGameLosingConfigurationsSum(
+            pile_size_max=10 ** 1,
+            res_md=None,#7 ** 10,
+        )
+        print(f"Solution to Project Euler #325 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 327 in eval_nums:
         since = time.time()
         res = calculateNumberOfCardsNeededToProgressSum(
@@ -4624,6 +4701,7 @@ for radius in range(1, 51):
         )
     )
 """
+"""
 pile_size_max = 10 ** 2
 res = multipleStoneGameLosingConfigurationsBruteForce(
         pile_size_max,
@@ -4646,3 +4724,4 @@ for i in range(1, pile_size_max + 1):
     if crossover < 0 and sum(cnts[i]) != i - 1:
         crossover = i
 print(f"crossover at {crossover} of {pile_size_max}")
+"""
