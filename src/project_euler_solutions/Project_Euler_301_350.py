@@ -3541,6 +3541,8 @@ def multipleStoneGameLosingConfigurationsSum(
     Solution to Project Euler Problem 325
     """
 
+    # Using Rayleigh's/Beatty's theorem
+
     def integerSum(n_max: int) -> int:
         return (n_max * (n_max + 1)) >> 1
 
@@ -3555,7 +3557,7 @@ def multipleStoneGameLosingConfigurationsSum(
     def inversePhiMultipleFloor(n: int) -> int:
         n2 = abs(n)
         res = (isqrt(5 * n2 * n2) - n2) >> 1
-        return -1 - res if n < 0 else n
+        return -1 - res if n < 0 else res
 
 
     memo1 = {0: 0}
@@ -3586,7 +3588,7 @@ def multipleStoneGameLosingConfigurationsSum(
         n2 = abs(n)
         rt = isqrt(5 * n2 * n2)
         div_phi_floor = (rt - n2) >> 1
-        res = integerSquaredSum(n) + seqMulTermNumberSum(div_phi_floor) - ((seqSum(div_phi_floor) + seqSquaredSum(div_phi_floor)) >> 1)
+        res = integerSquaredSum(n2) + div_phi_floor * integerSum(n2) - ((seqSum(div_phi_floor) + seqSquaredSum(div_phi_floor)) >> 1)
         memo3[n] = res
         return res
 
@@ -4550,8 +4552,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 325 in eval_nums:
         since = time.time()
         res = multipleStoneGameLosingConfigurationsSum(
-            pile_size_max=10 ** 1,
-            res_md=None,#7 ** 10,
+            pile_size_max=10 ** 16,
+            res_md=7 ** 10,
         )
         print(f"Solution to Project Euler #325 = {res}, calculated in {time.time() - since:.4f} seconds")
 
