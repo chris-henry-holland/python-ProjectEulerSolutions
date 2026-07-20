@@ -3342,7 +3342,9 @@ def blockTowerConfigurationsCount(
     dims: tuple[int, int, int], 
     res_md: Optional[int]=10 ** 8 + 7,
 ) -> int:
-
+    """
+    Solution to Project Euler #324
+    """
     # Review- when the layer rectangle has an odd area
     # (i.e. both sides are of odd length), consider
     # traversing two layers at a time.
@@ -3538,10 +3540,12 @@ def multipleStoneGameLosingConfigurationsSum(
     res_md: Optional[int]=7 ** 10,
 ) -> int:
     """
-    Solution to Project Euler Problem 325
+    Solution to Project Euler #325
     """
 
     # Using Rayleigh's/Beatty's theorem
+    # Review- prove the recurrence relations used
+    # Review- look into the solutions used in the Project Euler forum
 
     def integerSum(n_max: int) -> int:
         return (n_max * (n_max + 1)) >> 1
@@ -3603,6 +3607,72 @@ def multipleStoneGameLosingConfigurationsSum(
     sm2 = ((pile_size_max - n2 - 1) * (pile_size_max * (pile_size_max + 1) - n2 * (n2 + 1))) >> 1
     res = sm1 + sm2
     return res if res_md is None else res % res_md
+
+# Problem 326
+def moduloSummationsZeroModuloCountBruteForce(
+    num_max: int=10 ** 12,
+    md: int=10 ** 6,
+) -> int:
+    
+    
+    seen = {0: 1, 1: 1}
+    res = int(not 1 % md)
+    curr_sm = 1 % md
+    curr_term_mul_term_no_sum = 1 % md
+    for k in range(2, num_max + 1):
+        term = curr_term_mul_term_no_sum % k
+        print(k, term)
+        curr_sm = (curr_sm + term) % md
+        seen.setdefault(curr_sm, 0)
+        #if seen[curr_sm]: print(k, )
+        res += seen[curr_sm]
+        seen[curr_sm] += 1
+        curr_term_mul_term_no_sum += k * term
+    return res
+
+def moduloSummationsZeroModuloCount(
+    num_max: int=10 ** 12,
+    md: int=10 ** 6,
+) -> int:
+    """
+    Solution to Project Euler #326
+    """
+    # Review- prove the term values by induction
+
+    def termValue(i: int) -> int:
+        match i % 6:
+            case 0:
+                # 6: 3, 12: 6, 18: 9, 24: 12,
+                return i >> 1
+            case 1:
+                # 1: 1, 7: 5, 13: 9, 19: 13,
+                return i - (i // 3)
+            case 2:
+                # 2: 1, 8: 4, 14: 7, 20: 10,
+                return i >> 1
+            case 3:
+                # 3: 0, 9: 1, 15: 2, 21: 3, 
+                #return (i - 3) // 6
+                return i // 6
+            case 4:
+                # 4: 3, 10: 9, 16: 15, 22: 21, 
+                return i - 1
+            case 5:
+                # 5: 0, 11: 1, 17: 2, 23: 3, 
+                #return (i - 5) // 6
+                return i // 6
+        return -1
+    
+    res = 0
+    cnts = {0: 1}
+    for i in range(1, min(num_max, 6 * md) + 1):
+        cnt = ((num_max - i) // 6 * md) + 1
+        if not cnt: continue
+        term = termValue(i)
+        cnts.setdefault(term, 0)
+        res += cnt * cnts[term] + ((cnt * (cnt - 1)) >> 1)
+        cnts[term] += cnt
+    return res
 
 # Problem 327
 def calculateNumberOfCardsNeededToProgress(
@@ -4557,6 +4627,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #325 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 326 in eval_nums:
+        since = time.time()
+        res = moduloSummationsZeroModuloCount(
+            num_max=10,
+            md=10,
+        )
+        print(f"Solution to Project Euler #326 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 327 in eval_nums:
         since = time.time()
         res = calculateNumberOfCardsNeededToProgressSum(
@@ -4611,7 +4689,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {325}
+    eval_nums = {326}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
