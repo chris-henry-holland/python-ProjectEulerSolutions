@@ -3638,6 +3638,8 @@ def moduloSummationsZeroModuloCount(
     Solution to Project Euler #326
     """
     # Review- prove the term values by induction
+    # Review- prove that the partial sums a distance 6 * md
+    # apart are equal modulo md
 
     def termValue(i: int) -> int:
         match i % 6:
@@ -3665,13 +3667,16 @@ def moduloSummationsZeroModuloCount(
     
     res = 0
     cnts = {0: 1}
+    curr = 0
     for i in range(1, min(num_max, 6 * md) + 1):
-        cnt = ((num_max - i) // 6 * md) + 1
+        cnt = ((num_max - i) // (6 * md)) + 1
+        #print(i, cnt)
         if not cnt: continue
-        term = termValue(i)
-        cnts.setdefault(term, 0)
-        res += cnt * cnts[term] + ((cnt * (cnt - 1)) >> 1)
-        cnts[term] += cnt
+        term = termValue(i) % md
+        curr = (curr + term) % md
+        cnts.setdefault(curr, 0)
+        res += cnt * cnts[curr] + ((cnt * (cnt - 1)) >> 1)
+        cnts[curr] += cnt
     return res
 
 # Problem 327
@@ -4630,8 +4635,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 326 in eval_nums:
         since = time.time()
         res = moduloSummationsZeroModuloCount(
-            num_max=10,
-            md=10,
+            num_max=10 ** 12,
+            md=10 ** 6,
         )
         print(f"Solution to Project Euler #326 = {res}, calculated in {time.time() - since:.4f} seconds")
 
