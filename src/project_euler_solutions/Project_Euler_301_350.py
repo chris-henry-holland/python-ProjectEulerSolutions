@@ -2591,6 +2591,80 @@ def boundedSequenceGeneratorBruteForce(
                         curr.append((*seq, num))
     return
 
+def boundedSequencesCount(
+    n_terms: int=10 ** 10,
+    res_md: Optional[int]=10 ** 9,
+) -> int:
+    """
+    Solution to Project Euler #319
+    """
+    
+    #div2 = lambda x: x >> 1
+    #if res_md is not None and res_md & 1:
+    #    inv2 = pow(2, res_md - 2, res_md)
+    #    div2 = lambda x: (x * inv2) % res_md
+
+    addMod = (lambda x, y: (x + y)) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: (x * y)) if res_md is None else (lambda x, y: (x * y) % res_md)
+    
+    pow3_sum = lambda x: ((3 ** (x + 1) - 1) >> 1)
+    if res_md is not None:
+        if res_md & 1:
+            pow3_sum = lambda x: ((pow(3, x + 1, res_md) - 1) * pow(2, res_md - 2, res_md)) % res_md
+        else:
+            pow3_sum = lambda x: ((pow(3, x + 1, 2 * res_md) - 1) >> 1)
+    pow2_sum = (lambda x: (1 << (x + 1)) - 1) if res_md is None else (lambda x: (pow(2, x + 1, res_md) - 1) % res_md)
+
+    def rangeCountFunction(m: int) -> int:
+        return addMod(pow3_sum(m), -(pow2_sum(m) + m))
+
+    sieve_max = integerNthRoot(n_terms ** 2, 3)
+    #sieve = [1] * (sieve_max + 1)
+    #for num in range(1, sieve_max + 1):
+    #    print(num, sieve)
+    #    if not sieve[num]: continue
+    #    for num2 in range(num << 1, sieve_max + 1, num):
+    #        sieve[num2] = addMod(sieve[num2], -sieve[num])
+    memo = {0: 0, 1: 1}
+
+    def mertensFunction(num: int) -> int:
+        #if num < len(sieve): return sieve[num]
+        if num in memo.keys(): return memo[num]
+        res = 1
+        rt = isqrt(num)
+        for d in range(2, rt + 1):
+            d2 = num // d
+            if d2 <= rt: break
+            #print(f"d = {d}, d2 = {d2}")
+            res -= mertensFunction(d2)
+        for d2 in range(1, rt + 1):
+            d_rng = [max(2, num // (d2 + 1) + 1), num // d2]
+            #print(f"d2 = {d2}, d_rng = {d_rng}")
+            if d_rng[0] > d_rng[1]: continue
+            res = addMod(res, -mulMod((d_rng[1] - d_rng[0] + 1), mertensFunction(d2)))
+        if num <= sieve_max:
+            memo[num] = res
+        return res
+    #print(f"Mertens function sieve = {sieve}")
+    #print("Mertens function values:")
+    #for num in range(1, n_terms + 1):
+    #    print(f"M({num}) = {mertensFunction(num)}")
+    res = 1
+    n_terms_rt = isqrt(n_terms)
+    for d in range(1, n_terms_rt + 1):
+        d2 = n_terms // d
+        if d2 <= n_terms_rt: break
+        #print(f"d = {d}, d2 = {d2}")
+        term = mulMod(mertensFunction(d) - mertensFunction(d - 1), rangeCountFunction(d2))
+        res = addMod(res, term)
+    for d2 in range(1, n_terms_rt + 1):
+        d_rng = [n_terms // (d2 + 1) + 1, n_terms // d2]
+        if d_rng[0] > d_rng[1]: continue
+        #print(f"d2 = {d2}, d_rng = {d_rng}")
+        term = mulMod(mertensFunction(d_rng[1]) - mertensFunction(d_rng[0] - 1), rangeCountFunction(d2))
+        res = addMod(res, term)
+    return res
+    
 
 
 # Problem 320
@@ -4581,6 +4655,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #318 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 319 in eval_nums:
+        since = time.time()
+        res = boundedSequencesCount(
+            n_terms=10 ** 9,
+            res_md=10 ** 9,
+        )
+        print(f"Solution to Project Euler #319 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 320 in eval_nums:
         since = time.time()
         res = smallestFactorialDivisibleByFactorialPowerSum(
@@ -4694,7 +4776,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     
 
 if __name__ == "__main__":
-    eval_nums = {326}
+    eval_nums = {319}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -4757,17 +4839,17 @@ for target in range(target_rng[0], target_rng[1] + 1):
 """
 
 """
-n_term = 4
+for n_term in range(1, 11):
 
-cnt = 0
-#curr_seq_len = 0
-for seq in boundedSequenceGeneratorBruteForce(
-    n_term_min=n_term,
-    n_term_max=n_term,
-):
-    cnt += 1
-    print(seq)
-print(f"count = {cnt}")
+    cnt = 0
+    #curr_seq_len = 0
+    for seq in boundedSequenceGeneratorBruteForce(
+        n_term_min=n_term,
+        n_term_max=n_term,
+    ):
+        cnt += 1
+        #print(seq)
+    print(f"number of bounded sequences of length {n_term} = {cnt}")
 """
 
 #for i, pair in enumerate(eulerSequenceTermGenerator(
