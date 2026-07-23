@@ -4520,6 +4520,48 @@ def primesWithExactlyOneValidPartitionSum(
             if f == 1: res += p_max
     return res
 
+# Problem 335
+def gatherBeansMoveCountBruteForce(
+    n: int,
+) -> int:
+    curr = [1] * n
+    idx = 0
+    res = 0
+    #cnts = SortedDict({0: 1, 1: n - 2, 2: 1})
+    res = 0
+    #while cnts.peekitem(-1)[0] > 1:
+    while curr[idx] < n:
+        m = curr[idx]
+        curr[idx] = 0
+        for i in range(idx + 1, min(n, idx + m + 1)):
+            curr[i] += 1
+        for i in range(idx + m - n + 1):
+            curr[i] += 1
+        idx = i
+        res += 1
+        #print(curr, idx)
+    
+    return res + 1
+
+def gatherBeansMoveCountPow2PlusOneCount(
+    pow2_max: int=10 ** 18,
+    res_md: Optional[int]=7 ** 9,
+) -> int:
+    """
+    Solution to Project Euler #335
+    """
+    # Using OEIS A360874 (the sequence of evaluations for one greater than
+    # a power of 2 appears to be exactly 2 greater than the corresponding
+    # values in sequence A360874)
+    # Review- prove this formula works
+    
+    if res_md is None:
+        return (((4 ** (pow2_max + 1) - 1) // 3) - ((3 ** (pow2_max + 1) - 1) >> 1) + (1 << (pow2_max + 2)) - 1) - 3
+    res = (pow(2, (pow2_max + 2), res_md) - 1) % res_md
+    res += (pow(4, (pow2_max + 1), 3 * res_md) - 1) // 3 if not res_md % 3 else (pow(4, (pow2_max + 1), res_md) - 1) * moduloMultiplicativeIndex(3, res_md)
+    res %= res_md
+    res -= (pow(3, (pow2_max + 1), 2 * res_md) - 1) // 2 if not res_md % 1 else (pow(3, (pow2_max + 1), res_md) - 1) * moduloMultiplicativeIndex(2, res_md)
+    return (res - 1) % res_md
 
 ##############
 project_euler_num_range = (301, 350)
@@ -4658,7 +4700,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 319 in eval_nums:
         since = time.time()
         res = boundedSequencesCount(
-            n_terms=10 ** 9,
+            n_terms=10 ** 10,
             res_md=10 ** 9,
         )
         print(f"Solution to Project Euler #319 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -4771,12 +4813,20 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #333 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 335 in eval_nums:
+        since = time.time()
+        res = gatherBeansMoveCountPow2PlusOneCount(
+            pow2_max=10 ** 18,
+            res_md=7 ** 9,
+        )
+        print(f"Solution to Project Euler #335 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {319}
+    eval_nums = {335}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -4892,3 +4942,8 @@ for i in range(1, pile_size_max + 1):
         crossover = i
 print(f"crossover at {crossover} of {pile_size_max}")
 """
+
+for n in range(0, 11):
+    print(n, gatherBeansMoveCountBruteForce((1 << n) + 1))
+
+print(gatherBeansMoveCountBruteForce(100))
