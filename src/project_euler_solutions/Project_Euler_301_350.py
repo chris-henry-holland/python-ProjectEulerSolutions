@@ -4563,6 +4563,63 @@ def gatherBeansMoveCountPow2PlusOneCount(
     res -= (pow(3, (pow2_max + 1), 2 * res_md) - 1) // 2 if not res_md % 1 else (pow(3, (pow2_max + 1), res_md) - 1) * moduloMultiplicativeIndex(2, res_md)
     return (res - 1) % res_md
 
+# Problem 336
+def findAllMaxiMixArrangementsBruteForce(
+    n: int,
+) -> tuple[int, ...]:
+
+    res = []
+    arr0 = list(range(n))
+    for arr in itertools.permutations(arr0, n):
+        a = list(arr)
+        #print(f"arr = {arr}")
+        #print(a)
+        for i0 in range(n - 2):
+            if a[i0] == i0 or a[-1] == i0:
+                break
+            for i in range(i0 + 1, n - 1):
+                if a[i] == i0:
+                    break
+            #print(f"i = {i}")
+            a[i:] = a[i:][::-1]
+            a[i0:] = a[i0:][::-1]
+            #print(a)
+        else:
+            if a[-1] == n - 1: continue
+            #print("found")
+            res.append(arr)
+    return sorted(res)
+
+def findMthMaxiMixArrangementsBruteForce(
+    n_carriages: int=11,
+    arrangement_number: int=2011,
+) -> str:
+    if arrangement_number <= 0: return ""
+    cnt = 0
+    arr0 = list(range(n_carriages))
+    for arr in itertools.permutations(arr0, n_carriages):
+        a = list(arr)
+        #print(f"arr = {arr}")
+        #print(a)
+        for i0 in range(n_carriages - 2):
+            if a[i0] == i0 or a[-1] == i0:
+                break
+            for i in range(i0 + 1, n_carriages - 1):
+                if a[i] == i0:
+                    break
+            #print(f"i = {i}")
+            a[i:] = a[i:][::-1]
+            a[i0:] = a[i0:][::-1]
+            #print(a)
+        else:
+            if a[-1] == n_carriages - 1: continue
+            cnt += 1
+            if cnt == arrangement_number:
+                ord_A = ord("A")
+                return "".join([chr(x + ord_A) for x in arr])
+            #print("found")
+    return ""
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -4821,12 +4878,20 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #335 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 336 in eval_nums:
+        since = time.time()
+        res = findMthMaxiMixArrangementsBruteForce(
+            n_carriages=11,
+            arrangement_number=2011,
+        )
+        print(f"Solution to Project Euler #336 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
     
 
 if __name__ == "__main__":
-    eval_nums = {335}
+    eval_nums = {336}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -4942,8 +5007,19 @@ for i in range(1, pile_size_max + 1):
         crossover = i
 print(f"crossover at {crossover} of {pile_size_max}")
 """
-
+"""
 for n in range(0, 11):
     print(n, gatherBeansMoveCountBruteForce((1 << n) + 1))
 
 print(gatherBeansMoveCountBruteForce(100))
+"""
+"""
+n = 8
+lst = findAllMaxiMixArrangementsBruteForce(n)
+#print(lst)
+print(len(lst))
+cnts = [0] * n
+for arr in lst:
+    cnts[arr[0]] += 1
+print(cnts)
+"""
