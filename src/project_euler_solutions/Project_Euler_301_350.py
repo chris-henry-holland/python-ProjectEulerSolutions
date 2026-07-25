@@ -31,6 +31,7 @@ from gmpy2 import mpfr
 
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
+from data_structures.fenwick_tree import FenwickTree
 
 from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm, solveLinearNonHomogeneousDiophantineEquation
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
@@ -4620,6 +4621,43 @@ def findMthMaxiMixArrangementsBruteForce(
             #print("found")
     return ""
 
+# Problem 337
+def totientStaircaseSequenceCount(
+    term_max: int=2 * 10 ** 7,
+    res_md: Optional[int]=10 ** 8,
+) -> int:
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+
+    ps = PrimeSPFsieve(term_max)
+    def eulerTotient(num: int) -> int:
+        pf = calculatePrimeFactorisation(num, ps=ps)
+        phi = 1
+        for p, f in pf.items():
+            phi *= p ** (f - 1) * (p - 1)
+        return phi
+    print(f"finished creating prime sieve")
+    
+    bit = FenwickTree(term_max + 1, (addMod, 0))
+    num = 6
+    phi = eulerTotient(num)
+    bit.update(phi + 1, 1)
+    bit.update(num, -1)
+    #print(f"num = {num}, phi = {phi}")
+    res = 1
+    for num in range(7, term_max + 1):
+        if not num % 10 ** 5:
+            print(f"num = {num} of {term_max}")
+        phi = eulerTotient(num)
+        f = bit.query(phi)
+        #print(f"num = {num}, phi = {phi}, f = {f}")
+        if not f: continue
+        res = addMod(res, f)
+        #phi = eulerTotient(num)
+        bit.update(phi + 1, f)
+        bit.update(num, -f)
+    return res
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -4886,12 +4924,18 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #336 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 337 in eval_nums:
+        since = time.time()
+        res = totientStaircaseSequenceCount(
+            term_max=2 * 10 ** 7,
+            res_md=10 ** 8,
+        )
+        print(f"Solution to Project Euler #337 = {res}, calculated in {time.time() - since:.4f} seconds")
+    
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
-    
-
 if __name__ == "__main__":
-    eval_nums = {336}
+    eval_nums = {337}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
