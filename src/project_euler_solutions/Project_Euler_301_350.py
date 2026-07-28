@@ -4661,6 +4661,114 @@ def totientStaircaseSequenceCount(
     return res
 
 # Problem 339
+def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
+    n_white_init: int,
+    n_black_init: int,
+) -> CustomFraction:
+
+    def calculateRowExpected(prev_row: list[CustomFraction]) -> list[CustomFraction]:
+        n_tot = len(prev_row)
+        #row = [CustomFraction(0, 1) for _ in range(n_tot)]
+        #row[-1] = n_tot
+
+        def rowForRemoveWhiteBitmask(rm_white_bm: int) -> list[CustomFraction]:
+            # Using Tridiagonal matrix algorithm (Thomas algorithm)
+            #row = [CustomFraction(0, 1) for _ in range(n_tot)]
+            #c_lst = [CustomFraction(1, n_tot)]
+            #d_lst = [CustomFraction(n_tot - 1, n_tot)]
+
+
+            """
+            c_lst = [-CustomFraction(n_tot - 1, n_tot)]
+            d_lst = [CustomFraction(n_tot - 1, n_tot)]
+            for i2 in range(2, n_white_cutoff):
+                a0 = -CustomFraction(i2, n_tot)
+                c0 = -a0 - 1
+                denom = 1 - a0 * c_lst[-1]
+                c_lst.append(c0 / denom)
+                d_lst.append(-a0 * d_lst[-1] / denom)
+            a0 = -CustomFraction(n_white_cutoff, n_tot)
+            c0 = -a0 - 1
+            d0 = CustomFraction(n_white_cutoff, n_tot) * prev_row[n_white_cutoff - 1]
+            denom = 1 - a0 * c_lst[-1]
+            c_lst.append(c0 / denom)
+            d_lst.append((d0 - a0 * d_lst[-1]) / denom)
+            print(f"c_lst = {c_lst}")
+            print(f"d_lst = {d_lst}")
+            print(f"val = {d_lst[-1]}")
+            row[n_white_cutoff] = d_lst[n_white_cutoff]
+            for i2 in reversed(range(1, n_white_cutoff)):
+                row[i2] = d_lst[i2 - 1] - c_lst[i2 - 1] * row[i2 + 1]
+            """
+
+        sols = []
+        sol_bms = []
+        for bm in range(1 << (n_tot)):
+            row = calculateRowExpected(bm)
+            bm2 = bm
+            for i, frac in enumerate(row):
+                b = bm2 & 1
+                bm2 >>= 1
+                if frac != prev_row[i] and (frac < prev_row[i] != b):
+                    break
+            else:
+                sols.append(row)
+                sol_bms.append(bm)
+        if not sols:
+            print("no solution found")
+            return []
+        elif len(sols) > 1:
+            print("multiple solutions found for the bitmasks:")
+            for bm in sol_bms:
+                print(format(bm, "b").zfill(n_tot + 1))
+        return sols[0]
+        """
+        lo, hi = 0, n_tot - 1
+        while lo < hi:
+            mid = hi - ((hi - lo) >> 1)
+            if isValidCutoff(mid):
+                lo = mid
+            else: hi = mid - 1
+        n_white_cutoff = lo
+        print(f"n_white_cutoff = {n_white_cutoff}")
+        # Using Tridiagonal matrix algorithm (Thomas algorithm)
+        row = [CustomFraction(0, 1) for _ in range(n_tot + 1)]
+        row[0] = CustomFraction(n_tot, 1)
+        for i in range(n_white_cutoff + 1, n_tot):
+            row[i] = prev_row[i - 1]
+        row[n_tot] = CustomFraction(0, 1)
+        if n_white_cutoff >= 1:
+            c_lst = [-CustomFraction(n_tot - 1, n_tot)]
+            d_lst = [CustomFraction(n_tot - 1, n_tot)]
+            for i2 in range(2, n_white_cutoff):
+                a0 = -CustomFraction(i2, n_tot)
+                c0 = -a0 - 1
+                denom = 1 - a0 * c_lst[-1]
+                c_lst.append(c0 / denom)
+                d_lst.append(-a0 * d_lst[-1] / denom)
+            a0 = -CustomFraction(n_white_cutoff, n_tot)
+            c0 = -a0 - 1
+            d0 = CustomFraction(n_white_cutoff, n_tot) * prev_row[n_white_cutoff - 1]
+            denom = 1 - a0 * c_lst[-1]
+            c_lst.append(c0 / denom)
+            d_lst.append((d0 - a0 * d_lst[-1]) / denom)
+            print(f"c_lst = {c_lst}")
+            print(f"d_lst = {d_lst}")
+            print(f"val = {d_lst[-1]}")
+            row[n_white_cutoff] = d_lst[n_white_cutoff]
+            for i2 in reversed(range(1, n_white_cutoff)):
+                row[i2] = d_lst[i2 - 1] - c_lst[i2 - 1] * row[i2 + 1]
+        return row
+        """
+
+    n = n_white_init + n_black_init
+    row = [CustomFraction(0, 1)]
+    for n_tot in range(1, n + 1):
+        row = calculateRowExpected(row)
+        print(n_tot, row)
+    return row[n_white_init]
+
+
 def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
     n_white_init: int,
     n_black_init: int,
@@ -4677,16 +4785,16 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
             #c_lst = [CustomFraction(1, n_tot)]
             #d_lst = [CustomFraction(n_tot - 1, n_tot)]
             if not n_white_cutoff: return True
-            c_curr = -CustomFraction(1, n_tot)
+            c_curr = -CustomFraction(n_tot - 1, n_tot)
             d_curr = CustomFraction(n_tot - 1, n_tot)
             print(1, c_curr, d_curr)
             for i2 in range(2, n_white_cutoff):
-                c0 = -CustomFraction(i2, n_tot)
-                a0 = -c0 - 1
+                a0 = -CustomFraction(i2, n_tot)
+                c0 = -a0 - 1
                 denom = 1 - a0 * c_curr
                 c_curr, d_curr = c0 / denom, -a0 * d_curr / denom
                 print(i2, c_curr, d_curr)
-            a0 = -CustomFraction(n_tot - n_white_cutoff, n_tot)
+            a0 = -CustomFraction(n_white_cutoff, n_tot)
             d0 = CustomFraction(n_white_cutoff, n_tot) * prev_row[n_white_cutoff - 1]
             denom = 1 - a0 * c_curr
             val = (d0 - a0 * d_curr) / denom
@@ -4708,16 +4816,16 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
             row[i] = prev_row[i - 1]
         row[n_tot] = CustomFraction(0, 1)
         if n_white_cutoff >= 1:
-            c_lst = [-CustomFraction(1, n_tot)]
+            c_lst = [-CustomFraction(n_tot - 1, n_tot)]
             d_lst = [CustomFraction(n_tot - 1, n_tot)]
             for i2 in range(2, n_white_cutoff):
-                c0 = -CustomFraction(i2, n_tot)
-                a0 = -c0 - 1
+                a0 = -CustomFraction(i2, n_tot)
+                c0 = -a0 - 1
                 denom = 1 - a0 * c_lst[-1]
                 c_lst.append(c0 / denom)
                 d_lst.append(-a0 * d_lst[-1] / denom)
-            c0 = -CustomFraction(n_white_cutoff, n_tot)
-            a0 = -c0 - 1
+            a0 = -CustomFraction(n_white_cutoff, n_tot)
+            c0 = -a0 - 1
             d0 = CustomFraction(n_white_cutoff, n_tot) * prev_row[n_white_cutoff - 1]
             denom = 1 - a0 * c_lst[-1]
             c_lst.append(c0 / denom)
@@ -4764,7 +4872,7 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFloat(
     n_black_init: int=10 ** 4,
 ) -> float:
     
-    res = peredurFabEfrawgMaximumExpectedBlackSheepFraction(
+    res = peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
         n_white_init,
         n_black_init,
     )
