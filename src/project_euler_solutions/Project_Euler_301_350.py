@@ -4676,8 +4676,61 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
             #row = [CustomFraction(0, 1) for _ in range(n_tot)]
             #c_lst = [CustomFraction(1, n_tot)]
             #d_lst = [CustomFraction(n_tot - 1, n_tot)]
-
-
+            #prev = CustomFraction(0, 1)
+            prev_rm = False
+            bm2 = rm_white_bm
+            c_lst = []
+            d_lst = []
+            for i in range(n_tot):
+                a0 = CustomFraction(0, 1)
+                b0 = CustomFraction(1, 1)
+                c0 = CustomFraction(0, 1)
+                d0 = CustomFraction(0, 1)
+                
+                if not bm2 & 1:
+                    if i > 0:
+                        #print("hi1")
+                        if not prev_rm:
+                            a0 = -CustomFraction(n_tot - i, n_tot)
+                        else:
+                            d0 += CustomFraction(n_tot - i, n_tot) * prev_row[i - 1]
+                    if i < n_tot - 1:
+                        #print("hi2")
+                        if not bm & 2:
+                            c0 += -CustomFraction(i, n_tot)
+                        else:
+                            d0 += CustomFraction(i, n_tot) * prev_row[i + 1]
+                    else: d0 += CustomFraction(n_tot - 1, 1)
+                    if not c_lst:
+                        c_lst.append(c0 / b0)
+                        d_lst.append(d0 / b0)
+                    else:
+                        denom = b0 - a0 * c_lst[-1]
+                        c_lst.append(c0 / denom)
+                        d_lst.append((d0 - a0 * d_lst[-1]) / denom)
+                    prev_rm = False
+                else: prev_rm = True
+                bm2 >>= 1
+            #print(c_lst, d_lst)
+            sol = [CustomFraction(0, 1) for _ in range(len(c_lst))]
+            #print(f"c_lst = {c_lst}, d_lst = {d_lst}")
+            if c_lst:
+                sol[-1] = d_lst[-1]
+                for i in reversed(range(len(c_lst) - 1)):
+                    sol[i] = d_lst[i] - c_lst[i] * sol[i + 1]
+            row = [None] * (n_tot + 1)
+            bm2 = rm_white_bm
+            i2 = 0
+            #print(f"sol = {sol}")
+            for i in range(n_tot):
+                if not bm2 & 1:
+                    row[i] = sol[i2]
+                    i2 += 1
+                else:
+                    row[i] = prev_row[i]
+                bm2 >>= 1
+            row[-1] = CustomFraction(n_tot, 1)
+            return row
             """
             c_lst = [-CustomFraction(n_tot - 1, n_tot)]
             d_lst = [CustomFraction(n_tot - 1, n_tot)]
@@ -4703,13 +4756,19 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
 
         sols = []
         sol_bms = []
+        prev_row2 = list(prev_row)
+        prev_row2.append(CustomFraction(n_tot, 1))
         for bm in range(1 << (n_tot)):
-            row = calculateRowExpected(bm)
+            row = rowForRemoveWhiteBitmask(bm)
+            #print(format(bm, "b").zfill(n_tot + 1), row)
             bm2 = bm
-            for i, frac in enumerate(row):
+            for i in range(len(row) - 1):
+                frac = row[i]
                 b = bm2 & 1
                 bm2 >>= 1
-                if frac != prev_row[i] and (frac < prev_row[i] != b):
+                #print(frac, i, prev_row2, b)
+                if not b and (frac <= prev_row2[i]):
+                    #print("hi")
                     break
             else:
                 sols.append(row)
@@ -4719,8 +4778,8 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
             return []
         elif len(sols) > 1:
             print("multiple solutions found for the bitmasks:")
-            for bm in sol_bms:
-                print(format(bm, "b").zfill(n_tot + 1))
+            for bm, row in zip(sol_bms, sols):
+                print(format(bm, "b").zfill(n_tot + 1), [x.numerator / x.denominator for x in row])
         return sols[0]
         """
         lo, hi = 0, n_tot - 1
@@ -4766,7 +4825,7 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
     for n_tot in range(1, n + 1):
         row = calculateRowExpected(row)
         print(n_tot, row)
-    return row[n_white_init]
+    return row[n_black_init]
 
 
 def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
@@ -5155,12 +5214,12 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
 
     if 339 in eval_nums:
-            since = time.time()
-            res = peredurFabEfrawgMaximumExpectedBlackSheepFloat(
-                n_white_init=2,
-                n_black_init=1,
-            )
-            print(f"Solution to Project Euler #339 = {res}, calculated in {time.time() - since:.4f} seconds")
+        since = time.time()
+        res = peredurFabEfrawgMaximumExpectedBlackSheepFloat(
+            n_white_init=3,
+            n_black_init=3,
+        )
+        print(f"Solution to Project Euler #339 = {res}, calculated in {time.time() - since:.4f} seconds")
     
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
