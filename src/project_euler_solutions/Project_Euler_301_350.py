@@ -4880,24 +4880,26 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
         for i in reversed(range(n_tot)):
             a0 = CustomFraction(0, 1)
             b0 = CustomFraction(1, 1)
-            c0 = CustomFraction(0, 1)
+            c0 = -CustomFraction(i, n_tot)
             d0 = CustomFraction(0, 1)
             prev_d2 = d2
-            if i > 0:
-                c0 = -CustomFraction(n_tot - i, n_tot)
             if i < n_tot - 1:
-                a0 += -CustomFraction(i, n_tot)
+                a0 += -CustomFraction(n_tot - i, n_tot)
             else: d0 += CustomFraction(n_tot - 1, 1)
             if not c_lst:
+                #print(i, "hi1")
                 c_lst.append(c0 / b0)
                 d_lst.append(d0 / b0)
-                d2 = (d0 + CustomFraction(i, 1)) / b0
+                d2 = (d0 + CustomFraction(i - 1, n_tot)) / b0
             else:
+                #print(i, "hi2")
                 denom = b0 - a0 * c_lst[-1]
                 c_lst.append(c0 / denom)
                 d_lst.append((d0 - a0 * d_lst[-1]) / denom)
-                d2 = (d0 + CustomFraction(i, 1) - a0 * d_lst[-1]) / denom
-            if d2 <= prev_row[i]:
+                d2 = (d0 + CustomFraction(i - 1, n_tot) - a0 * d_lst[-1]) / denom
+            print(c_lst, d_lst)
+            print(f"a0 = {a0}, b0 = {b0}, c0 = {c0}, d0 = {d0}, d2 = {d2}")
+            if d2 < prev_row[i]:
                 break
         #print(c_lst, d_lst)
         sol = [CustomFraction(0, 1) for _ in range(len(d_lst) - 1)]
@@ -5301,8 +5303,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 339 in eval_nums:
         since = time.time()
         res = peredurFabEfrawgMaximumExpectedBlackSheepFloat(
-            n_white_init=5,
-            n_black_init=5,
+            n_white_init=1,
+            n_black_init=2,
         )
         print(f"Solution to Project Euler #339 = {res}, calculated in {time.time() - since:.4f} seconds")
     
