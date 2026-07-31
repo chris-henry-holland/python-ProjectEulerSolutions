@@ -4779,7 +4779,7 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
                 sols.append(row)
                 sol_bms.append(bm)
                 is_sol = True
-            #print(format(bm, "b").zfill(n_tot + 1), [x.numerator / x.denominator for x in row], is_sol)
+            print(format(bm, "b").zfill(n_tot + 1), [x.numerator / x.denominator for x in row], is_sol)
         if not sols:
             print("no solution found")
             return []
@@ -4872,7 +4872,8 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
         #c_lst = [CustomFraction(1, n_tot)]
         #d_lst = [CustomFraction(n_tot - 1, n_tot)]
         #prev = CustomFraction(0, 1)
-        row = list(prev_row) + [CustomFraction(n_tot, 1)]
+        prev_row.append(CustomFraction(n_tot, 1))
+        row = list(prev_row)# + [CustomFraction(n_tot, 1)]
         c_lst = []
         d_lst = []
         d2 = None
@@ -4880,25 +4881,27 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
         for i in reversed(range(n_tot)):
             a0 = CustomFraction(0, 1)
             b0 = CustomFraction(1, 1)
-            c0 = -CustomFraction(i, n_tot)
+            c0 = -CustomFraction(n_tot - i, n_tot)
             d0 = CustomFraction(0, 1)
             prev_d2 = d2
             if i < n_tot - 1:
-                a0 += -CustomFraction(n_tot - i, n_tot)
+                a0 += -CustomFraction(i, n_tot)
             else: d0 += CustomFraction(n_tot - 1, 1)
             if not c_lst:
                 #print(i, "hi1")
+                d2 = (d0 + CustomFraction(n_tot - i, n_tot) * prev_row[i - 1]) / b0
                 c_lst.append(c0 / b0)
                 d_lst.append(d0 / b0)
-                d2 = (d0 + CustomFraction(i - 1, n_tot)) / b0
+                
             else:
                 #print(i, "hi2")
                 denom = b0 - a0 * c_lst[-1]
+                d2 = (d0 + CustomFraction(n_tot - i, n_tot) * prev_row[i - 1] - a0 * d_lst[-1]) / denom
                 c_lst.append(c0 / denom)
                 d_lst.append((d0 - a0 * d_lst[-1]) / denom)
-                d2 = (d0 + CustomFraction(i - 1, n_tot) - a0 * d_lst[-1]) / denom
-            print(c_lst, d_lst)
-            print(f"a0 = {a0}, b0 = {b0}, c0 = {c0}, d0 = {d0}, d2 = {d2}")
+                
+            #print(c_lst, d_lst)
+            #print(f"a0 = {a0}, b0 = {b0}, c0 = {c0}, d0 = {d0}, d2 = {d2}")
             if d2 < prev_row[i]:
                 break
         #print(c_lst, d_lst)
@@ -4916,7 +4919,7 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFraction(
     row = [CustomFraction(0, 1)]
     for n_tot in range(1, n + 1):
         row = calculateRowExpected(row)
-        print(n_tot, row)
+        #print(n_tot, row)
     return CustomFraction(n_black_init, n_tot) * row[n_black_init + 1] + CustomFraction(n_white_init, n_tot) * row[n_black_init - 1]
 
     """
@@ -5024,6 +5027,94 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFloat(
     )
     print(res)
     return res.numerator / res.denominator
+
+def peredurFabEfrawgMaximumExpectedBlackSheepFloatDirect(
+    n_white_init: int,
+    n_black_init: int,
+) -> float:
+    """
+    Solution to Project Euler #339
+    """
+
+    if not n_white_init or not n_black_init:
+        return float(n_black_init)
+
+    c_lst = []
+    d_coeff_lst = []
+
+    def calculateRowExpected(prev_row: list[float]) -> list[float]:
+        n_tot = len(prev_row)
+        #row = [CustomFraction(0, 1) for _ in range(n_tot)]
+        #row[-1] = n_tot
+        """
+        i0 = len(d_coeff_lst)
+        row = list(prev_row) + [n_tot]
+        a0 = 
+        d_coeffs = 
+        if d_coeff_lst and d_coeff_lst[i0][0] + CustomFraction(n_tot, 1) * d_coeff_lst[i0][1] <= prev_row[~i0]:
+            for i in reversed(range(i0)):
+                if d_coeff_lst[i][0] + CustomFraction(n_tot, 1) * d_coeff_lst[i][1] > prev_row[~i]:
+                    break
+            else: return row
+            for i in range(i0 + 1, n_tot):
+
+        if i0 < 0:
+            
+            i0 += 1
+        """
+
+        # Using Tridiagonal matrix algorithm (Thomas algorithm)
+        prev_row.append(n_tot)
+        row = list(prev_row)
+        c_lst = []
+        d_lst = []
+        d2 = None
+        prev_d2 = None
+        for i in reversed(range(n_tot)):
+            a0 = 0
+            b0 = 1
+            c0 = -(n_tot - i) / n_tot
+            d0 = 0
+            prev_d2 = d2
+            if i < n_tot - 1:
+                a0 += -i / n_tot
+            else: d0 += (n_tot - 1) / 1
+            if not c_lst:
+                #print(i, "hi1")
+                d2 = (d0 + ((n_tot - i) / n_tot) * prev_row[i - 1]) / b0
+                c_lst.append(c0 / b0)
+                d_lst.append(d0 / b0)
+                
+            else:
+                #print(i, "hi2")
+                denom = b0 - a0 * c_lst[-1]
+                d2 = (d0 + ((n_tot - i) / n_tot) * prev_row[i - 1] - a0 * d_lst[-1]) / denom
+                c_lst.append(c0 / denom)
+                d_lst.append((d0 - a0 * d_lst[-1]) / denom)
+                
+            #print(c_lst, d_lst)
+            #print(f"a0 = {a0}, b0 = {b0}, c0 = {c0}, d0 = {d0}, d2 = {d2}")
+            if d2 < prev_row[i]:
+                break
+        #print(c_lst, d_lst)
+        sol = [0 for _ in range(len(d_lst) - 1)]
+        #print(f"c_lst = {c_lst}, d_lst = {d_lst}")
+        if prev_d2 is not None:
+            sol[-1] = prev_d2
+            for i in reversed(range(len(d_lst) - 2)):
+                sol[i] = d_lst[i] - c_lst[i] * sol[i + 1]
+        for i in range(len(sol)):
+            row[~(i + 1)] = sol[i]
+        return row
+
+    n = n_white_init + n_black_init
+    row = [0]
+    for n_tot in range(1, n + 1):
+        if not n_tot % (10 ** 2):
+            print(f"Calculating for n_tot = {n_tot} (of {n})")
+        row = calculateRowExpected(row)
+        #print(n_tot, row)
+    return (n_black_init / n_tot) * row[n_black_init + 1] + (n_white_init / n_tot) * row[n_black_init - 1]
 
 ##############
 project_euler_num_range = (301, 350)
@@ -5299,12 +5390,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #337 = {res}, calculated in {time.time() - since:.4f} seconds")
 
-
     if 339 in eval_nums:
         since = time.time()
-        res = peredurFabEfrawgMaximumExpectedBlackSheepFloat(
-            n_white_init=1,
-            n_black_init=2,
+        res = peredurFabEfrawgMaximumExpectedBlackSheepFloatDirect(
+            n_white_init=10 ** 4,
+            n_black_init=10 ** 4,
         )
         print(f"Solution to Project Euler #339 = {res}, calculated in {time.time() - since:.4f} seconds")
     
