@@ -5401,7 +5401,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {339}
+    eval_nums = {330}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
