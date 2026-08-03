@@ -4192,6 +4192,43 @@ def eulerSequenceTermCoefficientSumBruteForce(
     print(pair)
     return addMod(*pair)
 
+"""
+def eulerSequenceModuloPrimePower(
+    n: int,
+    p: int,
+    exp: int,
+) -> list[tuple[int, int]]:
+
+    multiplicativeInverse = lambda x: pow(x, p - 2, p)
+
+    addMod = (lambda x, y: (x + y) % p)
+    mulMod = (lambda x, y: (x * y) % p)
+    updateBinom = (lambda binom, n, k: mulMod(mulMod(binom, (n - k + 1)), multiplicativeInverse(k)))
+    arr = [1]
+    for i in range(1, n + 1):
+        #print(f"i = {i}")
+        tot = mulMod(mulMod(2, i), arr[-1])
+        binom = i
+        #binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+        #    i,
+        #    1,
+        #    res_md,
+        #    res_md_pf,
+        #) if res_md is not None else math.comb(i, 1)
+        #print(1, binom)
+        for k in range(2, i + 1):
+            binom = updateBinom(binom, i, k)
+            #print(f"i = {i}, k = {k}, res_md = {res_md}, (i choose k) = {binom} (mod res_md) ({math.comb(i, k) % res_md})")
+            tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
+        arr.append(tot)
+    fact = 1
+    for i in range(2, n + 1):
+        fact = mulMod(fact, i)
+    res = (addMod(fact, mulMod(2, -arr[-1])), arr[-1])
+    #print(arr)
+    return res
+"""
+
 # Problem 332
 def pointsOnSphereWithIntegerCoordinatesBruteForce(
     radius: int,
@@ -5401,7 +5438,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {330}
+    eval_nums = {3300}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -5533,3 +5570,7 @@ for arr in lst:
     cnts[arr[0]] += 1
 print(cnts)
 """
+p = 7
+exp = 1
+for n in range(0, 201):
+    print(n, eulerSequenceTermBruteForce(n, res_md=p ** exp))
