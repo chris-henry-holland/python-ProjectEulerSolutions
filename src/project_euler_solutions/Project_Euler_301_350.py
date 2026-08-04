@@ -5570,7 +5570,11 @@ for arr in lst:
     cnts[arr[0]] += 1
 print(cnts)
 """
-p = 7
-exp = 1
-for n in range(0, 201):
-    print(n, eulerSequenceTermBruteForce(n, res_md=p ** exp))
+for p in [2, 3, 5, 7, 11, 13, 17]:
+    exp = 1
+    lst = []
+    for n in range(p, 201):
+        lst.append(eulerSequenceTermBruteForce(n, res_md=p ** exp))
+    kmp = KnuthMorrisPratt(lst)
+    print(p, kmp.lps)
+    print(p, kmp.lps[-1] - len(lst))    
