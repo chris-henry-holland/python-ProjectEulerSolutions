@@ -4087,6 +4087,36 @@ def binomialCoefficientModuloPrimePower(
     # TODO- implement generalisation of Lucas's theorem for higher
     # prime powers
 
+    # temp solution
+    num = n
+    e = 0
+    while num:
+        num = num // p
+        e += num
+    for num in [k, n - k]:
+        while num:
+            num = num // p
+            e -= num
+    if e >= exp: return 0
+    res = p ** e
+
+    res_md = p ** exp
+    it = itertools.chain([2], range(3, min(n + 1, p), 2), range(p + 1 + (p & 1), n + 1))
+    res = 1
+    for p2 in it:
+        num = n
+        e2 = 0
+        while num:
+            num = num // p2
+            e2 += num
+        for num in [k, n - k]:
+            while num:
+                num = num // p2
+                e2 -= num
+        if e2:
+            res = (res * pow(p2, e, res_md)) % res_md
+    return res
+
 def moduloMultiplicativeIndex(num: int, md: int) -> int:
     return solveLinearCongruence(num, 1, md)
 
@@ -4114,6 +4144,7 @@ def binomialCoefficientModuloIntegerWithPrimeFactorisation(
         #print(num, N)
         N_inv = moduloMultiplicativeIndex(N, num)
         sol = binomialCoefficientModuloPrimePower(n, k, p_lst[idx], md_pf[p_lst[idx]])
+        #print(sol)
         #print(f"p_pow = {p_lst[idx]} ** {md_pf[p_lst[idx]]}: {n} choose {k} modulo p_pow equals {sol} ({math.comb(n, k) % (p_lst[idx] ** md_pf[p_lst[idx]])})")
         #mults[idx] = (N * N_inv) % n
         res = (res + ((N * N_inv) % md) * sol) % md
@@ -4132,6 +4163,51 @@ def binomialCoefficientModuloInteger(
         md,
         md_pf,
     )
+
+def eulerSequenceBruteForce(
+    n_max: int,
+    res_md: Optional[int]=None,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> list[tuple[int, int]]:
+    # Note that the coefficient of e appears to follow OEIS A337000
+    # Furthermore it appears that:
+    #   2 * (e coeff) + (const coeff) - math.factorial(i) = 0
+
+    if res_md is not None: res_md_pf = calculatePrimeFactorisation(res_md, ps=ps)
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+    updateBinom = (lambda binom, n, k: binom * (n - k + 1) // k) if res_md is None else\
+        (lambda binom, n, k: mulMod(mulMod(binom, (n - k + 1)), moduloMultiplicativeIndex(k, res_md)))
+    arr = [1]
+    res = [(-1 if res_md is None else res_md - 1, 1)]
+    fact = 1
+    for i in range(1, n_max + 1):
+        #print(f"i = {i}")
+        tot = mulMod(mulMod(2, i), arr[-1])
+        #binom = i
+        #binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+        #    i,
+        #    1,
+        #    res_md,
+        #    res_md_pf,
+        #) if res_md is not None else math.comb(i, 1)
+        #print(1, binom)
+        for k in range(2, i + 1):
+            #binom = updateBinom(binom, i, k)
+            binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+                i,
+                k,
+                res_md,
+                res_md_pf,
+            ) if res_md is not None else math.comb(i, k)
+            #print(f"i = {i}, k = {k}, res_md = {res_md}, (i choose k) = {binom} (mod res_md) ({math.comb(i, k) % res_md})")
+            tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
+        arr.append(tot)
+        fact = mulMod(fact, i)
+        res.append((addMod(fact, mulMod(2, -arr[-1])), arr[-1]))
+    #print(arr)
+    return res
 
 def eulerSequenceTermBruteForce(
     n: int,
@@ -4182,9 +4258,6 @@ def eulerSequenceTermCoefficientSumBruteForce(
     n: int=10 ** 9,
     res_md: Optional[int]=77_777_777,
 ) -> int:
-    """
-    Solution to Project Euler #330
-    """
     # 77_777_777 = 7 * 11 * 73 * 101 * 137
 
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
@@ -4228,6 +4301,74 @@ def eulerSequenceModuloPrimePower(
     #print(arr)
     return res
 """
+def eulerSequenceTermModuloPrime(
+    n: int,
+    p: int,
+) -> tuple[int, int]:
+    # TODO- find a way to generalise this to prime powers
+    n2 = n if n2 < p else p + ((n - p) % (p * (p - 1)))
+    addMod = lambda x, y: (x + y) % p
+    mulMod = lambda x, y: (x * y) % p
+    arr = [1]
+    for i in range(1, n + 1):
+        #print(f"i = {i}")
+        tot = mulMod(mulMod(2, i), arr[-1])
+        #binom = i
+        #binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+        #    i,
+        #    1,
+        #    res_md,
+        #    res_md_pf,
+        #) if res_md is not None else math.comb(i, 1)
+        #print(1, binom)
+        for k in range(2, i + 1):
+            #binom = updateBinom(binom, i, k)
+            binom = binomialCoefficientModuloIntegerWithPrimeFactorisation(
+                i,
+                k,
+                p,
+                {p: 1},
+            )
+            #print(f"i = {i}, k = {k}, res_md = {res_md}, (i choose k) = {binom} (mod res_md) ({math.comb(i, k) % res_md})")
+            tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
+        arr.append(tot)
+    fact = 1
+    for i in range(2, n + 1):
+        fact = mulMod(fact, i)
+    res = (addMod(fact, mulMod(2, -arr[-1])), arr[-1])
+    #print(arr)
+    return res
+
+def eulerSequenceTerm(
+    n: int,
+    res_md: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> tuple[int, int]:
+    square_free = False
+    pf = {}
+    if res_md is not None:
+        pf = calculatePrimeFactorisation(res_md, ps)
+        square_free = (not pf or max(pf.values()) == 1)
+    if not square_free:
+        return eulerSequenceTermBruteForce(n, res_md, ps)
+    md_sols = []
+    for p in pf.values():
+        md_sols.append((p, eulerSequenceTermModuloPrime(n, p)))
+    # Use Chinese remainder theorem
+
+def eulerSequenceTermCoefficientSum(
+    n: int=10 ** 9,
+    res_md: Optional[int]=77_777_777,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Solution to Project Euler #330
+    """
+    # 77_777_777 = 7 * 11 * 73 * 101 * 137
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    pair = eulerSequenceTerm(n, res_md=res_md)
+    #print(pair)
+    return addMod(*pair)
 
 # Problem 332
 def pointsOnSphereWithIntegerCoordinatesBruteForce(
@@ -5570,11 +5711,14 @@ for arr in lst:
     cnts[arr[0]] += 1
 print(cnts)
 """
+"""
+exp = 1
 for p in [2, 3, 5, 7, 11, 13, 17]:
-    exp = 1
-    lst = []
-    for n in range(p, 201):
-        lst.append(eulerSequenceTermBruteForce(n, res_md=p ** exp))
-    kmp = KnuthMorrisPratt(lst)
+    n_mx = 2 * p ** (2 * exp)
+    seq = eulerSequenceBruteForce(n_mx, res_md=p ** exp)
+    #print(seq)
+    sm_seq = [sum(x) for x in seq]
+    kmp = KnuthMorrisPratt(seq[p:])
     print(p, kmp.lps)
-    print(p, kmp.lps[-1] - len(lst))    
+    print(p, len(sm_seq) - p - kmp.lps[-1], p * (p - 1))
+"""
