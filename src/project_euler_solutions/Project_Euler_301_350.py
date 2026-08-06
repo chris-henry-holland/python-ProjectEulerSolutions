@@ -4306,11 +4306,12 @@ def eulerSequenceTermModuloPrime(
     p: int,
 ) -> tuple[int, int]:
     # TODO- find a way to generalise this to prime powers
-    n2 = n if n2 < p else p + ((n - p) % (p * (p - 1)))
+    print(f"p = {p}")
+    n2 = n if n < p else p + ((n - p) % (p * (p - 1)))
     addMod = lambda x, y: (x + y) % p
     mulMod = lambda x, y: (x * y) % p
     arr = [1]
-    for i in range(1, n + 1):
+    for i in range(1, n2 + 1):
         #print(f"i = {i}")
         tot = mulMod(mulMod(2, i), arr[-1])
         #binom = i
@@ -4333,11 +4334,41 @@ def eulerSequenceTermModuloPrime(
             tot = addMod(tot, -mulMod(mulMod(k - 1, binom), arr[i - k]))
         arr.append(tot)
     fact = 1
-    for i in range(2, n + 1):
+    for i in range(2, n2 + 1):
         fact = mulMod(fact, i)
     res = (addMod(fact, mulMod(2, -arr[-1])), arr[-1])
     #print(arr)
     return res
+
+def solveCoprimeSimultaneousLinearCongruences(
+    congruences: list[tuple[int, int]],
+    check_coprime: bool=True,
+) -> tuple[int, int]:
+
+    n_cong = len(congruences)
+    if check_coprime:
+        for i1 in range(n_cong - 1):
+            md1 = congruences[i1][0]
+            for i2 in range(i1 + 1, n_cong):
+                if gcd(md1, congruences[i2][0]) > 1:
+                    raise ValueError("The moduli in congruences must "
+                                    "be pairwise coprime.")
+    md_cumu = [1] * (n_cong + 1)
+    for i in reversed(range(n_cong)):
+        md_cumu[i] = md_cumu[i + 1] * congruences[i][0]
+    M_curr = 1
+    res = [0, 0]
+    for i, cong in enumerate(congruences):
+        print(cong)
+        M = M_curr * md_cumu[i + 1]
+        y = solveLinearCongruence(M, 1, cong[0])
+        if y < 0:
+            raise ValueError("The moduli in congruences must "
+                            "be pairwise coprime.")
+        print(res, cong[1], M, y)
+        res = [(res[j] + cong[1][j] * M * y) % md_cumu[0] for j in range(2)]
+        M_curr *= cong[0]
+    return (md_cumu[0], res)
 
 def eulerSequenceTerm(
     n: int,
@@ -4352,9 +4383,15 @@ def eulerSequenceTerm(
     if not square_free:
         return eulerSequenceTermBruteForce(n, res_md, ps)
     md_sols = []
-    for p in pf.values():
+    for p in pf.keys():
         md_sols.append((p, eulerSequenceTermModuloPrime(n, p)))
     # Use Chinese remainder theorem
+    res = solveCoprimeSimultaneousLinearCongruences(
+        md_sols,
+        check_coprime=False,
+    )
+    print(res)
+    return res[1]
 
 def eulerSequenceTermCoefficientSum(
     n: int=10 ** 9,
@@ -5524,8 +5561,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 330 in eval_nums:
         since = time.time()
-        res = eulerSequenceTermCoefficientSumBruteForce(
-            n=10 ** 3,
+        res = eulerSequenceTermCoefficientSum(
+            n=10 ** 9,
             res_md=77_777_777,
         )
         print(f"Solution to Project Euler #330 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -5579,7 +5616,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3300}
+    eval_nums = {330}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
