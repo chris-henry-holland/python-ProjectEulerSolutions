@@ -5331,6 +5331,16 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFloatDirect(
         #print(n_tot, row)
     return (n_black_init / n_tot) * row[n_black_init + 1] + (n_white_init / n_tot) * row[n_black_init - 1]
 
+# Problem 340
+def crazyFunction(
+    n: int,
+    a: int,
+    b: int,
+    c: int,
+) -> int:
+    F = lambda x: crazyFunction(x, a, b, c)
+    return n - c if n > b else F(a + F(a + F(a + F(a + n))))
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -5616,7 +5626,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {330}
+    eval_nums = {340}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -5759,3 +5769,9 @@ for p in [2, 3, 5, 7, 11, 13, 17]:
     print(p, kmp.lps)
     print(p, len(sm_seq) - p - kmp.lps[-1], p * (p - 1))
 """
+
+a = 50
+b = 2000
+c = 40
+for n in range(201):
+    print(n, crazyFunction(n, a, b, c))
