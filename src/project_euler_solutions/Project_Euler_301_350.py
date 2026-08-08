@@ -5332,7 +5332,7 @@ def peredurFabEfrawgMaximumExpectedBlackSheepFloatDirect(
     return (n_black_init / n_tot) * row[n_black_init + 1] + (n_white_init / n_tot) * row[n_black_init - 1]
 
 # Problem 340
-def crazyFunction(
+def crazyFunctionBruteForce(
     n: int,
     a: int,
     b: int,
@@ -5340,6 +5340,27 @@ def crazyFunction(
 ) -> int:
     F = lambda x: crazyFunction(x, a, b, c)
     return n - c if n > b else F(a + F(a + F(a + F(a + n))))
+
+def crazyFunction(
+    n: int,
+    a: int,
+    b: int,
+    c: int,
+) -> int:
+    return n + 4 * (a - c) + (4 * a - 3 * c) * ((b - n) // a) if n <= b else n + 4 * (a - c)
+
+def crazyFunctionSum(
+    a: int=21 ** 7,
+    b: int=7 ** 21,
+    c: int=12 ** 7,
+    res_md: Optional[int]=10 ** 9,
+) -> int:
+    """
+    Solution to Project Euler #340
+    """
+    q, r = divmod(b, a)
+    res = ((b * (b + 1)) >> 1) + 4 * (a - c) * (b + 1) + (4 * a - 3 * c) * ((a * q * (q - 1) >> 1) + (r + 1) * q)
+    return res if res_md is None else res % res_md
 
 ##############
 project_euler_num_range = (301, 350)
@@ -5622,7 +5643,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
             n_black_init=10 ** 4,
         )
         print(f"Solution to Project Euler #339 = {res}, calculated in {time.time() - since:.4f} seconds")
-    
+
+    if 340 in eval_nums:
+        since = time.time()
+        res = crazyFunctionSum(
+            a=21 ** 7,
+            b=7 ** 21,
+            c=12 ** 7,
+            res_md=10 ** 9,
+        )
+        print(f"Solution to Project Euler #340 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
@@ -5770,8 +5801,19 @@ for p in [2, 3, 5, 7, 11, 13, 17]:
     print(p, len(sm_seq) - p - kmp.lps[-1], p * (p - 1))
 """
 
+"""
 a = 50
 b = 2000
-c = 40
-for n in range(201):
-    print(n, crazyFunction(n, a, b, c))
+
+n = 100
+
+c = 0
+curr = crazyFunction(n, a, b, c)
+for c in range(1, 41):
+    prev = curr
+    curr = crazyFunction(n, a, b, c)
+    print(f"c = {c}, n = {n}, diff = {curr - prev}")
+
+#for n in range(201):
+#    print(n, crazyFunction(n, a, b, c))
+"""
