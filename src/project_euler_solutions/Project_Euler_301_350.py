@@ -5362,6 +5362,15 @@ def crazyFunctionSum(
     res = ((b * (b + 1)) >> 1) + 4 * (a - c) * (b + 1) + (4 * a - 3 * c) * ((a * q * (q - 1) >> 1) + (r + 1) * q)
     return res if res_md is None else res % res_md
 
+
+def golombSelfDescribingSequenceTerm(n: int) -> int:
+    # Using recurrence from https://en.wikipedia.org/wiki/Golomb_sequence
+
+    a = [0, 1]
+    for m in range(2, n + 1):
+        a.append(1 + a[m - a[a[m - 1]]])
+    return a[n]
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -5657,7 +5666,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {340}
+    eval_nums = {341}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -5817,3 +5826,6 @@ for c in range(1, 41):
 #for n in range(201):
 #    print(n, crazyFunction(n, a, b, c))
 """
+
+for n in range(1, 21):
+    print(n, golombSelfDescribingSequenceTerm(n))
