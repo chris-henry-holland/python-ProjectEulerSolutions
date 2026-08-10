@@ -5371,6 +5371,54 @@ def golombSelfDescribingSequenceTerm(n: int) -> int:
         a.append(1 + a[m - a[a[m - 1]]])
     return a[n]
 
+def golombSelfDescribingSequenceTerm2(n: int) -> int:
+    # Using recurrence from https://en.wikipedia.org/wiki/Golomb_sequence
+
+    a = [0, 1]
+    cumu = sum(a)
+    for m in range(2, n + 1):
+        a.append(1 + a[m - a[a[m - 1]]])
+        #prev = cumu
+        cumu += a[-1]
+        #print(n, m, a, cumu)
+        if cumu >= n:
+            print(n, len(a))
+            return m
+    
+    return a[n]
+
+# Problem 342
+def totientOfSquareIsCubeCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]=None) -> int:
+
+    if ps is not None:
+        ps.extendSieve(n_max)
+    res = 0
+    for n in range(1, n_max + 1):
+        pf0 = calculatePrimeFactorisation(n, ps=ps)
+        tot_pf = SortedDict({x: 0 for x in pf0.keys()})
+        while tot_pf:
+            p, f0 = tot_pf.popitem(-1)
+            if p not in pf0.keys():
+                if f0 % 3: break
+                continue
+            f = (pf0[p] << 1) - 1 + f0
+            if f % 3: break
+            pf2 = calculatePrimeFactorisation(p - 1)
+            for p2, f2 in pf2.items():
+                tot_pf[p2] = tot_pf.get(p2, 0) + f2
+        else:
+            print(n, n * n, pf0)
+            res += 1
+    return res
+        
+
+
+def totientOfSquareIsCubeCount(n_max: int) -> int:
+    p_max = isqrt(n_max)
+    ps = PrimeSPFsieve(p_max)
+    return 0
+
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -5826,6 +5874,8 @@ for c in range(1, 41):
 #for n in range(201):
 #    print(n, crazyFunction(n, a, b, c))
 """
-
-for n in range(1, 21):
-    print(n, golombSelfDescribingSequenceTerm(n))
+"""
+for n in range(10 ** 12, 10 ** 12 + 1):
+    print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
+"""
+#print(totientOfSquareIsCubeCountBruteForce(10 ** 6, ps=None))
