@@ -5416,7 +5416,77 @@ def totientOfSquareIsCubeCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]
 def totientOfSquareIsCubeCount(n_max: int) -> int:
     p_max = isqrt(n_max)
     ps = PrimeSPFsieve(p_max)
-    return 0
+    res = 0
+    p_lst = []
+    for p in ps.p_lst:
+        if p > p_max: break
+        p_lst.append(p)
+
+    curr_pf_mod3 = SortedDict()
+    curr_pf = {}
+
+    def recur(p_idx_mx: int, remain: int) -> int:
+        #print(p_idx_mx, remain, curr_pf_mod3, curr_pf)
+        res = 0
+        if not curr_pf_mod3:
+            res += 1
+            print(curr_pf)
+        #if curr_pf_mod3 and curr_pf_mod3.peekitem(-1)[0] > remain:
+        #    return res
+        p0 = -1
+        p_idx0 = -1
+        if curr_pf_mod3:
+            p0 = curr_pf_mod3.peekitem(-1)[0]
+            p_idx0 = bisect.bisect_left(p_lst, p0)
+        if p_idx0 > p_idx_mx: return res
+        #f0 = 0
+        if p_idx0 >= 0:
+            p_idx = p_idx0
+            f0 = curr_pf_mod3.pop(p_lst[p_idx])
+            remain2 = remain if f0 == 1 else remain // p_lst[p_idx]
+            if remain2:
+                p_min_one_pf = ps.primeFactorisation(p_lst[p_idx] - 1)
+                p_min_one_pf_md3 = {p: f % 3 for p, f in p_min_one_pf.items() if (f % 3)}
+                for p, f in p_min_one_pf_md3.items():
+                    curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) + f) % 3
+                    if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+                p_cb = p_lst[p_idx] ** 3
+                for f in itertools.count(3 if f0 == 1 else 1, step=3):
+                    curr_pf[p_lst[p_idx]] = f
+                    res += recur(p_idx - 1, remain2)
+                    remain2 //= p_cb
+                    if not remain2: break
+                for p, f in p_min_one_pf_md3.items():
+                    curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) - f) % 3
+                    if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+                if p_lst[p_idx] in curr_pf.keys():
+                    curr_pf.pop(p_lst[p_idx])
+            curr_pf_mod3[p_lst[p_idx]] = f0
+        p_idx_ub = bisect.bisect_right(p_lst, isqrt(remain), hi=min(len(p_lst), p_idx_mx))
+        for p_idx in range(p_idx0 + 1, p_idx_ub):
+            p_sq = p_lst[p_idx] * p_lst[p_idx]
+            p_min_one_pf = ps.primeFactorisation(p_lst[p_idx] - 1)
+            p_min_one_pf_md3 = {p: f % 3 for p, f in p_min_one_pf.items() if (f % 3)}
+            for p, f in p_min_one_pf_md3.items():
+                curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) + f) % 3
+                if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+            remain2 = remain // p_sq
+            p_cb = p_sq * p_lst[p_idx]
+            for f in itertools.count(2, step=3):
+                curr_pf[p_lst[p_idx]] = f
+                res += recur(p_idx - 1, remain2)
+                remain2 //= p_cb
+                if not remain2: break
+            for p, f in p_min_one_pf_md3.items():
+                curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) - f) % 3
+                if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+            if p_lst[p_idx] in curr_pf.keys():
+                curr_pf.pop(p_lst[p_idx])
+            
+        return res
+
+    res = recur(len(ps.p_lst), n_max)
+    return res
 
 
 ##############
@@ -5878,4 +5948,6 @@ for c in range(1, 41):
 for n in range(10 ** 12, 10 ** 12 + 1):
     print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
 """
-#print(totientOfSquareIsCubeCountBruteForce(10 ** 6, ps=None))
+print(totientOfSquareIsCubeCountBruteForce(10 ** 3, ps=PrimeSPFsieve()))
+
+print(totientOfSquareIsCubeCount(10 ** 3))
