@@ -5413,7 +5413,7 @@ def totientOfSquareIsCubeCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]
         
 
 
-def totientOfSquareIsCubeCount(n_max: int) -> int:
+def totientOfSquareIsCubeCount(n_max: int=10 ** 10 - 1) -> int:
     p_max = isqrt(n_max)
     ps = PrimeSPFsieve(p_max)
     res = 0
@@ -5430,7 +5430,8 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
         res = 0
         if not curr_pf_mod3:
             res += 1
-            print(curr_pf)
+            #print(curr_pf)
+        if p_idx_mx < 0: return res
         #if curr_pf_mod3 and curr_pf_mod3.peekitem(-1)[0] > remain:
         #    return res
         p0 = -1
@@ -5439,6 +5440,9 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
             p0 = curr_pf_mod3.peekitem(-1)[0]
             p_idx0 = bisect.bisect_left(p_lst, p0)
         if p_idx0 > p_idx_mx: return res
+        p_idx_ub = bisect.bisect_right(p_lst, isqrt(remain), hi=min(len(p_lst), p_idx_mx + 1))
+        #print(p_lst, isqrt(remain), min(len(p_lst), p_idx_mx))
+        #print(f"p_idx0 = {p_idx0}, p_idx_ub = {p_idx_ub}")
         #f0 = 0
         if p_idx0 >= 0:
             p_idx = p_idx0
@@ -5453,6 +5457,7 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
                 p_cb = p_lst[p_idx] ** 3
                 for f in itertools.count(3 if f0 == 1 else 1, step=3):
                     curr_pf[p_lst[p_idx]] = f
+                    #print(f"calling recur({p_idx - 1}, {remain2}) from recur({p_idx_mx}, {remain})")
                     res += recur(p_idx - 1, remain2)
                     remain2 //= p_cb
                     if not remain2: break
@@ -5462,7 +5467,7 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
                 if p_lst[p_idx] in curr_pf.keys():
                     curr_pf.pop(p_lst[p_idx])
             curr_pf_mod3[p_lst[p_idx]] = f0
-        p_idx_ub = bisect.bisect_right(p_lst, isqrt(remain), hi=min(len(p_lst), p_idx_mx))
+        
         for p_idx in range(p_idx0 + 1, p_idx_ub):
             p_sq = p_lst[p_idx] * p_lst[p_idx]
             p_min_one_pf = ps.primeFactorisation(p_lst[p_idx] - 1)
@@ -5474,6 +5479,7 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
             p_cb = p_sq * p_lst[p_idx]
             for f in itertools.count(2, step=3):
                 curr_pf[p_lst[p_idx]] = f
+                #print(f"calling recur({p_idx - 1}, {remain2}) from recur({p_idx_mx}, {remain})")
                 res += recur(p_idx - 1, remain2)
                 remain2 //= p_cb
                 if not remain2: break
@@ -5488,6 +5494,168 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
     res = recur(len(ps.p_lst), n_max)
     return res
 
+def totientOfSquareIsCubeSum(n_min: int=2, n_max: int=10 ** 10 - 1) -> int:
+    p_max = isqrt(n_max)
+    ps = PrimeSPFsieve(p_max)
+    res = 0
+    p_lst = []
+    for p in ps.p_lst:
+        if p > p_max: break
+        p_lst.append(p)
+
+    curr_pf_mod3 = SortedDict()
+    curr_pf = {}
+
+    def recur(p_idx_mx: int, remain: int, curr: int=1) -> int:
+        #print(p_idx_mx, remain, curr_pf_mod3, curr_pf)
+        res = 0
+        if not curr_pf_mod3 and curr >= n_min:
+            res += curr
+            #print(curr_pf, curr)
+        if p_idx_mx < 0: return res
+        #if curr_pf_mod3 and curr_pf_mod3.peekitem(-1)[0] > remain:
+        #    return res
+        p0 = -1
+        p_idx0 = -1
+        if curr_pf_mod3:
+            p0 = curr_pf_mod3.peekitem(-1)[0]
+            p_idx0 = bisect.bisect_left(p_lst, p0)
+        if p_idx0 > p_idx_mx: return res
+        p_idx_ub = bisect.bisect_right(p_lst, isqrt(remain), hi=min(len(p_lst), p_idx_mx + 1))
+        #print(p_lst, isqrt(remain), min(len(p_lst), p_idx_mx))
+        #print(f"p_idx0 = {p_idx0}, p_idx_ub = {p_idx_ub}")
+        #f0 = 0
+        if p_idx0 >= 0:
+            p_idx = p_idx0
+            f0 = curr_pf_mod3.pop(p_lst[p_idx])
+            remain2 = remain // p_lst[p_idx] ** 3 if f0 == 1 else remain // p_lst[p_idx]
+            if remain2:
+                curr2 = curr * p_lst[p_idx] ** 3 if f0 == 1 else curr * p_lst[p_idx]
+                p_min_one_pf = ps.primeFactorisation(p_lst[p_idx] - 1)
+                p_min_one_pf_md3 = {p: f % 3 for p, f in p_min_one_pf.items() if (f % 3)}
+                for p, f in p_min_one_pf_md3.items():
+                    curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) + f) % 3
+                    if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+                p_cb = p_lst[p_idx] ** 3
+                for f in itertools.count(3 if f0 == 1 else 1, step=3):
+                    curr_pf[p_lst[p_idx]] = f
+                    #print(f"calling recur({p_idx - 1}, {remain2}) from recur({p_idx_mx}, {remain})")
+                    res += recur(p_idx - 1, remain2, curr=curr2)
+                    remain2 //= p_cb
+                    curr2 *= p_cb
+                    if not remain2: break
+                for p, f in p_min_one_pf_md3.items():
+                    curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) - f) % 3
+                    if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+                if p_lst[p_idx] in curr_pf.keys():
+                    curr_pf.pop(p_lst[p_idx])
+            curr_pf_mod3[p_lst[p_idx]] = f0
+        
+        for p_idx in range(p_idx0 + 1, p_idx_ub):
+            p_sq = p_lst[p_idx] * p_lst[p_idx]
+            p_min_one_pf = ps.primeFactorisation(p_lst[p_idx] - 1)
+            p_min_one_pf_md3 = {p: f % 3 for p, f in p_min_one_pf.items() if (f % 3)}
+            for p, f in p_min_one_pf_md3.items():
+                curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) + f) % 3
+                if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+            remain2 = remain // p_sq
+            curr2 = curr * p_sq
+            p_cb = p_sq * p_lst[p_idx]
+            for f in itertools.count(2, step=3):
+                curr_pf[p_lst[p_idx]] = f
+                #print(f"calling recur({p_idx - 1}, {remain2}) from recur({p_idx_mx}, {remain})")
+                res += recur(p_idx - 1, remain2, curr=curr2)
+                remain2 //= p_cb
+                if not remain2: break
+                curr2 *= p_cb
+            for p, f in p_min_one_pf_md3.items():
+                curr_pf_mod3[p] = (curr_pf_mod3.get(p, 0) - f) % 3
+                if not curr_pf_mod3[p]: curr_pf_mod3.pop(p)
+            if p_lst[p_idx] in curr_pf.keys():
+                curr_pf.pop(p_lst[p_idx])
+            
+        return res
+
+    res = recur(len(ps.p_lst), n_max, curr=1)
+    return res
+
+# Problem 343
+def largestPrimeFactor(
+    num: int,
+    ps: Optional[SimplePrimeSieve]=None,
+    ps_extend_max: int=10 ** 6,
+) -> int:
+
+    ps2 = SimplePrimeSieve()
+    def primeTest(n: int) -> bool:
+        return ps2.millerRabinPrimalityTestWithKnownBounds(n)[0]
+
+    m = num
+    if primeTest(m): return m
+    if ps is None:
+        if not m & 1:
+            while not m & 1:
+                m >>= 1
+            if m == 1: return 2
+            if primeTest(m): return m
+        for p in range(3, isqrt(m) + 1):
+            m2, r = divmod(m, p)
+            if r: continue
+            while not r:
+                m = m2
+                m2, r = divmod(m, p)
+            if m == 1: return p
+            elif primeTest(m): return m
+    else:
+        p_mx = isqrt(m)
+        ps.extendSieve(min(ps_extend_max, p_mx))
+        for p in ps.p_lst:
+            if p > p_mx: break
+            m2, r = divmod(m, p)
+            if r: continue
+            while not r:
+                m = m2
+                m2, r = divmod(m, p)
+            if m == 1: return p
+            elif primeTest(m): return m
+        for p in range(len(ps.p_lst) + 1, p_mx + 1):
+            m2, r = divmod(m, p)
+            if r: continue
+            while not r:
+                m = m2
+                m2, r = divmod(m, p)
+            if m == 1: return p
+            elif primeTest(m): return m
+    return m
+
+def fractionalSequenceEnd(
+    num: int,
+    ps: Optional[SimplePrimeSieve]=None,
+    ps_extend_max: int=10 ** 6,
+) -> int:
+    return largestPrimeFactor(num + 1, ps=ps, ps_extend_max=ps_extend_max) - 1
+
+def cubeFractionalSequenceEndSum(
+    n_max: int=2 * 10 ** 6,
+    ps: Optional[SimplePrimeSieve]=None,
+    ps_extend_max: int=10 ** 6,
+) -> int:
+    """
+    Solution to Project Euler #343
+    """
+    res = 0
+    for n in range(1, n_max + 1):
+        if not n % 10 ** 4:
+            print(f"n = {n} of {n_max}")
+        ans = max(
+            largestPrimeFactor(n + 1, ps=ps, ps_extend_max=ps_extend_max) - 1,
+            largestPrimeFactor(n ** 2 - n + 1, ps=ps, ps_extend_max=ps_extend_max) - 1,
+        )
+        #print(f"n = {n}")
+        #print(largestPrimeFactor(n + 1, ps=ps, ps_extend_max=ps_extend_max) - 1, largestPrimeFactor(n ** 2 - n + 1, ps=ps, ps_extend_max=ps_extend_max) - 1)
+        #print(n, ans)
+        res += ans
+    return res
 
 ##############
 project_euler_num_range = (301, 350)
@@ -5781,10 +5949,24 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #340 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 342 in eval_nums:
+        since = time.time()
+        res = totientOfSquareIsCubeSum(n_min=2, n_max=10 ** 10 - 1)
+        print(f"Solution to Project Euler #342 = {res}, calculated in {time.time() - since:.4f} seconds")
+
+    if 343 in eval_nums:
+        since = time.time()
+        res = cubeFractionalSequenceEndSum(
+            n_max=2 * 10 ** 6,
+            ps=SimplePrimeSieve(),
+            ps_extend_max=10 ** 6,
+        )
+        print(f"Solution to Project Euler #343 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {341}
+    eval_nums = {343}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -5948,6 +6130,9 @@ for c in range(1, 41):
 for n in range(10 ** 12, 10 ** 12 + 1):
     print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
 """
-print(totientOfSquareIsCubeCountBruteForce(10 ** 3, ps=PrimeSPFsieve()))
+#print(totientOfSquareIsCubeCountBruteForce(10 ** 4, ps=PrimeSPFsieve()))
 
-print(totientOfSquareIsCubeCount(10 ** 3))
+#print(totientOfSquareIsCubeCount(10 ** 4))
+
+#for n in range(21):
+#    print(n, fractionalSequenceEnd(n, ps=SimplePrimeSieve()))
