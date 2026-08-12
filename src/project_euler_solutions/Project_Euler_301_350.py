@@ -5443,7 +5443,7 @@ def totientOfSquareIsCubeCount(n_max: int) -> int:
         if p_idx0 >= 0:
             p_idx = p_idx0
             f0 = curr_pf_mod3.pop(p_lst[p_idx])
-            remain2 = remain if f0 == 1 else remain // p_lst[p_idx]
+            remain2 = remain // p_lst[p_idx] ** 3 if f0 == 1 else remain // p_lst[p_idx]
             if remain2:
                 p_min_one_pf = ps.primeFactorisation(p_lst[p_idx] - 1)
                 p_min_one_pf_md3 = {p: f % 3 for p, f in p_min_one_pf.items() if (f % 3)}
