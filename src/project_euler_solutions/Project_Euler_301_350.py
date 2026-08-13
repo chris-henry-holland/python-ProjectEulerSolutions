@@ -4736,6 +4736,92 @@ def primesWithExactlyOneValidPartitionSum(
             if f == 1: res += p_max
     return res
 
+# Problem 334
+def floorHalfXorSequenceGenerator(
+    t0: int=123456,
+    xor_const: int=926252,
+    term_md: int = 1 << 11,
+    term_offset: int=1,
+) -> Generator[int, None, None]:
+
+    t = t0
+    #yield (t % res_md) + res_offset
+    while True:
+        t = ((t >> 1) ^ xor_const) if t & 1 else (t >> 1)
+        yield (t % term_md) + term_offset
+    return
+
+def spillBeansMoveCount(
+    seq: Iterable[int],
+) -> int:
+    # TODO- prove that the final state must be a sequence of
+    # n_beans + 1 consecutive bowls where all but one contain
+    # exactly one bean, and that this end state is unique
+    # Also prove that the variance multiplied by the total
+    # number of beans always increases by exactly 2 after each
+    # move
+    n_beans = 0
+    mean_mul_n = 0
+    var_mul_nsq = 0
+    for i, num in enumerate(seq):
+        n_beans += num
+        mean_mul_n += i * num
+        var_mul_nsq += i ** 2 * num
+
+    nplusone_sm = (n_beans * (n_beans + 1)) >> 1
+    nplusone_sqsm = (n_beans * (n_beans + 1) * (2 * n_beans + 1)) // 6
+
+    def endStateHoleIndexGivenStartIndex(start_idx: int) -> int:
+        res = start_idx * (n_beans + 1) + nplusone_sm - mean_mul_n
+        #print(f"for start_idx = {start_idx}, hole_idx = {res}")
+        return res
+
+    mean_floor = mean_mul_n // n_beans
+    hole_idx_prov = endStateHoleIndexGivenStartIndex(mean_floor)
+    if hole_idx_prov < mean_floor:
+        d1, d2 = 0, 1
+        while endStateHoleIndexGivenStartIndex(mean_floor + d2) < mean_floor + d2:
+            d1, d2 = d2, d2 << 1
+        lo, hi = mean_floor + d1, mean_floor + d2
+    else:
+        d1, d2 = 0, 1
+        while endStateHoleIndexGivenStartIndex(mean_floor - d2) >= mean_floor - d2:
+            d1, d2 = d2, d2 << 1
+        lo, hi = mean_floor - d2, mean_floor - d1
+    #print("hi")
+    #print(d1, d2)
+    while lo < hi:
+        mid = lo + ((hi - lo) >> 1)
+        if endStateHoleIndexGivenStartIndex(mid) >= mid:
+            hi = mid
+        else: lo = mid + 1
+    start_idx = lo
+    hole_idx = endStateHoleIndexGivenStartIndex(start_idx)
+    print(f"start_idx = {start_idx}, hole_idx = {hole_idx}")
+    end_state_var_mul_nsq = start_idx * start_idx * (n_beans + 1) + 2 * start_idx * nplusone_sm + nplusone_sqsm - hole_idx * hole_idx
+    return (end_state_var_mul_nsq - var_mul_nsq) >> 1
+
+def spillBeansMoveCountForFloorHalfXorSequence(
+    n_nonempty_bowls: int=1500,
+    floor_hlf_xor_seq_t0: int=123456,
+    floor_hlf_xor_seq_xor_const: int=926252,
+    floor_hlf_xor_seq_term_md: int = 1 << 11,
+    floor_hlf_xor_seq_term_offset: int=1,
+) -> int:
+    seq = (
+        x[0] for x in zip(
+            floorHalfXorSequenceGenerator(
+                t0=floor_hlf_xor_seq_t0,
+                xor_const=floor_hlf_xor_seq_xor_const,
+                term_md=floor_hlf_xor_seq_term_md,
+                term_offset=floor_hlf_xor_seq_term_offset,
+            ),
+            range(n_nonempty_bowls),
+        )
+    )
+    res = spillBeansMoveCount(seq)
+    return res
+
 # Problem 335
 def gatherBeansMoveCountBruteForce(
     n: int,
@@ -5907,6 +5993,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #333 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 334 in eval_nums:
+        since = time.time()
+        res = spillBeansMoveCountForFloorHalfXorSequence(
+            n_nonempty_bowls=1500,
+            floor_hlf_xor_seq_t0=123456,
+            floor_hlf_xor_seq_xor_const=926252,
+            floor_hlf_xor_seq_term_md=1 << 11,
+            floor_hlf_xor_seq_term_offset=1,
+        )
+        print(f"Solution to Project Euler #334 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 335 in eval_nums:
         since = time.time()
         res = gatherBeansMoveCountPow2PlusOneCount(
@@ -5966,7 +6063,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {343}
+    eval_nums = {334}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -6136,3 +6233,5 @@ for n in range(10 ** 12, 10 ** 12 + 1):
 
 #for n in range(21):
 #    print(n, fractionalSequenceEnd(n, ps=SimplePrimeSieve()))
+
+#print(spillBeansMoveCount([2, 3]))
