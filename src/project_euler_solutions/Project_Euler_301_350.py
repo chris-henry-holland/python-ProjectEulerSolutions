@@ -5787,6 +5787,28 @@ def maxMatrixSumForProjectEulerProblem345Matrix() -> int:
     """
     return maxMatrixSum(getProjectEulerProblem345Matrix())
 
+# Problem 346
+def strongRepunitsBruteForce(
+    n_max: int,
+) -> list[int]:
+    res = {}
+    for base in range(2, n_max):
+        #print(f"base = {base}")
+        curr = (base ** 3 - 1) // (base - 1)
+        if curr > n_max: break
+        while curr <= n_max:
+            #print(curr)
+            res[curr] = res.get(curr, 0) + 1
+            curr = base * curr + 1
+    #print(res)
+    print(f"base max = {base - 1}")
+    return [1] + sorted(res.keys())
+
+def strongRepunitsSumBruteForce(
+    n_max: int,
+) -> int:
+    return sum(strongRepunitsBruteForce(n_max))
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -6109,10 +6131,15 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = maxMatrixSumForProjectEulerProblem345Matrix()
         print(f"Solution to Project Euler #345 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 346 in eval_nums:
+        since = time.time()
+        res = strongRepunitsSumBruteForce(n_max=10 ** 12)
+        print(f"Solution to Project Euler #346 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {345}
+    eval_nums = {346}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -6297,3 +6324,5 @@ print(
     )
 )
 """
+
+#print(strongRepunitsSumBruteForce(10 ** 12))
