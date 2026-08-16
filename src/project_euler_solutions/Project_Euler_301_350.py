@@ -5807,7 +5807,76 @@ def strongRepunitsBruteForce(
 def strongRepunitsSumBruteForce(
     n_max: int,
 ) -> int:
+    """
+    Solution to Project Euler #346
+    """
     return sum(strongRepunitsBruteForce(n_max))
+
+# Problem 347
+def largestIntegerNotExceedingNDivisibleByExactlyTheTwoPrimesInEachPrimePairSum(
+    n: int=10 ** 7,
+) -> int:
+    """
+    Solution to Project Euler #347
+    """
+    if n < 6: return 0
+    pow_lsts = []
+    n_hlf = n >> 1
+    ps = SimplePrimeSieve(n_hlf)
+    res = 0
+    i_max = bisect.bisect_right(ps.p_lst, n_hlf)
+    p_prev = ps.p_lst[i_max - 1]
+    for i in reversed(range(1, i_max)):
+        p = ps.p_lst[i]
+        if (p // 10 ** 5) != (p_prev // 10 ** 5):
+            print(f"p1 = {p_prev}")
+        p_prev = p
+        #j_max = len(pow_lsts)
+        #pow_lsts.append([])
+        pow_lsts.append([p])
+        while True:
+            nxt = pow_lsts[-1][-1] * p
+            if nxt > n_hlf: break
+            pow_lsts[-1].append(nxt)
+        for pow_lst in reversed(pow_lsts[:-1]):
+            if pow_lst[0] * p > n: break
+            ans = 0
+            j2 = bisect.bisect_right(pow_lst, n // p) - 1
+            num = 0
+            for j1 in range(len(pow_lsts[-1])):
+                for j2 in reversed(range(j2 + 1)):
+                    num = pow_lsts[-1][j1] * pow_lst[j2]
+                    if num <= n:
+                        break
+                else: break
+                ans = max(ans, num)
+            #print(p, pow_lst[0], ans)
+            res += ans
+        #print(p, res)
+    #p = 2
+    n_thrd = n // 3
+    print("p1 = 2")
+    for pow_lst in reversed(pow_lsts):
+        if (pow_lst[0] << 1) > n: break
+        ans = 0
+        j2 = bisect.bisect_right(pow_lst, n >> 1) - 1
+        num = 0
+        curr = 2
+        while curr <= n_thrd:
+            for j2 in reversed(range(j2 + 1)):
+                num = curr * pow_lst[j2]
+                #print(f"j2 = {j2}, num = {num}")
+                if num <= n:
+                    break
+            else: break
+            ans = max(ans, num)
+            curr <<= 1
+        res += ans
+        #print(2, pow_lst[0], ans)
+    return res
+
+
+    
 
 ##############
 project_euler_num_range = (301, 350)
@@ -6136,10 +6205,17 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = strongRepunitsSumBruteForce(n_max=10 ** 12)
         print(f"Solution to Project Euler #346 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 347 in eval_nums:
+        since = time.time()
+        res = largestIntegerNotExceedingNDivisibleByExactlyTheTwoPrimesInEachPrimePairSum(
+            n=10 ** 7,
+        )
+        print(f"Solution to Project Euler #347 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {346}
+    eval_nums = {347}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
