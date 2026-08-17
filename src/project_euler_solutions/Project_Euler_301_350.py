@@ -5875,8 +5875,76 @@ def largestIntegerNotExceedingNDivisibleByExactlyTheTwoPrimesInEachPrimePairSum(
         #print(2, pow_lst[0], ans)
     return res
 
+# Problem 348
+def smallestPalindromesEqualToSumOfSquareAndCubeInExactNumberOfWays(
+    n_palindromes: int,
+    n_sums: int,
+    base: int=10,
+) -> list[int]:
 
-    
+    res = []
+    if n_sums <= 0: return res
+
+    def isSumOfSquareAndCubeInExactNumberOfWays(num: int, n_sums: int) -> bool:
+        cnt = 0
+        for cbrt in range(2, integerNthRoot(num - 4, 3) + 1):
+            cb = cbrt ** 3
+            sq = num - cb
+            sqrt = isqrt(sq)
+            if (sqrt * sqrt == sq):
+                cnt += 1
+                if cnt > n_sums: return False
+        return cnt == n_sums
+
+    for num in range(base):
+        if not isSumOfSquareAndCubeInExactNumberOfWays(num, n_sums): continue
+        res.append(num)
+        print(num)
+        if len(res) >= n_palindromes: return res
+
+    for n_dig_hlf in itertools.count(1):
+        print(f"n_dig = {n_dig_hlf << 1}")
+        start = base ** (n_dig_hlf - 1)
+        for hlf_num1 in range(start, start * base):
+            num = hlf_num1
+            m = hlf_num1
+            for _ in range(n_dig_hlf):
+                m, r = divmod(m, base)
+                num = num * base + r
+            if isSumOfSquareAndCubeInExactNumberOfWays(num, n_sums):
+                res.append(num)
+                print(num)
+                if len(res) >= n_palindromes: return res
+        print(f"n_dig = {(n_dig_hlf << 1) + 1}")
+        for hlf_num1 in range(start, start * base):
+            num0 = hlf_num1 * base
+            for d in range(base):
+                num = num0 + d
+                m = hlf_num1
+                for _ in range(n_dig_hlf):
+                    m, r = divmod(m, base)
+                    num = num * base + r
+                if isSumOfSquareAndCubeInExactNumberOfWays(num, n_sums):
+                    res.append(num)
+                    print(num)
+                    if len(res) >= n_palindromes: return res
+    return res
+
+def smallestPalindromesEqualToSumOfSquareAndCubeInExactNumberOfWaysSum(
+    n_palindromes=5,
+    n_sums: int=4,
+    base: int=10,
+) -> int:
+    """
+    Solution to Project Euler #348
+    """
+    res = smallestPalindromesEqualToSumOfSquareAndCubeInExactNumberOfWays(
+        n_palindromes,
+        n_sums,
+        base,
+    )
+    print(res)
+    return sum(res)
 
 ##############
 project_euler_num_range = (301, 350)
@@ -6212,10 +6280,19 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #347 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 348 in eval_nums:
+        since = time.time()
+        res = smallestPalindromesEqualToSumOfSquareAndCubeInExactNumberOfWaysSum(
+            n_palindromes=5,
+            n_sums=4,
+            base=10,
+        )
+        print(f"Solution to Project Euler #348 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {347}
+    eval_nums = {348}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
