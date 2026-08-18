@@ -37,7 +37,7 @@ from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot,
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
-from algorithms.string_searching_algorithms import KnuthMorrisPratt
+from algorithms.string_searching_algorithms import KnuthMorrisPratt, rollingHashWithValue
 
 
 def calculatePrimeFactorisation(
@@ -5946,6 +5946,50 @@ def smallestPalindromesEqualToSumOfSquareAndCubeInExactNumberOfWaysSum(
     print(res)
     return sum(res)
 
+# Problem 349
+def langtonsAntStepGenerator() -> Generator[bool, None, None]:
+    directs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+    black_set = set()
+    d_idx = 0
+    curr = (0, 0)
+    while True:
+        if curr in black_set:
+            black_set.remove(curr)
+            yield False
+            d_idx += 1
+        else:
+            black_set.add(curr)
+            yield True
+            d_idx -= 1
+        d_idx %= 4
+        curr = tuple(x + y for x, y in zip(curr, directs[d_idx]))
+    return
+
+def langtonsAntBlackSquareCount(n_steps: int=10 ** 18) -> int:
+    """
+    Solution to Project Euler #349
+    """
+    highway_rpt = 104
+    chk_len = 8 * highway_rpt
+    langtons_ant_iter = langtonsAntStepGenerator()
+
+    highway_len = 0
+    hsh_q = deque()
+    res = 0
+    for i, (val, hsh) in zip(range(n_steps), rollingHashWithValue(langtons_ant_iter, highway_rpt, p_lst=(37, 53))):
+        print(f"i = {i}, val = {val}")
+        res += 2 * val - 1
+        hsh_q.append(hsh)
+        if len(hsh_q) <= highway_rpt: continue
+        print(len(hsh_q), hsh, hsh_q[0])
+        if hsh == hsh_q.popleft():
+            highway_len += 1
+            if highway_len >= chk_len: break
+        else: highway_len = 0
+    print(i, res)
+    
+
+
 ##############
 project_euler_num_range = (301, 350)
 
@@ -6292,7 +6336,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {348}
+    eval_nums = {349}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -6479,3 +6523,5 @@ print(
 """
 
 #print(strongRepunitsSumBruteForce(10 ** 12))
+
+langtonsAntBlackSquareCount(n_steps=10 ** 5)
