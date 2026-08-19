@@ -5977,16 +5977,23 @@ def langtonsAntBlackSquareCount(n_steps: int=10 ** 18) -> int:
     hsh_q = deque()
     res = 0
     for i, (val, hsh) in zip(range(n_steps), rollingHashWithValue(langtons_ant_iter, highway_rpt, p_lst=(37, 53))):
-        print(f"i = {i}, val = {val}")
+        #print(f"i = {i}, val = {val}, highway_len = {highway_len}")
         res += 2 * val - 1
         hsh_q.append(hsh)
         if len(hsh_q) <= highway_rpt: continue
-        print(len(hsh_q), hsh, hsh_q[0])
+        #print(len(hsh_q), hsh, hsh_q[0])
         if hsh == hsh_q.popleft():
             highway_len += 1
             if highway_len >= chk_len: break
         else: highway_len = 0
-    print(i, res)
+    if i == n_steps - 1:
+        return res
+    q, r = divmod(n_steps - i - 1, highway_rpt)
+    cumu = [0]
+    for i, val in zip(range(highway_rpt), langtons_ant_iter):
+        cumu.append(cumu[-1] + (2 * val - 1))
+    #print(cumu)
+    return res + q * cumu[-1] + cumu[r]
     
 
 
@@ -6333,6 +6340,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #348 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 349 in eval_nums:
+        since = time.time()
+        res = langtonsAntBlackSquareCount(n_steps=10 ** 18)
+        print(f"Solution to Project Euler #349 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
@@ -6523,5 +6535,3 @@ print(
 """
 
 #print(strongRepunitsSumBruteForce(10 ** 12))
-
-langtonsAntBlackSquareCount(n_steps=10 ** 5)
