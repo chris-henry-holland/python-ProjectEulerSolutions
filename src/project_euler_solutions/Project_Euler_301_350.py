@@ -3961,8 +3961,15 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
     """
     
     from_one_step_count_min_vals = [SortedDict() for _ in range(n2 + 1)]
-
+    from_one_step_count_min_vals[1][0] = 0
+    #from_one_step_count_min_vals[2][1] = 1
+    #from_one_step_count_min_vals[3][2] = 2
     # TODO- populate from_one_step_count_min_vals
+    for n in range(2, n2 + 1):
+        for n_steps in range(n.bit_length() - 1, n + 1):
+            pass
+
+    
 
     res = 0
     for n in range(n1, n2 + 1):
@@ -6211,7 +6218,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
             n1=1,
-            n2=260,
+            n2=10 ** 3,
         )
         print(f"Solution to Project Euler #328 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -6348,7 +6355,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {349}
+    eval_nums = {328}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
