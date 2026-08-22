@@ -3946,8 +3946,8 @@ def minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
     ans = 0
     for n in range(n1, n2 + 1):
         prev = ans
-        ans, pivot = worstCaseForRange(1, n)
-        print(f"minimal worst case for range [1, {n}] = {ans}, pivot = {pivot}, diff = {ans - prev}, binary repr of upper end of range = {format(n, 'b')}")
+        ans, pivot = worstCaseForRange(n1, n)
+        print(f"minimal worst case for range [{n1}, {n}] = {ans}, pivot = {pivot}, diff = {ans - prev}, binary repr of upper end of range = {format(n, 'b')}")
         res += ans
     #print(memo1)
     #print(memo2)
@@ -3962,6 +3962,7 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
     """
     
     from_one_step_count_min_vals = [SortedDict() for _ in range(n2 + 1)]
+    from_one_step_count_min_vals[0][0] = 0
     from_one_step_count_min_vals[1][0] = 0
     #from_one_step_count_min_vals[2][1] = 1
     #from_one_step_count_min_vals[3][2] = 2
@@ -3971,16 +3972,28 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
         #    pass
         for pivot in range(1, n + 1):
             for n_steps, val in reversed(from_one_step_count_min_vals[pivot - 1].items()):
-                val2 = val #n_steps * pivot + val
+                val2 = val + pivot #n_steps * pivot + val
                 idx = from_one_step_count_min_vals[n - pivot].bisect_right(n_steps) - 1
-                if idx >= 0 and from_one_step_count_min_vals[n - pivot].peekitem(idx) >= val2:
+                if idx >= 0 and from_one_step_count_min_vals[n - pivot].peekitem(idx)[1] >= val2:
                     break
-                #j = from_one_step_count_min_vals[n].bisect
-            else: continue
+                j = from_one_step_count_min_vals[n].bisect_right(n_steps + 1)
+                if j > 0 and from_one_step_count_min_vals[n].peekitem(j - 1)[1] <= val2:
+                    continue
+                while j < len(from_one_step_count_min_vals[n]) and from_one_step_count_min_vals[n].peekitem(j)[1] >= val2:
+                    from_one_step_count_min_vals[n].popitem(j)
+                from_one_step_count_min_vals[n][n_steps + 1] = val2
+            #else: continue
+            else: idx = -1
             for idx in reversed(range(idx + 1)):
                 n_steps, val = from_one_step_count_min_vals[n - pivot].peekitem(idx)
-                val2 = n_steps * pivot + val
-                #j = from_one_step_count_min_vals[n].bisect
+                val2 = (n_steps + 1) * pivot + val
+                j = from_one_step_count_min_vals[n].bisect_right(n_steps + 1)
+                if j > 0 and from_one_step_count_min_vals[n].peekitem(j - 1)[1] <= val2:
+                    continue
+                while j < len(from_one_step_count_min_vals[n]) and from_one_step_count_min_vals[n].peekitem(j)[1] >= val2:
+                    from_one_step_count_min_vals[n].popitem(j)
+                from_one_step_count_min_vals[n][n_steps + 1] = val2
+            print(n, pivot, from_one_step_count_min_vals[n])
 
     res = 0
     for n in range(n1, n2 + 1):
@@ -6227,9 +6240,9 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 328 in eval_nums:
         since = time.time()
-        res = minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
+        res = minimalWorstCaseCostForHiddenNumberGamesSum(
             n1=1,
-            n2=10 ** 2,
+            n2=10 ** 1,
         )
         print(f"Solution to Project Euler #328 = {res}, calculated in {time.time() - since:.4f} seconds")
 
