@@ -3911,6 +3911,8 @@ def minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
         #print(mx)
         #print(n_min, n_max, mx)
         res = mx[1][0]
+        if n_min == 1:
+            print(mx)
         memo0[args] = res
         return res
 
@@ -3953,13 +3955,11 @@ def minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
     #print(memo2)
     return res
 
+"""
 def minimalWorstCaseCostForHiddenNumberGamesSum(
     n1: int=1,
     n2: int=2 * 10 ** 5,
 ) -> int:
-    """
-    Solution to Project Euler #328
-    """
     
     from_one_step_count_min_vals = [SortedDict() for _ in range(n2 + 1)]
     from_one_step_count_min_vals[0][0] = 0
@@ -3972,33 +3972,163 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
         #    pass
         for pivot in range(1, n + 1):
             for n_steps, val in reversed(from_one_step_count_min_vals[pivot - 1].items()):
-                val2 = val + pivot #n_steps * pivot + val
+                val2 = val #n_steps * pivot + val
+                val3 = val2 + pivot
+                #print(f"type 1, pivot = {pivot}, val = {val}, n_steps = {n_steps}, val2 = {val2}, val3 = {val3}")
                 idx = from_one_step_count_min_vals[n - pivot].bisect_right(n_steps) - 1
-                if idx >= 0 and from_one_step_count_min_vals[n - pivot].peekitem(idx)[1] >= val2:
+                if idx < 0: continue
+                if from_one_step_count_min_vals[n - pivot].peekitem(idx)[1] >= val2:
                     break
                 j = from_one_step_count_min_vals[n].bisect_right(n_steps + 1)
-                if j > 0 and from_one_step_count_min_vals[n].peekitem(j - 1)[1] <= val2:
+                if j > 0 and from_one_step_count_min_vals[n].peekitem(j - 1)[1] <= val3:
                     continue
-                while j < len(from_one_step_count_min_vals[n]) and from_one_step_count_min_vals[n].peekitem(j)[1] >= val2:
+                while j < len(from_one_step_count_min_vals[n]) and from_one_step_count_min_vals[n].peekitem(j)[1] >= val3:
                     from_one_step_count_min_vals[n].popitem(j)
-                from_one_step_count_min_vals[n][n_steps + 1] = val2
+                from_one_step_count_min_vals[n][n_steps + 1] = val3
             #else: continue
             else: idx = -1
             for idx in reversed(range(idx + 1)):
                 n_steps, val = from_one_step_count_min_vals[n - pivot].peekitem(idx)
-                val2 = (n_steps + 1) * pivot + val
+                val2 = (n_steps) * pivot + val
+                val3 = val2 + pivot
+                if from_one_step_count_min_vals[pivot - 1].peekitem(0)[0] > n_steps: break
+                #print(f"type 2, pivot = {pivot}, val = {val}, n_steps = {n_steps}, val2 = {val2}, val3 = {val3}")
                 j = from_one_step_count_min_vals[n].bisect_right(n_steps + 1)
-                if j > 0 and from_one_step_count_min_vals[n].peekitem(j - 1)[1] <= val2:
+                if j > 0 and from_one_step_count_min_vals[n].peekitem(j - 1)[1] <= val3:
                     continue
-                while j < len(from_one_step_count_min_vals[n]) and from_one_step_count_min_vals[n].peekitem(j)[1] >= val2:
+                while j < len(from_one_step_count_min_vals[n]) and from_one_step_count_min_vals[n].peekitem(j)[1] >= val3:
                     from_one_step_count_min_vals[n].popitem(j)
-                from_one_step_count_min_vals[n][n_steps + 1] = val2
-            print(n, pivot, from_one_step_count_min_vals[n])
+                from_one_step_count_min_vals[n][n_steps + 1] = val3
+            #print(n, pivot, from_one_step_count_min_vals[n])
 
     res = 0
     for n in range(n1, n2 + 1):
-        res += from_one_step_count_min_vals[n].peekitem(-1)[1]
+        ans = from_one_step_count_min_vals[n].peekitem(-1)[1]
+        print(n, ans)
+        print(from_one_step_count_min_vals[n])
+        res += ans
     return res
+"""
+
+def minimalWorstCaseCostForHiddenNumberGamesSum(
+    n1: int=1,
+    n2: int=2 * 10 ** 5,
+) -> int:
+    """
+    Solution to Project Euler #328
+    """
+
+    memo = {}
+    def completeBinaryTreeValues(length: int) -> list[tuple[int, int]]:
+        
+        if length <= 1: return 0
+        elif length == 2: return [(1, 1)]
+
+        # TODO
+
+    def completeSubtreeValue(n_min: int, n_max: int) -> int:
+        length = n_max - n_min + 1
+        if length <= 1: return 0
+        candidates = completeBinaryTreeValues(length)
+        res = float("inf")
+        for val, depth in candidates:
+            res = min(res, depth * (n_min - 1) + val)
+        return res
+
+    res = 0
+    curr = [0, 0, 1]
+    res += (n1 >= 2)
+    pivot = 1
+    for n in range(3, n2 + 1):
+        #j = n.bit_length() - 1
+        #length1 = (1 << j) + min(n - (1 << j), (1 << j))
+        #ans = float("inf")
+        val = float("inf")
+        for pivot in reversed(range(pivot + 2)):
+            num1 = curr[pivot - 1]
+            num2 = completeSubtreeValue(pivot + 1, n)
+            prev_val = val
+            val = min(val, max(num1, num2) + pivot)
+            if num1 < num2: break
+        curr.append(min(val, prev_val))
+        #length2 = n - length1
+        #ans = curr[(1 << j) + min(n - (1 << j), (1 << j))]
+
+    """
+    #sys.setrecursionlimit(10 ** 6)
+    memo0 = {}
+    def maximumTerm(
+        n_min: int,
+        n_max: int,
+    ) -> int:
+        if n_max <= n_min:
+            return 0
+        if n_max < n_min + 3:
+            return n_min + ((n_max - n_min) >> 1)
+        args = (n_min, n_max)
+        if args in memo0.keys():
+            return memo0[args]
+        #sequence_func = lambda pivot: -worstCaseForRangeWithPivot(n_min, n_max, pivot)
+        #mx = [-float("inf"), []]
+        #to_print = ([n_min, n_max] == [1, 5])
+        lo, hi = n_min, n_max
+        while lo < hi:
+            mid = hi - ((hi - lo) >> 1)
+            #if to_print:
+            #    print(f"mid = {mid}, worstCaseForRange(n_min, mid - 1) = {worstCaseForRange(n_min, mid - 1)}, worstCaseForRange(mid + 1, n_max) = {worstCaseForRange(mid + 1, n_max)}")
+            if worstCaseForRange(n_min, mid - 1)[0] >= worstCaseForRange(mid + 1, n_max)[0]:
+                hi = mid - 1
+            else: lo = mid
+        ans = [worstCaseForRange(n_min, lo)[0] + (lo + 1), lo + 1]
+        for i in range(min(4, lo - n_min + 1)):
+            #print(f"n_min = {n_min}, n_max = {n_max}, i = {i}")
+            ans = min(ans, [worstCaseForRange(lo + 1 - i, n_max)[0] + lo - i, lo - i])
+        #ans = min([worstCaseForRange(lo, n_max)[0] + (lo - 1), lo - 1], [worstCaseForRange(lo + 1, n_max)[0] + lo, lo], [worstCaseForRange(n_min, lo)[0] + (lo + 1), lo + 1])
+        #print(mx)
+        #print(n_min, n_max, mx)
+        res = ans[1]
+        memo0[args] = res
+        return res
+
+    memo1 = {}    
+    def worstCaseForRangeWithPivot(
+        lo: int,
+        hi: int,
+        pivot: int,
+    ) -> int:
+        args = (lo, hi, pivot)
+        if args in memo1.keys(): return memo1[args]
+        res = pivot + max(worstCaseForRange(lo, pivot - 1)[0], worstCaseForRange(pivot + 1, hi)[0])
+
+        memo1[args] = res
+        return res
+
+    memo2 = {}    
+    def worstCaseForRange(
+        lo: int,
+        hi: int,
+    ) -> tuple[int, int]:
+        if lo >= hi: return (0, -1)
+        args = (lo, hi)
+        if args in memo2.keys(): return memo2[args]
+        #sequence_func = lambda pivot: worstCaseForRangeWithPivot(lo, hi, pivot)
+        pivot = maximumTerm(lo, hi)
+        res = worstCaseForRangeWithPivot(lo, hi, pivot)
+        #print("hi")
+        memo2[args] = (res, pivot)
+        return (res, pivot)
+    
+    res = 0
+    ans = 0
+    for n in range(n1, n2 + 1):
+        prev = ans
+        ans, pivot = worstCaseForRange(n1, n)
+        #print(f"minimal worst case for range [{n1}, {n}] = {ans}, pivot = {pivot}, diff = {ans - prev}, binary repr of upper end of range = {format(n, 'b')}")
+        res += ans
+    #print(memo1)
+    #print(memo2)
+    return res
+    """
 
 # Problem 329
 def croakSequenceProbability(
@@ -6240,9 +6370,9 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 328 in eval_nums:
         since = time.time()
-        res = minimalWorstCaseCostForHiddenNumberGamesSum(
+        res = minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
             n1=1,
-            n2=10 ** 1,
+            n2=200,
         )
         print(f"Solution to Project Euler #328 = {res}, calculated in {time.time() - since:.4f} seconds")
 
