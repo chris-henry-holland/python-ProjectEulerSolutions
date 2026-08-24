@@ -3910,7 +3910,7 @@ def minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
             #print(n_min, n_max, n, sequence_func(n))
         #print(mx)
         #print(n_min, n_max, mx)
-        res = mx[1][0]
+        res = mx[1][-1]
         if n_min == 1:
             print(mx)
         memo0[args] = res
@@ -4018,42 +4018,148 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
     Solution to Project Euler #328
     """
 
-    memo = {}
-    def completeBinaryTreeValues(length: int) -> list[tuple[int, int]]:
-        
-        if length <= 1: return 0
-        elif length == 2: return [(1, 1)]
+    # TODO- prove that this approach works in general. In particular, prove that
+    # for an optimal choice of initial pivot, the right branch is equivalent to
+    # a complete binary tree (with the exception that if there is a singleton
+    # leaf then its value is swapped with its parent), and that for n > 2, the
+    # largest optimal initial pivot choice for the range [1, n] is given by the 
+    # largest optimal pivot choice for [1 , n - 1] plus one, or this number minus
+    # a power of 2 greater than 1.
 
-        # TODO
+    memo = {}
+    def completeBinaryTreeValues(length: int) -> dict[int, int]:
+        #print("hi", length)
+        if length <= 0: return {0: 0}
+        elif length == 1: return {1: 0}
+        elif length == 2: return {2: 1}
+        #res = []
+        max_depth = length.bit_length()
+        if length.bit_count() == max_depth:
+            # Checking whether the binary tree is perfectly balanced (by seeing whether
+            # the length is one less than a power of two, which is when the
+            # binary representation of the length is all ones)
+
+            # Sum of all the nodes along the right edge of the binary tree except
+            # the rightmost leaf node
+            #print("perfectly balanced tree")
+            res = {max_depth: (max_depth - 2) * (1 << max_depth) + 2}
+            #print(length, res)
+            return res
+        
+        length_r = max((1 << (max_depth - 2)) - 1, (1 << (max_depth - 1)) - 1 - ((1 << max_depth) - 1 - length))
+        length_l = length - length_r - 1
+        
+        r_offset = length_l + 1
+        pivot = r_offset
+        ans_l = {x + 1: pivot + y for x, y in completeBinaryTreeValues(length_l).items()}
+        ans_r = {x + 1: pivot + y + r_offset * max(x - 1, 0) for x, y in completeBinaryTreeValues(length_r).items()}
+        
+        #res = dict(ans_l)
+        #for depth, val in ans_r.items():
+        #    res[depth] = min(res.get(depth, float("inf")), val)
+
+        # Note that at most one of ans_l and ans_r can have a length greater than 1 (namely 2)
+        if len(ans_l) == 1:
+            d_l = next(iter(ans_l.keys()))
+            if len(ans_r) == 1:
+                d_r = next(iter(ans_r.keys()))
+                if d_l == d_r:
+                    res = {d_l: max(ans_l[d_l], ans_r[d_l])}
+                elif d_l > d_r:
+                    res = {d_l: ans_l[d_l]}
+                    if ans_r[d_r] > ans_l[d_l]:
+                        res[d_r] = ans_r[d_r]
+                else:
+                    res = {d_r: ans_r[d_r]}
+                    if ans_l[d_l] > ans_r[d_r]:
+                        res[d_l] = ans_l[d_l]
+            else:
+                #res = {x: max(y, ans_l.get(x, -float("inf"))) for x, y in ans_r.items()}
+                d_r_mn = min(ans_r.keys())
+                d_r_mx = max(ans_r.keys())
+                if d_l == d_r_mn:
+                    res = {d_l: max(ans_l[d_l], ans_r[d_l]), d_r_mx: ans_r[d_r_mx]}
+                else:
+                    res = {d_l: max(ans_l[d_l], ans_r[d_l]), d_r_mn: ans_r[d_r_mn]}
+        else:
+            d_r = next(iter(ans_r.keys()))
+            d_l_mn = min(ans_l.keys())
+            d_l_mx = max(ans_l.keys())
+            if d_r == d_l_mn:
+                res = {d_r: max(ans_r[d_r], ans_l[d_r]), d_l_mx: ans_l[d_l_mx]}
+            else:
+                res = {d_r: max(ans_r[d_r], ans_l[d_r]), d_l_mn: ans_l[d_l_mn]}
+
+        prev_val = -float("inf")
+        for depth in reversed(sorted(res.keys())):
+            if res[depth] <= prev_val:
+                res.pop(depth)
+                continue
+            prev_val = res[depth]
+        #print(f"length = {length}, pivot = {pivot}, length_l = {length_l}, ans_l = {ans_l}, length_r = {length_r}, ans_r = {ans_r}, res = {res}")
+        memo[length] = res
+        return res
+        
 
     def completeSubtreeValue(n_min: int, n_max: int) -> int:
         length = n_max - n_min + 1
+        #print([n_min, n_max], length)
         if length <= 1: return 0
         candidates = completeBinaryTreeValues(length)
-        res = float("inf")
-        for val, depth in candidates:
-            res = min(res, depth * (n_min - 1) + val)
+        #print(f"n_min = {n_min}, n_max = {n_max}")
+        res = -float("inf")
+        for depth, val in candidates.items():
+            #print(f"depth = {depth}, val = {val}, add_term = {(depth - 1) * (n_min - 1)}")
+            res = max(res, (depth - 1) * (n_min - 1) + val)
         return res
 
     res = 0
     curr = [0, 0, 1]
-    res += (n1 >= 2)
+    res += (n1 <= 2)
     pivot = 1
+    pivot_decr = {}
     for n in range(3, n2 + 1):
         #j = n.bit_length() - 1
         #length1 = (1 << j) + min(n - (1 << j), (1 << j))
         #ans = float("inf")
-        val = float("inf")
-        for pivot in reversed(range(pivot + 2)):
-            num1 = curr[pivot - 1]
-            num2 = completeSubtreeValue(pivot + 1, n)
-            prev_val = val
-            val = min(val, max(num1, num2) + pivot)
-            if num1 < num2: break
-        curr.append(min(val, prev_val))
+        best = (float("inf"), 1)
+        #print(f"n = {n}, res = {res}")
+        pivot0 = pivot + 1
+        pivot = pivot0
+        #print(f"pivot = {pivot}")
+        best = (max(curr[pivot - 1], completeSubtreeValue(pivot + 1, n)) + pivot, -pivot)
+        i_mx = (pivot0 - ((n + 1) >> 1)).bit_length()
+        d = 1
+        pivot -= 1
+        for _ in range(1, i_mx):
+            #print(f"pivot = {pivot}")
+            pivot -= d
+            best = min(best, (max(curr[pivot - 1], completeSubtreeValue(pivot + 1, n)) + pivot, -pivot))
+            d <<= 1
+        #for pivot in reversed(range((n + 1) >> 1, pivot0 + 1)):
+        #    num1 = curr[pivot - 1]
+        #    num2 = completeSubtreeValue(pivot + 1, n)
+        #    #print(f"pivot = {pivot}, left value = {num1}, right value = {num2}, total = {pivot + max(num1, num2)}")
+        #    #prev_val = val
+        #    #val = min(val, max(num1, num2) + pivot)
+        #    best = min(best, (max(num1, num2) + pivot, -pivot))
+        #    #if num1 < num2: break
+        #curr.append(min(val, prev_val))
+        curr.append(best[0])
+        if -best[1] < pivot0:
+            decr = pivot0 + best[1]
+            pivot_decr[decr] = pivot_decr.get(decr, 0) + 1
+        #pivot_decr_mx = max(pivot_decr_mx, pivot0 + best[1])
+        #print(f"n = {n}, pivot = {-best[1]}, pivot fraction = {-best[1] / n} val = {best[0]}, pivot decreases = {pivot_decr}")
+        #print(n, curr[-1])
+        res += curr[-1]
+        pivot = -best[1]
+        
         #length2 = n - length1
         #ans = curr[(1 << j) + min(n - (1 << j), (1 << j))]
-
+    #print(memo)
+    #print(f"maximum pivot decrese = {pivot_decr_mx}")
+    return res
     """
     #sys.setrecursionlimit(10 ** 6)
     memo0 = {}
@@ -6370,9 +6476,9 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 328 in eval_nums:
         since = time.time()
-        res = minimalWorstCaseCostForHiddenNumberGamesSumBruteForce(
+        res = minimalWorstCaseCostForHiddenNumberGamesSum(
             n1=1,
-            n2=200,
+            n2=2 * 10 ** 5,
         )
         print(f"Solution to Project Euler #328 = {res}, calculated in {time.time() - since:.4f} seconds")
 
