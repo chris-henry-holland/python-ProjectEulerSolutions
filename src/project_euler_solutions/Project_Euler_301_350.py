@@ -4026,6 +4026,10 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
     # largest optimal pivot choice for [1 , n - 1] plus one, or this number minus
     # a power of 2 greater than 1.
 
+    # Review- ? is one of the choices of pivot so that the right branch contains one less
+    # than a power of 2 integers always an optimal choice (making the right sub-tree
+    # in the corresponding tree perfectly balanced)
+
     memo = {}
     def completeBinaryTreeValues(length: int) -> dict[int, int]:
         #print("hi", length)
@@ -4118,6 +4122,7 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
     res += (n1 <= 2)
     pivot = 1
     pivot_decr = {}
+    decr_mx = 0
     for n in range(3, n2 + 1):
         #j = n.bit_length() - 1
         #length1 = (1 << j) + min(n - (1 << j), (1 << j))
@@ -4149,8 +4154,10 @@ def minimalWorstCaseCostForHiddenNumberGamesSum(
         if -best[1] < pivot0:
             decr = pivot0 + best[1]
             pivot_decr[decr] = pivot_decr.get(decr, 0) + 1
+            if decr < decr_mx: print("reduction in pivot decrease step")
+            else: decr_mx = decr
         #pivot_decr_mx = max(pivot_decr_mx, pivot0 + best[1])
-        #print(f"n = {n}, pivot = {-best[1]}, pivot fraction = {-best[1] / n} val = {best[0]}, pivot decreases = {pivot_decr}")
+        print(f"n = {n}, pivot = {-best[1]}, pivot fraction = {-best[1] / n} val = {best[0]}, pivot decreases = {pivot_decr}")
         #print(n, curr[-1])
         res += curr[-1]
         pivot = -best[1]
@@ -6013,6 +6020,116 @@ def cubeFractionalSequenceEndSum(
         res += ans
     return res
 
+# Problem 344
+def silverDollarGameWinningConfigurationsCountBruteForce(
+    n_squares: int,
+    n_worthless_coins: int,
+) -> int:
+
+    # The number of configurations for which the silver coin starts
+    # in the leftmost position
+    res_glob = [math.comb(n_squares, n_worthless_coins + 1)]
+    memo = {}
+    fails = {}
+    # silver_idx is the number of worthless coins to the left of the silver coin
+
+    def recur(silver_pos: int, silver_idx: int, worthless_pos_bm: int) -> bool:
+        if not worthless_pos_bm or not silver_idx:
+            return True
+        #args = (silver_pos, worthless_pos_neg)
+        #if args in memo.keys(): return memo[args]
+        if worthless_pos_bm in memo.keys() and silver_pos in memo[worthless_pos_bm].keys():
+            return memo[worthless_pos_bm][silver_pos]
+        #print(f"silver_pos = {silver_pos}, silver_idx = {silver_idx}, worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}")
+        res = False
+        bm_breakdown = worthless_pos_bm
+        n_worthless = worthless_pos_bm.bit_length()
+        curr_bm2 = bm_breakdown & (-bm_breakdown)
+        bm_breakdown ^= curr_bm2
+        bm = bm_breakdown
+        # Removing the leftmost worthless coin
+        if not recur(silver_pos, silver_idx - 1, bm):
+            res = True
+        
+        # Move the leftmost worthless coin progressively further left
+        bm2 = curr_bm2
+        bm2 >>= 1
+        while bm2:
+            if not recur(silver_pos, silver_idx, bm | bm2):
+                res = True
+            bm2 >>= 1
+        for idx in range(1, silver_idx):
+            prev_bm2 = curr_bm2
+            curr_bm2 = bm_breakdown & (-bm_breakdown)
+            bm_breakdown ^= curr_bm2
+            bm = worthless_pos_bm ^ curr_bm2
+            bm2 = curr_bm2
+            # Moving the worthless coin progressively to the left until
+            # it reaches the square immediately to the right of the nearest
+            # worthless coin to its left
+            bm2 >>= 1
+            while bm2 > prev_bm2:
+                if not recur(silver_pos, silver_idx, bm | bm2):
+                    res = True
+                bm2 >>= 1
+        
+        pos_min = curr_bm2.bit_length()
+        for silver_pos2 in reversed(range(pos_min, silver_pos)):
+            if not recur(silver_pos2, silver_idx, worthless_pos_bm):
+                res = True
+        curr_bm2 = 1 << silver_pos
+        for idx in range(silver_idx, n_worthless):
+            prev_bm2 = curr_bm2
+            curr_bm2 = bm_breakdown & (-bm_breakdown)
+            bm_breakdown ^= curr_bm2
+            bm = worthless_pos_bm ^ curr_bm2
+            bm2 = curr_bm2
+            # Moving the worthless coin progressively to the left until
+            # it reaches the square immediately to the right of the nearest
+            # worthless coin to its left
+            bm2 >>= 1
+            while bm2 > prev_bm2:
+                if not recur(silver_pos, silver_idx, bm | bm2):
+                    res = True
+                bm2 >>= 1
+        
+        memo.setdefault(worthless_pos_bm, {})
+        memo[worthless_pos_bm][silver_pos] = res
+        if res and worthless_pos_bm.bit_count() == n_worthless_coins:
+            res_glob[0] += 1
+        else:
+            fails.setdefault(worthless_pos_bm, set())
+            fails[worthless_pos_bm].add(silver_pos)
+        return res
+
+    # Using Gosper's hack to iterate over the bitmasks with exactly (n_worthless_coins + 1)
+    # set bits in increasing order
+    bm0 = (1 << (n_worthless_coins + 1)) - 1
+    curr_bit_len = 0
+    since0 = time.time()
+    while bm0 < (1 << n_squares):
+        #print(f"bm0 = {format(bm0, 'b').zfill(n_squares)}")
+        bit_len = bm0.bit_length()
+        if bit_len > curr_bit_len:
+            curr_bit_len = bit_len
+            print(f"current bit length = {curr_bit_len} (of {n_squares}), total time = {time.time() - since0:.4f} seconds")
+        bm_breakdown = bm0
+        bm2 = bm_breakdown & (-bm_breakdown)
+        bm_breakdown ^= bm2
+        for silver_idx in range(1, n_worthless_coins + 1):
+            bm2 = bm_breakdown & (-bm_breakdown)
+            bm_breakdown ^= bm2
+            silver_pos = bm2.bit_length() - 1
+            #print(f"main call: silver_pos = {silver_pos}, silver_idx = {silver_idx}, worthless_pos_bm = {format(bm0 ^ bm2, 'b')}")
+            recur(silver_pos, silver_idx, bm0 ^ bm2)
+        lo_bit = bm0 & (-bm0)
+        carry_chain = bm0 + lo_bit
+        bm0 = carry_chain | (((carry_chain ^ bm0) >> 2) // lo_bit)
+    print("losing positions:")
+    for worthless_pos_bm, silver_pos_st in fails.items():
+        print(f"worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}, silver positions = {silver_pos_st}")
+    return res_glob[0]
+
 # Problem 345
 def maxMatrixSum(mat: list[list[int]]) -> int:
     shape = (len(mat), len(mat[0]))
@@ -6478,7 +6595,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = minimalWorstCaseCostForHiddenNumberGamesSum(
             n1=1,
-            n2=2 * 10 ** 5,
+            n2=10 ** 3,
         )
         print(f"Solution to Project Euler #328 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -6581,6 +6698,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #343 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 344 in eval_nums:
+        since = time.time()
+        res = silverDollarGameWinningConfigurationsCountBruteForce(
+            n_squares=10,
+            n_worthless_coins=3,
+        )
+        print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 345 in eval_nums:
         since = time.time()
         res = maxMatrixSumForProjectEulerProblem345Matrix()
@@ -6615,7 +6740,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {328}
+    eval_nums = {344}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
