@@ -6030,10 +6030,11 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
     # in the leftmost position
     res_glob = [math.comb(n_squares, n_worthless_coins + 1)]
     memo = {}
-    fails = {}
+    fails = [{} for _ in range(n_worthless_coins + 1)]
     # silver_idx is the number of worthless coins to the left of the silver coin
 
     def recur(silver_pos: int, silver_idx: int, worthless_pos_bm: int) -> bool:
+        
         if not worthless_pos_bm or not silver_idx:
             return True
         #args = (silver_pos, worthless_pos_neg)
@@ -6043,7 +6044,7 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
         #print(f"silver_pos = {silver_pos}, silver_idx = {silver_idx}, worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}")
         res = False
         bm_breakdown = worthless_pos_bm
-        n_worthless = worthless_pos_bm.bit_length()
+        n_worthless = worthless_pos_bm.bit_count()
         curr_bm2 = bm_breakdown & (-bm_breakdown)
         bm_breakdown ^= curr_bm2
         bm = bm_breakdown
@@ -6095,11 +6096,11 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
         
         memo.setdefault(worthless_pos_bm, {})
         memo[worthless_pos_bm][silver_pos] = res
-        if res and worthless_pos_bm.bit_count() == n_worthless_coins:
-            res_glob[0] += 1
+        if res:
+            res_glob[0] += (n_worthless == n_worthless_coins)
         else:
-            fails.setdefault(worthless_pos_bm, set())
-            fails[worthless_pos_bm].add(silver_pos)
+            fails[n_worthless].setdefault(worthless_pos_bm, set())
+            fails[n_worthless][worthless_pos_bm].add(silver_pos)
         return res
 
     # Using Gosper's hack to iterate over the bitmasks with exactly (n_worthless_coins + 1)
@@ -6126,8 +6127,12 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
         carry_chain = bm0 + lo_bit
         bm0 = carry_chain | (((carry_chain ^ bm0) >> 2) // lo_bit)
     print("losing positions:")
-    for worthless_pos_bm, silver_pos_st in fails.items():
-        print(f"worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}, silver positions = {silver_pos_st}")
+    for n_worthless in range(n_worthless_coins + 1):
+        if not fails[n_worthless]: continue
+        print(f"for {n_worthless} worthless coins:")
+
+        for worthless_pos_bm, silver_pos_st in fails[n_worthless].items():
+            print(f"worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}, silver positions = {silver_pos_st}")
     return res_glob[0]
 
 # Problem 345
@@ -6702,7 +6707,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = silverDollarGameWinningConfigurationsCountBruteForce(
             n_squares=10,
-            n_worthless_coins=3,
+            n_worthless_coins=2,
         )
         print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
 
