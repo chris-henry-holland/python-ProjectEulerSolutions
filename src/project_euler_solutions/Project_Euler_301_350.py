@@ -6126,13 +6126,21 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
         lo_bit = bm0 & (-bm0)
         carry_chain = bm0 + lo_bit
         bm0 = carry_chain | (((carry_chain ^ bm0) >> 2) // lo_bit)
+    unwinnable_cnts = [0] * (n_worthless_coins + 1)
     print("losing positions:")
     for n_worthless in range(n_worthless_coins + 1):
         if not fails[n_worthless]: continue
         print(f"for {n_worthless} worthless coins:")
-
-        for worthless_pos_bm, silver_pos_st in fails[n_worthless].items():
+        cnt = 0
+        for worthless_pos_bm in sorted(fails[n_worthless].keys()):
+            silver_pos_st = fails[n_worthless][worthless_pos_bm]
             print(f"worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}, silver positions = {silver_pos_st}")
+            cnt += len(silver_pos_st)
+        #print(f"for {n_worthless} worthless coins, the number of unwinnable positions = {cnt}")
+        unwinnable_cnts[n_worthless] = cnt
+    print(f"number of unwinnable positions for the different numbers of worthless coins:")
+    for i, cnt in enumerate(unwinnable_cnts):
+        print(f"for {i} worthless coins: {cnt}")
     return res_glob[0]
 
 # Problem 345
@@ -6706,8 +6714,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 344 in eval_nums:
         since = time.time()
         res = silverDollarGameWinningConfigurationsCountBruteForce(
-            n_squares=10,
-            n_worthless_coins=2,
+            n_squares=5,
+            n_worthless_coins=4,
         )
         print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
 
