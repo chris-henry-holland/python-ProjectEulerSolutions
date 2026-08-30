@@ -6163,8 +6163,15 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
                 losing_gaps_f_dict[gaps2] = losing_gaps_f_dict.get(gaps2, 0) + 1
             cnt += len(silver_pos_st)
         print(f"for {n_worthless} worthless coins, the unwinnable gap types (with the number of unwinnable positions for each gap type):")
-        for gaps, f in losing_gaps_f_dict.items():
-            print(list(gaps), f)
+        for gaps in sorted(losing_gaps_f_dict.keys()):
+            f = losing_gaps_f_dict[gaps]
+            
+            
+            xor_vals = [0, 0]
+            for i, num in enumerate(gaps):
+                xor_vals[i & 1] ^= num
+            #print(f"alternate gaps xor: {xor_vals}")
+            print(list(gaps), f, xor_vals, xor_vals[0] ^ xor_vals[1])
         #print(f"for {n_worthless} worthless coins, the number of unwinnable positions = {cnt}")
         unwinnable_cnts[n_worthless] = cnt
     print(f"number of unwinnable positions for the different numbers of worthless coins:")
@@ -6744,7 +6751,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = silverDollarGameWinningConfigurationsCountBruteForce(
             n_squares=12,
-            n_worthless_coins=8,
+            n_worthless_coins=6,
         )
         print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
 
