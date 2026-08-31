@@ -6133,7 +6133,7 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
         if not fails[n_worthless]: continue
         #print(f"for {n_worthless} worthless coins:")
         cnt = 0
-        losing_gaps_f_dict = {}
+        losing_gaps_dict = {}
         for worthless_pos_bm in sorted(fails[n_worthless].keys()):
             silver_pos_st = fails[n_worthless][worthless_pos_bm]
             #print(f"worthless_pos_bm = {format(worthless_pos_bm, 'b').zfill(n_squares)}, silver positions = {silver_pos_st}")
@@ -6141,15 +6141,18 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
                 idx_lst = []
                 bm2 = worthless_pos_bm
                 silver_seen = False
+                j0 = 0
                 while bm2:
                     bm3 = bm2 & (-bm2)
                     idx = bm3.bit_length() - 1
                     bm2 ^= bm3
                     if not silver_seen and idx0 < idx:
+                        j0 = len(idx_lst)
                         idx_lst.append(idx0)
                         silver_seen = True
                     idx_lst.append(idx)
                 if not silver_seen:
+                    j0 = len(idx_lst)
                     idx_lst.append(idx0)
                 #print(f"for silver at {idx0}, the coin indices are: {idx_lst}")
                 prev = -1
@@ -6160,18 +6163,17 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
                 gaps.append(n_squares - 1 - prev)
                 #print(f"gaps: {gaps}")
                 gaps2 = tuple(gaps)
-                losing_gaps_f_dict[gaps2] = losing_gaps_f_dict.get(gaps2, 0) + 1
+                losing_gaps_dict.setdefault(gaps2, set())
+                losing_gaps_dict[gaps2].add(j0)
             cnt += len(silver_pos_st)
         print(f"for {n_worthless} worthless coins, the unwinnable gap types (with the number of unwinnable positions for each gap type):")
-        for gaps in sorted(losing_gaps_f_dict.keys()):
-            f = losing_gaps_f_dict[gaps]
-            
-            
+        for gaps in sorted(losing_gaps_dict.keys()):
+            pos_set = losing_gaps_dict[gaps]
             xor_vals = [0, 0]
             for i, num in enumerate(gaps):
                 xor_vals[i & 1] ^= num
             #print(f"alternate gaps xor: {xor_vals}")
-            print(list(gaps), f, xor_vals, xor_vals[0] ^ xor_vals[1])
+            print(list(gaps), len(pos_set), pos_set, xor_vals)#, xor_vals[0] ^ xor_vals[1])
         #print(f"for {n_worthless} worthless coins, the number of unwinnable positions = {cnt}")
         unwinnable_cnts[n_worthless] = cnt
     print(f"number of unwinnable positions for the different numbers of worthless coins:")
