@@ -6181,6 +6181,33 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
         print(f"for {i} worthless coins: {cnt}")
     return res_glob[0]
 
+def silverDollarGameWinningConfigurationsCount(
+    n_squares: int,
+    n_worthless_coins: int,
+) -> int:
+    
+    n_coins = n_worthless_coins + 1
+
+    memo = {}
+    def countActiveBitwiseXORZeroCombinations(
+        gaps_tot: int,
+        n_active_gaps: int,
+        n_passive_gaps: int,
+    ) -> int:
+        pass
+
+    n_losing = 0
+    passive_cnt = n_coins + 1 - ((n_coins + 1) >> 1)
+    if not n_coins & 1:
+        n_losing = (n_coins - 1) * countActiveBitwiseXORZeroCombinations(n_squares - n_coins, n_coins >> 1, n_coins >> 1)
+    else:
+        n_losing = countActiveBitwiseXORZeroCombinations(n_squares - n_coins, ((n_coins + 1) >> 1), passive_cnt) +\
+                    (n_coins - 2) * (
+                        countActiveBitwiseXORZeroCombinations(n_squares - n_coins + 1, ((n_coins + 1) >> 1), passive_cnt) -\
+                        countActiveBitwiseXORZeroCombinations(n_squares - n_coins + 1, (n_coins >> 1), passive_cnt)
+                    )
+    return n_coins * math.comb(n_squares, n_coins) - n_losing
+
 # Problem 345
 def maxMatrixSum(mat: list[list[int]]) -> int:
     shape = (len(mat), len(mat[0]))
@@ -6752,8 +6779,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 344 in eval_nums:
         since = time.time()
         res = silverDollarGameWinningConfigurationsCountBruteForce(
-            n_squares=12,
-            n_worthless_coins=6,
+            n_squares=20,
+            n_worthless_coins=10,
         )
         print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
 
