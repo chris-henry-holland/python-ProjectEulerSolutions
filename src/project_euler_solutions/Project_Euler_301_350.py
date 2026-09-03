@@ -6182,10 +6182,16 @@ def silverDollarGameWinningConfigurationsCountBruteForce(
     return res_glob[0]
 
 def silverDollarGameWinningConfigurationsCount(
-    n_squares: int,
-    n_worthless_coins: int,
+    n_squares: int=10 ** 6,
+    n_worthless_coins: int=100,
+    res_md: Optional[int]=(10 ** 6 + 3) * (10 ** 6 + 33),
 ) -> int:
-    
+    """
+    Solution to Project Euler #344
+    """
+    # Review- prove that the formulae for odd and even numbers of
+    # coins are correct in general.
+
     n_coins = n_worthless_coins + 1
 
     memo = {}
@@ -6206,8 +6212,10 @@ def silverDollarGameWinningConfigurationsCount(
             res = 0
             r = remain & 1
             for n_active_set in range(0, min(remain, n_active_gaps) + 1, 2):
+                f0 = math.comb(n_active_gaps, n_active_set)
                 for n_passive_set in range(r, min(remain - n_active_set, n_passive_gaps) + 1, 2):
-                    res += recur((remain - n_active_set - n_passive_set) >> 1)
+                    f = f0 * math.comb(n_passive_gaps, n_passive_set)
+                    res += f * recur((remain - n_active_set - n_passive_set) >> 1)
             memo[remain] = res
             return res
         
@@ -6217,14 +6225,15 @@ def silverDollarGameWinningConfigurationsCount(
     n_losing = 0
     passive_cnt = n_coins + 1 - ((n_coins + 1) >> 1)
     if not n_coins & 1:
-        n_losing = (n_coins - 1) * countActiveBitwiseXORZeroCombinations(n_squares - n_coins, n_coins >> 1, n_coins >> 1)
+        n_losing = (n_coins - 1) * countActiveBitwiseXORZeroCombinations(n_squares - n_coins, n_coins >> 1, passive_cnt)
     else:
         n_losing = countActiveBitwiseXORZeroCombinations(n_squares - n_coins, ((n_coins + 1) >> 1), passive_cnt) +\
                     (n_coins - 2) * (
                         countActiveBitwiseXORZeroCombinations(n_squares - n_coins + 1, ((n_coins + 1) >> 1), passive_cnt) -\
                         countActiveBitwiseXORZeroCombinations(n_squares - n_coins + 1, (n_coins >> 1), passive_cnt)
                     )
-    return n_coins * math.comb(n_squares, n_coins) - n_losing
+    res = n_coins * math.comb(n_squares, n_coins) - n_losing
+    return res if res_md is None else (res % res_md)
 
 # Problem 345
 def maxMatrixSum(mat: list[list[int]]) -> int:
@@ -6796,9 +6805,10 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
     if 344 in eval_nums:
         since = time.time()
-        res = silverDollarGameWinningConfigurationsCountBruteForce(
-            n_squares=10,
-            n_worthless_coins=2,
+        res = silverDollarGameWinningConfigurationsCount(
+            n_squares=10 ** 6,
+            n_worthless_coins=100,
+            res_md=(10 ** 6 + 3) * (10 ** 6 + 33),
         )
         print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
 
