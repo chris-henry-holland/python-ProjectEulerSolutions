@@ -6194,7 +6194,25 @@ def silverDollarGameWinningConfigurationsCount(
         n_active_gaps: int,
         n_passive_gaps: int,
     ) -> int:
-        pass
+        
+        memo = {}
+        def recur(remain: int) -> int:
+            if not remain: return 1
+            #for _ in range(idx - len(memo) + 1):
+            #    memo.append({})
+            #if remain in memo[idx].keys():
+            #    return memo[idx][remain]
+            if remain in memo.keys(): return memo[remain]
+            res = 0
+            r = remain & 1
+            for n_active_set in range(0, min(remain, n_active_gaps) + 1, 2):
+                for n_passive_set in range(r, min(remain - n_active_set, n_passive_gaps) + 1, 2):
+                    res += recur((remain - n_active_set - n_passive_set) >> 1)
+            memo[remain] = res
+            return res
+        
+        res = recur(gaps_tot)
+        return res
 
     n_losing = 0
     passive_cnt = n_coins + 1 - ((n_coins + 1) >> 1)
@@ -6779,8 +6797,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 344 in eval_nums:
         since = time.time()
         res = silverDollarGameWinningConfigurationsCountBruteForce(
-            n_squares=20,
-            n_worthless_coins=10,
+            n_squares=10,
+            n_worthless_coins=2,
         )
         print(f"Solution to Project Euler #344 = {res}, calculated in {time.time() - since:.4f} seconds")
 
