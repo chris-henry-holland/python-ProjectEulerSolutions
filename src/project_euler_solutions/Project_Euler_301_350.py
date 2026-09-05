@@ -4681,6 +4681,32 @@ def eulerSequenceTermCoefficientSum(
     #print(pair)
     return addMod(*pair)
 
+# Problem 331
+def crossFlipsQuarterCircleBruteForce(n: int) -> int:
+
+    target_bm = 0
+    for x in reversed(range(n)):
+        target_bm <<= n
+        y_sq_mn = (n - 1) ** 2 - x * x
+        y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
+        #y_mn = isqrt( - 1) + 1
+        y_mx = isqrt(n ** 2 - x * x - 1)
+        #print(x, [y_mn, y_mx])
+        bm = ((1 << (y_mx - y_mn + 1)) - 1) << y_mn
+        #print(format(bm, "b"))
+        target_bm |= bm
+    #print(format(target_bm, "b"))
+
+    for n_set in range(1, n * n + 1):
+        bm = (1 << n_set) - 1
+        while bm < n_set:
+        
+            # Gosper's hack to transition to next bitmask
+            lo_bit = bm & (-bm)
+            lo_sm = bm + lo_bit
+            shifted = bm ^ (bm + lo_sm)
+            bm = lo_sm | ((shifted >> 2) // lo_bit)
+
 # Problem 332
 def pointsOnSphereWithIntegerCoordinatesBruteForce(
     radius: int,
@@ -6846,7 +6872,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {344}
+    eval_nums = {331}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7033,3 +7059,5 @@ print(
 """
 
 #print(strongRepunitsSumBruteForce(10 ** 12))
+
+crossFlipsQuarterCircleBruteForce(5)
