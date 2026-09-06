@@ -4684,28 +4684,72 @@ def eulerSequenceTermCoefficientSum(
 # Problem 331
 def crossFlipsQuarterCircleBruteForce(n: int) -> int:
 
+    n_sq = n * n
+    n_min_1_sq = n_sq - (n << 1) + 1
     target_bm = 0
     for x in reversed(range(n)):
         target_bm <<= n
-        y_sq_mn = (n - 1) ** 2 - x * x
+        y_sq_mn = n_min_1_sq - x * x
         y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
         #y_mn = isqrt( - 1) + 1
-        y_mx = isqrt(n ** 2 - x * x - 1)
+        y_mx = isqrt(n_sq - x * x - 1)
         #print(x, [y_mn, y_mx])
         bm = ((1 << (y_mx - y_mn + 1)) - 1) << y_mn
         #print(format(bm, "b"))
         target_bm |= bm
     #print(format(target_bm, "b"))
 
-    for n_set in range(1, n * n + 1):
-        bm = (1 << n_set) - 1
-        while bm < n_set:
-        
+    def formattedBoardBitmask(board_bm: int) -> list[int]:
+        bm = board_bm
+        res = [""] * n
+        for i in range(n):
+            row_bm = bm & ((1 << n) - 1)
+            bm >>= n
+            res[~i] = format(row_bm, "b").zfill(n)[::-1]
+        return res
+
+    
+    def printBoardBitmask(board_bm: int) -> None:
+        for s in formattedBoardBitmask(board_bm):
+            print(s)
+        return
+
+    printBoardBitmask(target_bm)
+
+    col_bm = 1
+    for _ in range(n - 1):
+        col_bm = (col_bm << n) | 1
+
+    for n_set in range(1, n_sq + 1):
+        print(f"n_set = {n_set}")
+        bm0 = (1 << n_set) - 1
+        sols = []
+        while bm0.bit_length() <= n_sq:
+            #print(n_set, format(bm0, "b").zfill(n_sq))
+            bm = bm0
+            board_bm = 0
+            for _ in range(n_set):
+                bm2 = bm & (-bm)
+                bm ^= bm2
+                i1, i2 = divmod(bm2.bit_length() - 1, n)
+                board_bm ^= (((1 << n) - 1) << (n * i1)) | (col_bm << i2)
+            if board_bm == target_bm:
+                sols.append(bm0)
             # Gosper's hack to transition to next bitmask
-            lo_bit = bm & (-bm)
-            lo_sm = bm + lo_bit
-            shifted = bm ^ (bm + lo_sm)
-            bm = lo_sm | ((shifted >> 2) // lo_bit)
+            lo_bit = bm0 & (-bm0)
+            carry_chain = bm0 + lo_bit
+            bm0 = carry_chain | (((carry_chain ^ bm0) >> 2) // lo_bit)
+            #lo_bit = bm0 & (-bm0)
+            #lo_sm = bm0 + lo_bit
+            #shifted = bm0 ^ (bm0 + lo_sm)
+            #bm0 = lo_sm | ((shifted >> 2) // lo_bit)
+        if sols: break
+    else: return -1
+    print(f"n_set = {n_set}, solutions:")
+    for bm in sols:
+        printBoardBitmask(bm)
+        print()
+    return n_set
 
 # Problem 332
 def pointsOnSphereWithIntegerCoordinatesBruteForce(
@@ -7059,5 +7103,7 @@ print(
 """
 
 #print(strongRepunitsSumBruteForce(10 ** 12))
-
-crossFlipsQuarterCircleBruteForce(5)
+for i in range(1, 8):
+    print(f"i = {i}")
+    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
+    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
