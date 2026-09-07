@@ -5308,6 +5308,37 @@ def totientStaircaseSequenceCount(
         bit.update(num, -f)
     return res
 
+# Problem 338
+def distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(
+    w: int,
+    h: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    res = {}
+    pf_w = calculatePrimeFactorisation(w, ps=ps)
+    p_lst = list(pf_w.keys())
+    iter_lst = [[p ** x for x in range(pf_w[p] + 1)] for p in p_lst]
+    facts_w = set()
+    for p_pow_tup in itertools.product(*iter_lst):
+        facts_w.add(functools.reduce(lambda x, y: x * y, p_pow_tup, 1))
+    pf_h = calculatePrimeFactorisation(h, ps=ps)
+    p_lst = list(pf_h.keys())
+    iter_lst = [[p ** x for x in range(pf_h[p] + 1)] for p in p_lst]
+    facts_h = set()
+    for p_pow_tup in itertools.product(*iter_lst):
+        facts_h.add(functools.reduce(lambda x, y: x * y, p_pow_tup, 1))
+    if len(facts_h) < len(facts_w):
+        (w, facts_w), (h, facts_h) = (h, facts_h), (w, facts_w)
+    for fact_w in facts_w:
+        if fact_w - 1 in facts_h:
+            dims = tuple(sorted([w - (w // fact_w), h + (h // (fact_w - 1))]))
+            res[dims] = res.get(dims, 0) + 1
+        if fact_w + 1 in facts_h:
+            dims = tuple(sorted([w + (w // fact_w), h - (h // (fact_w + 1))]))
+            res[dims] = res.get(dims, 0) + 1
+    #print(res)
+    return len(res) - (tuple(sorted([w, h])) in res.keys())
+
 # Problem 339
 def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
     n_white_init: int,
@@ -6916,7 +6947,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {331}
+    eval_nums = {338}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7103,7 +7134,23 @@ print(
 """
 
 #print(strongRepunitsSumBruteForce(10 ** 12))
-for i in range(1, 8):
-    print(f"i = {i}")
-    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
-    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
+#for i in range(1, 8):
+#    print(f"i = {i}")
+#    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
+#    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
+
+"""
+for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
+    print(
+        (w, h),
+        distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=PrimeSPFsieve())
+    )
+"""
+res = 0
+N = 10 ** 3
+ps = PrimeSPFsieve()
+for w in range(1, N + 1):
+    if not w % 10 ** 2: print(f"w = {w} (of {N})")
+    for h in range(1, w + 1):
+        res += distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=ps)
+print(res)
