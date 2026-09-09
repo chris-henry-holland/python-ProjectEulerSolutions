@@ -33,7 +33,7 @@ from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 from data_structures.fenwick_tree import FenwickTree
 
-from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm, solveLinearNonHomogeneousDiophantineEquation
+from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm, solveLinearNonHomogeneousDiophantineEquation, floorHarmonicSeries
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
 from algorithms.continued_fractions_and_Pell_equations import pellSolutionGenerator, generalisedPellSolutionGenerator, pellFundamentalSolution
 from algorithms.Pythagorean_triple_generators import pythagoreanTripleGeneratorByHypotenuse
@@ -5337,7 +5337,41 @@ def distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(
             dims = tuple(sorted([w + (w // fact_w), h - (h // (fact_w + 1))]))
             res[dims] = res.get(dims, 0) + 1
     #print(res)
+    #if (tuple(sorted([w, h])) in res.keys()): print(tuple(sorted([w, h])))
+    #print(sum(res.values()) - res.get(tuple(sorted([w, h])), 0))
     return len(res) - (tuple(sorted([w, h])) in res.keys())
+
+def distinctRectanglesFromRectangleCutAlongGridLinesSum(
+    length_max: int=10 ** 12,
+) -> int:
+    flr_harm_sm = floorHarmonicSeries(length_max)
+
+    flr_harm_prod_sm = 0
+    i = 1
+    while i < length_max - 1:
+        q1 = length_max // i
+        r1 = length_max // q1
+        q2 = length_max // (i + 1)
+        r2 = length_max // q2
+        i2 = min(r1, r2, length_max - 1)
+        flr_harm_prod_sm += (i2 - i + 1) * q1 * q2
+        i = i2 + 1
+
+    """
+    flr_harm_prod_sm2 = 0
+    i = 1
+    while i < length_max - 2:
+        q1 = length_max // i
+        r1 = length_max // q1
+        q2 = length_max // (i + 1)
+        r2 = length_max // q2
+        q3 = length_max // (i + 2)
+        r3 = length_max // q2
+        i3 = min(r1, r2, r3, length_max - 2)
+        flr_harm_prod_sm2 += (i2 - i + 1) * q1 * q2 * q3
+        i = i2 + 1
+    """
+    return flr_harm_prod_sm - flr_harm_sm
 
 # Problem 339
 def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
@@ -6872,6 +6906,13 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #337 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 338 in eval_nums:
+        since = time.time()
+        res = distinctRectanglesFromRectangleCutAlongGridLinesSum(
+            length_max=10 ** 3,
+        )
+        print(f"Solution to Project Euler #338 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 339 in eval_nums:
         since = time.time()
         res = peredurFabEfrawgMaximumExpectedBlackSheepFloatDirect(
@@ -7146,11 +7187,20 @@ for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
         distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=PrimeSPFsieve())
     )
 """
+
 res = 0
 N = 10 ** 3
 ps = PrimeSPFsieve()
+fact_tot = 0
 for w in range(1, N + 1):
-    if not w % 10 ** 2: print(f"w = {w} (of {N})")
+    #if not w % 10 ** 2: print(f"w = {w} (of {N})")
+    n_fact = ps.factorCount(w)
+    #print(f"w = {w} (of {N}), number of factors = {n_fact}")
+    fact_tot += n_fact
+    #print(floorHarmonicSeries(w))
     for h in range(1, w + 1):
         res += distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=ps)
-print(res)
+print(f"sum = {res}")
+k = isqrt(N)
+fact_tot2 = floorHarmonicSeries(N)#(sum(N // i for i in range(1, k + 1)) << 1) - k ** 2
+print(f"total number of factors = {fact_tot}, calculated total number of factors = {fact_tot2}")
