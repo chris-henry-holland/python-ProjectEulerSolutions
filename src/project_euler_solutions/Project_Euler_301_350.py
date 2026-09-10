@@ -5313,7 +5313,7 @@ def distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(
     w: int,
     h: int,
     ps: Optional[PrimeSPFsieve]=None,
-) -> int:
+) -> dict[tuple[int, int], int]:
     res = {}
     pf_w = calculatePrimeFactorisation(w, ps=ps)
     p_lst = list(pf_w.keys())
@@ -5336,10 +5336,11 @@ def distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(
         if fact_w + 1 in facts_h:
             dims = tuple(sorted([w + (w // fact_w), h - (h // (fact_w + 1))]))
             res[dims] = res.get(dims, 0) + 1
-    #print(res)
+    #print(tuple(sorted([w, h])), res)
     #if (tuple(sorted([w, h])) in res.keys()): print(tuple(sorted([w, h])))
     #print(sum(res.values()) - res.get(tuple(sorted([w, h])), 0))
-    return len(res) - (tuple(sorted([w, h])) in res.keys())
+    #return len(res) - (tuple(sorted([w, h])) in res.keys())
+    return res
 
 def distinctRectanglesFromRectangleCutAlongGridLinesSum(
     length_max: int=10 ** 12,
@@ -5357,6 +5358,20 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
         flr_harm_prod_sm += (i2 - i + 1) * q1 * q2
         i = i2 + 1
 
+    flr_inv_risingfact2_sm = 0
+    i = 1
+    i_mx = (isqrt(4 * length_max + 1) - 1) >> 1
+    while i <= i_mx:
+        q1 = length_max // (i * (i + 1))
+        # r1 is the largest integer such that r1 * (r1 + 1) * q1 <= length_max
+        r1 = (isqrt(4 * (length_max // q1) + 1) - 1) >> 1 #length_max // q1
+        i2 = min(r1, i_mx + 1)
+        flr_inv_risingfact2_sm += (i2 - i + 1) * q1
+        i = i2 + 1
+    #for k in range(1, length_max + 1):
+    #    denom = k * (k + 1)
+    #    if denom > length_max: break
+    #    flr_inv_risingfact2_sm += length_max // (denom)
     """
     flr_harm_prod_sm2 = 0
     i = 1
@@ -5371,7 +5386,9 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
         flr_harm_prod_sm2 += (i2 - i + 1) * q1 * q2 * q3
         i = i2 + 1
     """
-    return flr_harm_prod_sm - flr_harm_sm
+    print(flr_harm_prod_sm, flr_inv_risingfact2_sm, flr_harm_sm)
+    print(f"total number of ways to produce a rectangle from these rectangles = {flr_harm_prod_sm + flr_inv_risingfact2_sm}")
+    return flr_harm_prod_sm + flr_inv_risingfact2_sm - flr_harm_sm
 
 # Problem 339
 def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
@@ -6909,7 +6926,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 338 in eval_nums:
         since = time.time()
         res = distinctRectanglesFromRectangleCutAlongGridLinesSum(
-            length_max=10 ** 3,
+            length_max=3,
         )
         print(f"Solution to Project Euler #338 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -6988,7 +7005,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {338}
+    eval_nums = {3380}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7187,11 +7204,13 @@ for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
         distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=PrimeSPFsieve())
     )
 """
-
-res = 0
 N = 10 ** 3
+res = 0
+
 ps = PrimeSPFsieve()
 fact_tot = 0
+n_rect_tot = 0
+n_rect_from_sq_tot = 0
 for w in range(1, N + 1):
     #if not w % 10 ** 2: print(f"w = {w} (of {N})")
     n_fact = ps.factorCount(w)
@@ -7199,8 +7218,22 @@ for w in range(1, N + 1):
     fact_tot += n_fact
     #print(floorHarmonicSeries(w))
     for h in range(1, w + 1):
-        res += distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=ps)
+        cnt_dict = distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=ps)
+        #print((w, h), cnt_dict)
+        ans = len(cnt_dict) - (tuple(sorted([w, h])) in cnt_dict.keys())
+        n_rect_tot += sum(cnt_dict.values())
+        if h == w:
+            n_rect_from_sq_tot += sum(cnt_dict.values())
+        res += ans
 print(f"sum = {res}")
+print(f"total number of ways to produce a rectangle from these rectangles = {n_rect_tot}")
+print(f"total number of ways a square can produce a rectangle = {n_rect_from_sq_tot}")
 k = isqrt(N)
 fact_tot2 = floorHarmonicSeries(N)#(sum(N // i for i in range(1, k + 1)) << 1) - k ** 2
 print(f"total number of factors = {fact_tot}, calculated total number of factors = {fact_tot2}")
+
+
+res2 = distinctRectanglesFromRectangleCutAlongGridLinesSum(
+    length_max=N,
+)
+print(f"calculated sum = {res2}")
