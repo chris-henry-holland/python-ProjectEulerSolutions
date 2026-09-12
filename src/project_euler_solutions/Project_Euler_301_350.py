@@ -5348,15 +5348,23 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
     flr_harm_sm = floorHarmonicSeries(length_max)
 
     flr_harm_prod_sm = 0
+    
     i = 1
     while i < length_max - 1:
         q1 = length_max // i
         r1 = length_max // q1
         q2 = length_max // (i + 1)
-        r2 = length_max // q2
+        r2 = (length_max // q2) - 1
         i2 = min(r1, r2, length_max - 1)
         flr_harm_prod_sm += (i2 - i + 1) * q1 * q2
+        #print(f"range = [{i}, {i2}], value = {q1 * q2}")
         i = i2 + 1
+    #print(flr_harm_prod_sm)
+    #flr_harm_prod_sm = 0
+    #for k in range(1, length_max):
+    #    term = (length_max // k) * (length_max // (k + 1))
+    #    print(f"k = {k}, term = {term}")
+    #    flr_harm_prod_sm += term
 
     flr_inv_risingfact2_sm = 0
     i = 1
@@ -7204,7 +7212,7 @@ for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
         distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=PrimeSPFsieve())
     )
 """
-N = 10 ** 3
+N = 10 ** 2
 res = 0
 
 ps = PrimeSPFsieve()
@@ -7220,6 +7228,9 @@ for w in range(1, N + 1):
     for h in range(1, w + 1):
         cnt_dict = distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=ps)
         #print((w, h), cnt_dict)
+        mult_cnt_set = {x for x, y in cnt_dict.items() if gcd(gcd(*x), gcd(w, h)) == 1 and y > 1}
+        if h != w and mult_cnt_set:
+            print(tuple(sorted([w, h])), mult_cnt_set)
         ans = len(cnt_dict) - (tuple(sorted([w, h])) in cnt_dict.keys())
         n_rect_tot += sum(cnt_dict.values())
         if h == w:
