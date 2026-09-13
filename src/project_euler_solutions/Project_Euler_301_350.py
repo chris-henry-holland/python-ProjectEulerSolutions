@@ -5344,8 +5344,15 @@ def distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(
 
 def distinctRectanglesFromRectangleCutAlongGridLinesSum(
     length_max: int=10 ** 12,
+    res_md: Optional[int]=10 ** 8
 ) -> int:
-    flr_harm_sm = floorHarmonicSeries(length_max)
+    """
+    Solution to Project Euler #338
+    """
+    # TODO- prove that the equation works in general
+    modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+
+    #flr_harm_sm = floorHarmonicSeries(length_max)
 
     flr_harm_prod_sm = 0
     
@@ -5356,7 +5363,7 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
         q2 = length_max // (i + 1)
         r2 = (length_max // q2) - 1
         i2 = min(r1, r2, length_max - 1)
-        flr_harm_prod_sm += (i2 - i + 1) * q1 * q2
+        flr_harm_prod_sm = modAdd(flr_harm_prod_sm, (i2 - i + 1) * q1 * q2)
         #print(f"range = [{i}, {i2}], value = {q1 * q2}")
         i = i2 + 1
     #print(flr_harm_prod_sm)
@@ -5365,7 +5372,7 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
     #    term = (length_max // k) * (length_max // (k + 1))
     #    print(f"k = {k}, term = {term}")
     #    flr_harm_prod_sm += term
-
+    """
     flr_inv_risingfact2_sm = 0
     i = 1
     i_mx = (isqrt(4 * length_max + 1) - 1) >> 1
@@ -5381,6 +5388,7 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
     #    if denom > length_max: break
     #    flr_inv_risingfact2_sm += length_max // (denom)
     """
+    """
     flr_harm_prod_sm2 = 0
     i = 1
     while i < length_max - 2:
@@ -5394,9 +5402,19 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
         flr_harm_prod_sm2 += (i2 - i + 1) * q1 * q2 * q3
         i = i2 + 1
     """
-    print(flr_harm_prod_sm, flr_inv_risingfact2_sm, flr_harm_sm)
-    print(f"total number of ways to produce a rectangle from these rectangles = {flr_harm_prod_sm + flr_inv_risingfact2_sm}")
-    return flr_harm_prod_sm + flr_inv_risingfact2_sm - flr_harm_sm
+    flr_harm_sm = 0
+    i = 2
+    while i < length_max:
+        q = length_max // i
+        r = length_max // q
+        i2 = min(r, length_max)
+        flr_harm_sm = modAdd(flr_harm_sm, (i2 - i + 1) * floorHarmonicSeries(q))
+        i = i2 + 1
+    #print(flr_harm_prod_sm, flr_inv_risingfact2_sm, flr_harm_sm)
+    #print(f"total number of ways to produce a rectangle from these rectangles = {flr_harm_prod_sm + flr_inv_risingfact2_sm}")
+    #return flr_harm_prod_sm + flr_inv_risingfact2_sm - flr_harm_sm
+    res = flr_harm_prod_sm - flr_harm_sm
+    return res if res_md is None else res % res_md
 
 # Problem 339
 def peredurFabEfrawgMaximumExpectedBlackSheepFractionBruteForce(
@@ -6934,7 +6952,8 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     if 338 in eval_nums:
         since = time.time()
         res = distinctRectanglesFromRectangleCutAlongGridLinesSum(
-            length_max=3,
+            length_max=10 ** 12,
+            res_md=10 ** 8,
         )
         print(f"Solution to Project Euler #338 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -7013,7 +7032,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3380}
+    eval_nums = {338}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7212,7 +7231,8 @@ for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
         distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=PrimeSPFsieve())
     )
 """
-N = 10 ** 2
+"""
+N = 10 ** 5
 res = 0
 
 ps = PrimeSPFsieve()
@@ -7229,8 +7249,8 @@ for w in range(1, N + 1):
         cnt_dict = distinctRectanglesFromRectangleCutAlongGridLinesCountBruteForce(w, h, ps=ps)
         #print((w, h), cnt_dict)
         mult_cnt_set = {x for x, y in cnt_dict.items() if gcd(gcd(*x), gcd(w, h)) == 1 and y > 1}
-        if h != w and mult_cnt_set:
-            print(tuple(sorted([w, h])), mult_cnt_set)
+        #if h != w and mult_cnt_set:
+        #    print(tuple(sorted([w, h])), mult_cnt_set)
         ans = len(cnt_dict) - (tuple(sorted([w, h])) in cnt_dict.keys())
         n_rect_tot += sum(cnt_dict.values())
         if h == w:
@@ -7248,3 +7268,4 @@ res2 = distinctRectanglesFromRectangleCutAlongGridLinesSum(
     length_max=N,
 )
 print(f"calculated sum = {res2}")
+"""
