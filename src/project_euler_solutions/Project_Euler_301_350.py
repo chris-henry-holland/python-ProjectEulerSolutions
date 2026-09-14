@@ -5350,6 +5350,7 @@ def distinctRectanglesFromRectangleCutAlongGridLinesSum(
     Solution to Project Euler #338
     """
     # TODO- prove that the equation works in general
+    # Number of duplicates given by OEISA A333885- why?
     modAdd = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
 
     #flr_harm_sm = floorHarmonicSeries(length_max)
@@ -5903,7 +5904,7 @@ def crazyFunctionSum(
     res = ((b * (b + 1)) >> 1) + 4 * (a - c) * (b + 1) + (4 * a - 3 * c) * ((a * q * (q - 1) >> 1) + (r + 1) * q)
     return res if res_md is None else res % res_md
 
-
+# Problem 341
 def golombSelfDescribingSequenceTerm(n: int) -> int:
     # Using recurrence from https://en.wikipedia.org/wiki/Golomb_sequence
 
@@ -5923,7 +5924,7 @@ def golombSelfDescribingSequenceTerm2(n: int) -> int:
         cumu += a[-1]
         #print(n, m, a, cumu)
         if cumu >= n:
-            print(n, len(a))
+            #print(n, len(a))
             return m
     
     return a[n]
@@ -7032,7 +7033,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {338}
+    eval_nums = {341}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7192,10 +7193,11 @@ for c in range(1, 41):
 #for n in range(201):
 #    print(n, crazyFunction(n, a, b, c))
 """
-"""
-for n in range(10 ** 12, 10 ** 12 + 1):
+
+N = 10 ** 8
+for n in range(N, N + 1):
     print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
-"""
+
 #print(totientOfSquareIsCubeCountBruteForce(10 ** 4, ps=PrimeSPFsieve()))
 
 #print(totientOfSquareIsCubeCount(10 ** 4))
