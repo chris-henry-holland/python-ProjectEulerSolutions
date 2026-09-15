@@ -5929,6 +5929,31 @@ def golombSelfDescribingSequenceTerm2(n: int) -> int:
     
     return a[n]
 
+def golombSelfDescribingSequenceCubeTermsSum(n_max: int=10 ** 6) -> int:
+
+    res = 0
+
+    G = [0, 1]
+    cumu = 1
+    wt_cumu = 1
+    curr = 1
+    curr_cb = 1
+    for k in itertools.count(2):
+        #G_prev = G
+        cumu_prev = cumu
+        wt_cumu_prev = wt_cumu
+        G.append(1 + G[k - G[G[k - 1]]])# = cumu_prev + 1 + (k - wt_cumu_prev - 1) // k
+        cumu += G[-1]
+        wt_cumu += k * G[-1]
+        if wt_cumu > curr_cb:
+            res += cumu_prev + 1 + (curr_cb - wt_cumu_prev - 1) // k
+            for curr in range(curr + 1, n_max + 1):
+                curr_cb = (curr + 1) ** 3
+                if wt_cumu <= curr_cb: break
+                res += cumu_prev + 1 + (curr_cb - wt_cumu_prev - 1) // k
+            else: break
+    return res
+
 # Problem 342
 def totientOfSquareIsCubeCountBruteForce(n_max: int, ps: Optional[PrimeSPFsieve]=None) -> int:
 
@@ -7194,9 +7219,16 @@ for c in range(1, 41):
 #    print(n, crazyFunction(n, a, b, c))
 """
 
-N = 10 ** 8
-for n in range(N, N + 1):
-    print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
+N = 2
+print(golombSelfDescribingSequenceCubeTermsSum(N))
+res = 0
+for i in range(1, N + 1):
+    res += golombSelfDescribingSequenceTerm2(i ** 3)
+print(res)
+
+#for n in range(N, N + 1):
+#    #print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
+#    print(n, golombSelfDescribingSequenceTerm2(n))
 
 #print(totientOfSquareIsCubeCountBruteForce(10 ** 4, ps=PrimeSPFsieve()))
 
