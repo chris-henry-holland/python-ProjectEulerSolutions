@@ -4751,6 +4751,70 @@ def crossFlipsQuarterCircleBruteForce(n: int) -> int:
         print()
     return n_set
 
+def crossFlipsQuarterCircleTrialSolution(n: int) -> int:
+    n_sq = n * n
+
+    def formattedBoardBitmask(board_bm: int) -> list[int]:
+        bm = board_bm
+        res = [""] * n
+        for i in range(n):
+            row_bm = bm & ((1 << n) - 1)
+            bm >>= n
+            res[~i] = format(row_bm, "b").zfill(n)[::-1]
+        return res
+
+    def printBoardBitmask(board_bm: int) -> None:
+        for s in formattedBoardBitmask(board_bm):
+            print(s)
+        return
+
+    n_min_1_sq = n_sq - (n << 1) + 1
+    target_bm = 0
+    for x in reversed(range(n)):
+        target_bm <<= n
+        y_sq_mn = n_min_1_sq - x * x
+        y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
+        #y_mn = isqrt( - 1) + 1
+        y_mx = isqrt(n_sq - x * x - 1)
+        #print(x, [y_mn, y_mx])
+        bm = ((1 << (y_mx - y_mn + 1)) - 1) << y_mn
+        #print(format(bm, "b"))
+        target_bm |= bm
+
+    
+
+    col_bm = 1
+    for _ in range(n - 1):
+        col_bm = (col_bm << n) | 1
+
+    row_xors = []
+    col_xors = []
+    for i in range(n):
+        row_xors.append((target_bm & (((1 << n) - 1) << (n * i))).bit_count() & 1)
+        col_xors.append((target_bm & (col_bm << i)).bit_count() & 1)
+
+    printBoardBitmask(target_bm)
+    print(row_xors)
+    print(col_xors)
+
+
+    curr_bm = target_bm
+    sol = 0
+    res = 0
+    for i1 in range(n):
+        for i2 in range(n):
+            val = (target_bm >> (i1 * n + i2)) & 1
+            is_set = row_xors[i1] ^ col_xors[i2] ^ val
+            if not is_set: continue
+            res += 1
+            curr_bm ^= (((1 << n) - 1) << (n * i1)) | (col_bm << i2)
+            sol |= 1 << (i1 * n + i2)
+    print(f"Solution:")
+    printBoardBitmask(sol)
+    print("Final board:")
+    printBoardBitmask(curr_bm)
+    return res if not curr_bm else -1
+
 # Problem 332
 def pointsOnSphereWithIntegerCoordinatesBruteForce(
     radius: int,
@@ -5929,7 +5993,7 @@ def golombSelfDescribingSequenceTerm2(n: int) -> int:
     
     return a[n]
 
-def golombSelfDescribingSequenceCubeTermsSum(n_max: int=10 ** 6) -> int:
+def golombSelfDescribingSequenceCubeTermsSum(n_max: int=10 ** 6 - 1) -> int:
 
     res = 0
 
@@ -5945,13 +6009,18 @@ def golombSelfDescribingSequenceCubeTermsSum(n_max: int=10 ** 6) -> int:
         G.append(1 + G[k - G[G[k - 1]]])# = cumu_prev + 1 + (k - wt_cumu_prev - 1) // k
         cumu += G[-1]
         wt_cumu += k * G[-1]
+        #print(f"k = {k}, G(k) = {G[-1]}, cumulative sum = {cumu}, weighted cumulative sum = {wt_cumu}")
         if wt_cumu > curr_cb:
-            res += cumu_prev + 1 + (curr_cb - wt_cumu_prev - 1) // k
+            ans = cumu_prev + 1 + (curr_cb - wt_cumu_prev - 1) // k
+            #print(f"G({curr_cb}) = {ans}")
+            res += ans
             for curr in range(curr + 1, n_max + 1):
-                curr_cb = (curr + 1) ** 3
+                curr_cb = curr ** 3
                 if wt_cumu <= curr_cb: break
-                res += cumu_prev + 1 + (curr_cb - wt_cumu_prev - 1) // k
+                ans = cumu_prev + 1 + (curr_cb - wt_cumu_prev - 1) // k
+                res += ans
             else: break
+    print(len(G))
     return res
 
 # Problem 342
@@ -7001,6 +7070,11 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #340 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 341 in eval_nums:
+        since = time.time()
+        res = golombSelfDescribingSequenceCubeTermsSum(n_max=10 ** 6 - 1)
+        print(f"Solution to Project Euler #341 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 342 in eval_nums:
         since = time.time()
         res = totientOfSquareIsCubeSum(n_min=2, n_max=10 ** 10 - 1)
@@ -7058,7 +7132,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {341}
+    eval_nums = {3310}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7219,12 +7293,12 @@ for c in range(1, 41):
 #    print(n, crazyFunction(n, a, b, c))
 """
 
-N = 2
-print(golombSelfDescribingSequenceCubeTermsSum(N))
-res = 0
-for i in range(1, N + 1):
-    res += golombSelfDescribingSequenceTerm2(i ** 3)
-print(res)
+#N = 10 ** 3 - 1
+#print(golombSelfDescribingSequenceCubeTermsSum(N))
+#res = 0
+#for i in range(1, N + 1):
+#    res += golombSelfDescribingSequenceTerm2(i ** 3)
+#print(res)
 
 #for n in range(N, N + 1):
 #    #print(n, golombSelfDescribingSequenceTerm(n), golombSelfDescribingSequenceTerm2(n))
@@ -7253,10 +7327,12 @@ print(
 """
 
 #print(strongRepunitsSumBruteForce(10 ** 12))
-#for i in range(1, 8):
+#for i in range(2, 11, 2):
 #    print(f"i = {i}")
 #    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
 #    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
+
+print(crossFlipsQuarterCircleTrialSolution(6))
 
 """
 for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
