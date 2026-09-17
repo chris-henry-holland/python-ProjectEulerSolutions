@@ -4751,6 +4751,22 @@ def crossFlipsQuarterCircleBruteForce(n: int) -> int:
         print()
     return n_set
 
+def crossFlipsQuarterCircleMatrix(n: int) -> int:
+    vec = []
+    mat = []
+    n_sq = n * n
+    n_min_1_sq = n_sq - (n << 1) + 1
+    for x in range(n):
+        target_bm <<= n
+        y_sq_mn = n_min_1_sq - x * x
+        y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
+        #y_mn = isqrt( - 1) + 1
+        y_mx = isqrt(n_sq - x * x - 1)
+        #print(x, [y_mn, y_mx])
+        bm = ((1 << (y_mx - y_mn + 1)) - 1) << y_mn
+        #print(format(bm, "b"))
+        target_bm |= bm
+
 def crossFlipsQuarterCircleTrialSolution(n: int) -> int:
     n_sq = n * n
 
