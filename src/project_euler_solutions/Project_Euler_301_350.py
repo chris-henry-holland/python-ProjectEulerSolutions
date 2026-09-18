@@ -4752,8 +4752,19 @@ def crossFlipsQuarterCircleBruteForce(n: int) -> int:
     return n_set
 
 def crossFlipsQuarterCircleMatrix(n: int) -> int:
-    vec = []
-    mat = []
+    m = (n + 2) * n
+    vec = [False] * m
+    mat = [[False] * m for _ in range(m)]
+
+    def getRowIndex(row: int) -> int:
+        return row
+    
+    def getColumnIndex(col: int) -> int:
+        return n + col
+    
+    def getElementIndex(pos: tuple[int, int]) -> int:
+        return (n << 1) + pos[0] * n + pos[1]
+
     n_sq = n * n
     n_min_1_sq = n_sq - (n << 1) + 1
     for x in range(n):
