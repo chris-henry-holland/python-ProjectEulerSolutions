@@ -4760,6 +4760,20 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
     vec = 0
     mat = [0] * m
 
+    def formattedBoardBitmask(board_bm: int) -> list[int]:
+        bm = board_bm
+        res = [""] * n
+        for i in range(n):
+            row_bm = bm & ((1 << n) - 1)
+            bm >>= n
+            res[~i] = format(row_bm, "b").zfill(n)[::-1]
+        return res
+
+    def printBoardBitmask(board_bm: int) -> None:
+        for s in formattedBoardBitmask(board_bm):
+            print(s)
+        return
+
     def getRowIndex(row: int) -> int:
         return row
     
@@ -4792,6 +4806,64 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
     for r in range(m):
         print(format(mat[r], "b").zfill(m)[::-1])
 
+    target_bm = 0
+    for x in reversed(range(n)):
+        target_bm <<= n
+        y_sq_mn = n_min_1_sq - x * x
+        y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
+        #y_mn = isqrt( - 1) + 1
+        y_mx = isqrt(n_sq - x * x - 1)
+        #print(x, [y_mn, y_mx])
+        bm = ((1 << (y_mx - y_mn + 1)) - 1) << y_mn
+        #print(format(bm, "b"))
+        target_bm |= bm
+
+    #curr_bm = target_bm
+
+    col_bm = 1
+    for _ in range(n - 1):
+        col_bm = (col_bm << n) | 1
+
+    row_xors = []
+    col_xors = []
+    for i in range(n):
+        row_xors.append((target_bm & (((1 << n) - 1) << (n * i))).bit_count() & 1)
+        col_xors.append((target_bm & (col_bm << i)).bit_count() & 1)
+    trial_sol = 0
+    #res = 0
+    row_bm = 0
+    col_bm = 0
+    for i1 in range(n):
+        for i2 in range(n):
+            val = (target_bm >> (i1 * n + i2)) & 1
+            is_set = row_xors[i1] ^ col_xors[i2] ^ val
+            if not is_set: continue
+            #res += 1
+            #curr_bm ^= (((1 << n) - 1) << (n * i1)) | (col_bm << i2)
+            trial_sol |= 1 << (i1 * n + i2)
+            row_bm ^= 1 << i1
+            col_bm ^= 1 << i2
+    trial_sol = (trial_sol << n) | col_bm
+    trial_sol = (trial_sol << n) | row_bm
+    #print(trial_sol_fwd)
+    print()
+    trial_sol_fwd = 0
+    print(format(trial_sol, "b").zfill(m)[::-1])
+    for i, row in enumerate(mat):
+        print(f"row = {format(row, 'b').zfill(m)[::-1]}, trial_sol = {format(trial_sol, 'b').zfill(m)[::-1]}")
+        print(format(row & (trial_sol), "b").zfill(m)[::-1])
+        if (row & (trial_sol)).bit_count() & 1:
+            trial_sol_fwd |= 1 << i
+        #print(b)
+        #trial_sol_fwd = (trial_sol_fwd << 1) | b
+    print(format(trial_sol_fwd, "b").zfill(m)[::-1])
+    print("original board:")
+    printBoardBitmask(target_bm)
+    print(f"trial solution:")
+    printBoardBitmask(trial_sol >> (2 * n))
+    print(f"trial solution thru matrix:")
+    printBoardBitmask(trial_sol_fwd >> (2 * n))
+
     # Gaussian elimination
     for i1 in range(m):
         seen_rngs = SortedDict()
@@ -4804,15 +4876,16 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
                 j = lo_bit.bit_length() - 1
                 if j >= i1: break
                 mat[i1] ^= mat[j]
-                print(i1, j)
-                for r in range(m):
-                    print(format(mat[r], "b").zfill(m)[::-1])
+                #print(i1, j)
+                #for r in range(m):
+                #    print(format(mat[r], "b").zfill(m)[::-1])
                 if vec & (1 << j):
                     vec ^= (1 << i1)
             if not mat[i1]:
                 return -1 # Matrix not invertible
             elif j == i1:
                 break
+            """
             print("pivoting")
 
             print("before:")
@@ -4820,6 +4893,7 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
                 print(format(mat[r], "b").zfill(m)[::-1])
             print()
             print(format(vec, "b").zfill(m)[::-1])
+            """
             idx = seen_rngs.bisect_left(j)
             rng0 = seen_rngs.peekitem(idx) if idx < len(seen_rngs) else ()
             rng1 = seen_rngs.peekitem(idx + 1) if idx + 1 < len(seen_rngs) else ()
@@ -4836,11 +4910,13 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
             mat[i1], mat[i2] = mat[i2], mat[i1]
             if vec & (1 << i1) != vec & (1 << i2):
                 vec ^= (1 << i1) | (1 << i2)
+            """
             print(f"after swapping rows {i1} and {i2}:")
             for r in range(m):
                 print(format(mat[r], "b").zfill(m)[::-1])
             print()
             print(format(vec, "b").zfill(m)[::-1])
+            """
     print("hi")
     for r in range(m):
         print(format(mat[r], "b").zfill(m)[::-1])
@@ -4849,7 +4925,7 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
     sol = 0
     res = 0
     for i1 in reversed(range(n_sq)):
-        print(i1, sol)
+        #print(i1, sol)
         i1_2 = i1 + (n << 1)
         i1_bit = 1 << i1_2
         ans = vec & i1_bit
@@ -4865,20 +4941,6 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
             res += 1
         #for r in range(m):
         #    print(format(mat[r], "b").zfill(m)[::-1])
-    
-    def formattedBoardBitmask(board_bm: int) -> list[int]:
-        bm = board_bm
-        res = [""] * n
-        for i in range(n):
-            row_bm = bm & ((1 << n) - 1)
-            bm >>= n
-            res[~i] = format(row_bm, "b").zfill(n)[::-1]
-        return res
-
-    def printBoardBitmask(board_bm: int) -> None:
-        for s in formattedBoardBitmask(board_bm):
-            print(s)
-        return
     
     #format(sol, "b").zfill(n)[::-1]
     print()
@@ -7467,7 +7529,7 @@ print(
 #    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
 #    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
 
-print(crossFlipsQuarterCircleMatrix(4))
+print(crossFlipsQuarterCircleMatrix(10))
 
 """
 for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
