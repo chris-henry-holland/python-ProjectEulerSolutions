@@ -4752,7 +4752,8 @@ def crossFlipsQuarterCircleBruteForce(n: int) -> int:
     return n_set
 
 def crossFlipsQuarterCircleMatrix(n: int) -> int:
-
+    # TODO- prove that the matrix is invertible for even
+    # n and not invertible for odd n greater than 1
     n_sq = n * n
     n_min_1_sq = n_sq - (n << 1) + 1
 
@@ -4803,8 +4804,8 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
             if d_sq < n_sq and d_sq >= n_min_1_sq:
                 vec |= 1 << i
     
-    for r in range(m):
-        print(format(mat[r], "b").zfill(m)[::-1])
+    #for r in range(m):
+    #    print(format(mat[r], "b").zfill(m)[::-1])
 
     target_bm = 0
     for x in reversed(range(n)):
@@ -4845,17 +4846,18 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
             col_bm ^= 1 << i2
     trial_sol = (trial_sol << n) | col_bm
     trial_sol = (trial_sol << n) | row_bm
-    #print(trial_sol_fwd)
-    print()
     trial_sol_fwd = 0
-    print(format(trial_sol, "b").zfill(m)[::-1])
+    #print(trial_sol_fwd)
+    #print()
+    #print(format(trial_sol, "b").zfill(m)[::-1])
     for i, row in enumerate(mat):
-        print(f"row = {format(row, 'b').zfill(m)[::-1]}, trial_sol = {format(trial_sol, 'b').zfill(m)[::-1]}")
-        print(format(row & (trial_sol), "b").zfill(m)[::-1])
+        #print(f"row = {format(row, 'b').zfill(m)[::-1]}, trial_sol = {format(trial_sol, 'b').zfill(m)[::-1]}")
+        #print(format(row & (trial_sol), "b").zfill(m)[::-1])
         if (row & (trial_sol)).bit_count() & 1:
             trial_sol_fwd |= 1 << i
         #print(b)
         #trial_sol_fwd = (trial_sol_fwd << 1) | b
+    """
     print(format(trial_sol_fwd, "b").zfill(m)[::-1])
     print("original board:")
     printBoardBitmask(target_bm)
@@ -4863,16 +4865,22 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
     printBoardBitmask(trial_sol >> (2 * n))
     print(f"trial solution thru matrix:")
     printBoardBitmask(trial_sol_fwd >> (2 * n))
-
+    """
+    trial_sol2 = trial_sol
+    
     # Gaussian elimination
+    prnt_mn = float("inf")
+    prnt_mx = float("inf")
+    n_prnt = 0
     for i1 in range(m):
         seen_rngs = SortedDict()
         while True:
             while True:
-                lo_bit = mat[i1] & (-mat[i1])
                 if not mat[i1]:
                     print(vec & (1 << i1))
                     return -1 # matrix not invertible
+                lo_bit = mat[i1] & (-mat[i1])
+                
                 j = lo_bit.bit_length() - 1
                 if j >= i1: break
                 mat[i1] ^= mat[j]
@@ -4881,6 +4889,8 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
                 #    print(format(mat[r], "b").zfill(m)[::-1])
                 if vec & (1 << j):
                     vec ^= (1 << i1)
+                if trial_sol2 & (1 << j):
+                    trial_sol2 ^= (1 << i1)
             if not mat[i1]:
                 return -1 # Matrix not invertible
             elif j == i1:
@@ -4907,9 +4917,45 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
                 if not rng1 or rng1[0] > i2 + 1:
                     seen_rngs[rng0[0]] = i2
                 else: seen_rngs[rng0[0]] = seen_rngs.popitem(idx + 1)[1]
+            if n_prnt < prnt_mx and n_prnt >= prnt_mn:
+                print(f"swapping rows {i1} and {i2}")
+                print("matrix and vector before swap:")
+                for r in range(m):
+                    print(format(mat[r], "b").zfill(m)[::-1])
+                print()
+                print(format(vec, "b").zfill(m)[::-1])
+                print()
+                print(format(trial_sol, "b").zfill(m)[::-1])
+                print()
+                trial_sol_fwd = 0
+                for i, row in enumerate(mat):
+                    if (row & (trial_sol)).bit_count() & 1:
+                        trial_sol_fwd |= 1 << i
+                
+                print(format(trial_sol_fwd, "b").zfill(m)[::-1])
+                printBoardBitmask(trial_sol_fwd >> (2 * n))
             mat[i1], mat[i2] = mat[i2], mat[i1]
-            if vec & (1 << i1) != vec & (1 << i2):
+            if bool(vec & (1 << i1)) != bool(vec & (1 << i2)):
                 vec ^= (1 << i1) | (1 << i2)
+            #if trial_sol2 & (1 << i1) != trial_sol2 & (1 << i2):
+            #    trial_sol2 ^= (1 << i1) | (1 << i2)
+            if n_prnt < prnt_mx and n_prnt >= prnt_mn:
+                print("matrix, vector and trial solution through matrix after swap:")
+                for r in range(m):
+                    print(format(mat[r], "b").zfill(m)[::-1])
+                print()
+                print(format(vec, "b").zfill(m)[::-1])
+                print()
+                print(format(trial_sol, "b").zfill(m)[::-1])
+                print()
+                trial_sol_fwd = 0
+                for i, row in enumerate(mat):
+                    if (row & (trial_sol)).bit_count() & 1:
+                        trial_sol_fwd |= 1 << i
+                
+                print(format(trial_sol_fwd, "b").zfill(m)[::-1])
+                printBoardBitmask(trial_sol_fwd >> (2 * n))
+            n_prnt += 1
             """
             print(f"after swapping rows {i1} and {i2}:")
             for r in range(m):
@@ -4917,38 +4963,71 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
             print()
             print(format(vec, "b").zfill(m)[::-1])
             """
-    print("hi")
+    """
     for r in range(m):
         print(format(mat[r], "b").zfill(m)[::-1])
     print()
     print(format(vec, "b").zfill(m)[::-1])
+    """
+    trial_sol_fwd = 0
+    for i, row in enumerate(mat):
+        if (row & (trial_sol)).bit_count() & 1:
+            trial_sol_fwd |= 1 << i
+    
+    """
+    print("trial solution:")
+    print(format(trial_sol, "b").zfill(m)[::-1])
+    print("trial solution thru matrix:")
+    print(format(trial_sol_fwd, "b").zfill(m)[::-1])
+    print("target vector (should be equal to trial solution thru matrix):")
+    print(format(vec, "b").zfill(m)[::-1])
+    print(trial_sol_fwd == vec)
+    #print(f"trial solution thru matrix after conversion to upper triangular form:")
+    #printBoardBitmask(trial_sol2_fwd >> (2 * n))
+    
+    print()
+    print("trial solution:")
+    print(format(trial_sol, "b").zfill(m)[::-1])
+    """
     sol = 0
     res = 0
-    for i1 in reversed(range(n_sq)):
+    for i1 in reversed(range(m)):
         #print(i1, sol)
-        i1_2 = i1 + (n << 1)
+        i1_2 = i1# + (n << 1)
         i1_bit = 1 << i1_2
-        ans = vec & i1_bit
+        ans = int(bool(vec & i1_bit))
+        #print(ans)
         while True:
             j = mat[i1_2].bit_length() - 1
             if j <= i1_2: break
             hi_bit = 1 << j
             mat[i1_2] ^= mat[j]
-            if vec & hi_bit:
+            if sol & hi_bit:
                 ans ^= 1
+            #print(j, ans)
+        
         if ans:
-            sol ^= 1 << i1
-            res += 1
-        #for r in range(m):
-        #    print(format(mat[r], "b").zfill(m)[::-1])
-    
-    #format(sol, "b").zfill(n)[::-1]
-    print()
-    printBoardBitmask(sol)
+            sol |= 1 << i1
+            res += i1 >= (n << 1)
+        """
+        print(f"i1 = {i1}")
+        print(f"ans = {ans}")
+        for r in range(m):
+            print(format(mat[r], "b").zfill(m)[::-1])
+        print()
+        #print(format(vec, "b").zfill(m)[::-1])
+        print(format(sol, "b").zfill(m)[::-1])
+        """
+    #print(format(sol, "b").zfill(m)[::-1])
+    #print(format(trial_sol, "b").zfill(m)[::-1])
+    #print()
+    printBoardBitmask(sol >> (2 * n))
 
     return res
 
 def crossFlipsQuarterCircleTrialSolution(n: int) -> int:
+    # TODO- Prove this solution satisfies the matrix equation
+    # for all even n
     n_sq = n * n
 
     def formattedBoardBitmask(board_bm: int) -> list[int]:
@@ -5011,6 +5090,81 @@ def crossFlipsQuarterCircleTrialSolution(n: int) -> int:
     print("Final board:")
     printBoardBitmask(curr_bm)
     return res if not curr_bm else -1
+
+def crossFlipsQuarterCircleMoveCount(n: int) -> int:
+    # TODO- prove that is impossible for odd n greater than 5
+    # TODO- prove that this correctly calculates the number of
+    # moves for the trial solution (i.e. moves are exactly the
+    # elements for which the (element value- i.e. 1 if the
+    # element is black and 0 if white) xor (row values overall
+    # xor) xor (column values overall xor) is 1)
+    if n & 1:
+        if n in {1, 3}: return 1
+        elif n == 5: return 3
+        return 0
+    
+    n_sq = n * n
+    n_min_1_sq = n_sq - (n << 1) + 1
+    x = n - 1
+    #y_mx = isqrt((n << 1) - 1)
+    edge_end = isqrt((n << 1) - 4)
+    row_xor_bm = (1 << (edge_end + 1)) - 1#[1] * n
+    row_xor_cumu = list(range(edge_end + 2))
+    #edge_len = 
+    for x in range(edge_end + 1, n):
+        #target_bm <<= n
+        y_sq_mn = n_min_1_sq - x * x
+        y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
+        #y_mn = isqrt( - 1) + 1
+        y_mx = isqrt(n_sq - x * x - 1)
+        #row_xor[x] = (y_mx - y_mn + 1) & 1
+        b = (y_mx - y_mn + 1) & 1
+        if b: row_xor_bm |= (1 << x)
+        row_xor_cumu.append(row_xor_cumu[-1] + b)
+    #print(edge_end)
+    #print(format(row_xor_bm, "b").zfill(n)[::-1])
+    #print(row_xor_cumu)
+    #blk_cnt = edge_end + 1
+    #row_xor_cumu = [0]
+    #for r in row_xor:
+    #    row_xor_cumu.append(row_xor_cumu[-1] + r)
+    res = (row_xor_cumu[-1] * (n - row_xor_cumu[-1])) << 1
+
+    offdiag_ans = 0
+    for x in reversed(range(n)):
+        
+        y_sq_mn = n_min_1_sq - x * x
+        y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
+
+        #y_mn = isqrt( - 1) + 1
+        y_mx = min(x - 1, isqrt(n_sq - x * x - 1))
+        length = y_mx - y_mn + 1
+        if length <= 0: break
+        #print(f"x = {x}, y range = {[y_mn, y_mx]}")
+        n_col_xor_one = row_xor_cumu[y_mx + 1] - row_xor_cumu[y_mn]
+        n_col_xor_zero = length - n_col_xor_one
+        d = n_col_xor_one - n_col_xor_zero
+        if not d: continue
+        offdiag_ans += d if (row_xor_bm & (1 << x)) else -d
+    x_diag_mn_sq_dbl = n_min_1_sq
+    x_diag_mn = isqrt((x_diag_mn_sq_dbl - 1) >> 1) + 1
+    x_diag_mx = isqrt((n_sq - 1) >> 1)
+    #print(f"offdiag_ans = {offdiag_ans}, diag ans = {max(0, x_diag_mx - x_diag_mn + 1)}")
+    return res + (offdiag_ans << 1) + max(0, x_diag_mx - x_diag_mn + 1)
+
+        
+
+def crossFlipsQuarterCircleMoveCountPow2MinusExponentSum(exp_min: int=3, exp_max: int=31) -> int:
+    """
+    Solution to Project Euler #331
+    """
+    res = 0
+    for exp in range(exp_min, exp_max + 1):
+        n = (1 << exp) - exp
+        ans = crossFlipsQuarterCircleMoveCount((1 << exp) - exp)
+        print(f"solution for n = {n} (2 ** {exp} - {exp}) is {ans}")
+        res += ans
+    return res
 
 # Problem 332
 def pointsOnSphereWithIntegerCoordinatesBruteForce(
@@ -7192,6 +7346,14 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #330 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 331 in eval_nums:
+        since = time.time()
+        res = crossFlipsQuarterCircleMoveCountPow2MinusExponentSum(
+            exp_min=3,
+            exp_max=22,
+        )
+        print(f"Solution to Project Euler #331 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 332 in eval_nums:
         since = time.time()
         res = smallestNontrivialSphericalTrianglesAreaSum(
@@ -7329,7 +7491,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3310}
+    eval_nums = {331}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7529,7 +7691,12 @@ print(
 #    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
 #    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
 
-print(crossFlipsQuarterCircleMatrix(10))
+"""
+n = 20
+
+print(crossFlipsQuarterCircleMatrix(n))
+print(crossFlipsQuarterCircleMoveCount(n))
+"""
 
 """
 for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
