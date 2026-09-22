@@ -5098,11 +5098,18 @@ def crossFlipsQuarterCircleMoveCount(n: int) -> int:
     # elements for which the (element value- i.e. 1 if the
     # element is black and 0 if white) xor (row values overall
     # xor) xor (column values overall xor) is 1)
+
+    
+
     if n & 1:
         if n in {1, 3}: return 1
         elif n == 5: return 3
         return 0
-    
+    #isqrt = math.isqrt
+    sqs = [x * x for x in range(n + 1)]
+    def isqrt(num: int) -> int:
+        return bisect.bisect_right(sqs, num) - 1
+
     n_sq = n * n
     n_min_1_sq = n_sq - (n << 1) + 1
     x = n - 1
@@ -5113,12 +5120,12 @@ def crossFlipsQuarterCircleMoveCount(n: int) -> int:
     #edge_len = 
     for x in range(edge_end + 1, n):
         #target_bm <<= n
-        y_sq_mn = n_min_1_sq - x * x
+        y_sq_mn = n_min_1_sq - sqs[x]
         y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
         #y_mn = isqrt( - 1) + 1
-        y_mx = isqrt(n_sq - x * x - 1)
+        y_mx = isqrt(n_sq - sqs[x] - 1)
         #row_xor[x] = (y_mx - y_mn + 1) & 1
-        b = (y_mx - y_mn + 1) & 1
+        b = (y_mx & 1 == y_mn & 1)#(y_mx - y_mn + 1) & 1
         if b: row_xor_bm |= (1 << x)
         row_xor_cumu.append(row_xor_cumu[-1] + b)
     #print(edge_end)
@@ -5128,16 +5135,17 @@ def crossFlipsQuarterCircleMoveCount(n: int) -> int:
     #row_xor_cumu = [0]
     #for r in row_xor:
     #    row_xor_cumu.append(row_xor_cumu[-1] + r)
+    #return 0
     res = (row_xor_cumu[-1] * (n - row_xor_cumu[-1])) << 1
 
     offdiag_ans = 0
     for x in reversed(range(n)):
         
-        y_sq_mn = n_min_1_sq - x * x
+        y_sq_mn = n_min_1_sq - sqs[x]
         y_mn = isqrt(y_sq_mn - 1) + 1 if y_sq_mn > 0 else 0
 
         #y_mn = isqrt( - 1) + 1
-        y_mx = min(x - 1, isqrt(n_sq - x * x - 1))
+        y_mx = min(x - 1, isqrt(n_sq - sqs[x] - 1))
         length = y_mx - y_mn + 1
         if length <= 0: break
         #print(f"x = {x}, y range = {[y_mn, y_mx]}")
@@ -5159,10 +5167,14 @@ def crossFlipsQuarterCircleMoveCountPow2MinusExponentSum(exp_min: int=3, exp_max
     Solution to Project Euler #331
     """
     res = 0
+    since0 = time.time()
     for exp in range(exp_min, exp_max + 1):
+        since = time.time()
         n = (1 << exp) - exp
         ans = crossFlipsQuarterCircleMoveCount((1 << exp) - exp)
         print(f"solution for n = {n} (2 ** {exp} - {exp}) is {ans}")
+        t = time.time()
+        print(f"time for n = {n}: {t - since:.4f} seconds, total time: {t - since0:.4f} seconds")
         res += ans
     return res
 
@@ -7350,7 +7362,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = crossFlipsQuarterCircleMoveCountPow2MinusExponentSum(
             exp_min=3,
-            exp_max=22,
+            exp_max=31,
         )
         print(f"Solution to Project Euler #331 = {res}, calculated in {time.time() - since:.4f} seconds")
 
@@ -7491,7 +7503,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {331}
+    eval_nums = {3310}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7692,11 +7704,14 @@ print(
 #    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
 
 """
-n = 20
+n = 6
 
 print(crossFlipsQuarterCircleMatrix(n))
 print(crossFlipsQuarterCircleMoveCount(n))
 """
+
+for n in range(3, 21):
+    crossFlipsQuarterCircleTrialSolution(n)
 
 """
 for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
