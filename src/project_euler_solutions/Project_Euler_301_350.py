@@ -5105,6 +5105,28 @@ def crossFlipsQuarterCircleMoveCount(n: int) -> int:
         if n in {1, 3}: return 1
         elif n == 5: return 3
         return 0
+
+    sqs = [x * x for x in range(n + 1)]
+    def isqrt(num: int, lo: int=0) -> int:
+        return bisect.bisect_right(sqs, num, lo=lo) - 1
+
+    n_sq = n * n
+    n_min_1_sq = n_sq - (n << 1) + 1
+
+    offdiag_ans = 0
+    row_xor1_tot = 0
+    y_prev = -1
+    len_curr = 0
+    for x in reversed(range(n)):
+        pass
+
+    x_diag_mn_sq_dbl = n_min_1_sq
+    x_diag_mn = isqrt((x_diag_mn_sq_dbl - 1) >> 1) + 1
+    #if 
+    #print(f"offdiag_ans = {offdiag_ans}, diag ans = {max(0, x_diag_mx - x_diag_mn + 1)}")
+    return 0#res + (offdiag_ans << 1) + max(0, x_diag_mx - x_diag_mn + 1)
+
+    """
     #isqrt = math.isqrt
     sqs = [x * x for x in range(n + 1)]
     def isqrt(num: int) -> int:
@@ -5159,7 +5181,7 @@ def crossFlipsQuarterCircleMoveCount(n: int) -> int:
     x_diag_mx = isqrt((n_sq - 1) >> 1)
     #print(f"offdiag_ans = {offdiag_ans}, diag ans = {max(0, x_diag_mx - x_diag_mn + 1)}")
     return res + (offdiag_ans << 1) + max(0, x_diag_mx - x_diag_mn + 1)
-
+    """
         
 
 def crossFlipsQuarterCircleMoveCountPow2MinusExponentSum(exp_min: int=3, exp_max: int=31) -> int:
@@ -7703,15 +7725,15 @@ print(
 #    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
 #    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
 
-"""
-n = 6
 
-print(crossFlipsQuarterCircleMatrix(n))
+n = 1000
+
+#print(crossFlipsQuarterCircleMatrix(n))
 print(crossFlipsQuarterCircleMoveCount(n))
-"""
 
-for n in range(3, 21):
-    crossFlipsQuarterCircleTrialSolution(n)
+
+#for n in range(3, 21):
+#    crossFlipsQuarterCircleTrialSolution(n)
 
 """
 for w, h in [(9, 4), (2, 1), (2, 2), (9, 4), (9, 8), (1, 0), (2, 0)]:
