@@ -5021,7 +5021,9 @@ def crossFlipsQuarterCircleMatrix(n: int) -> int:
     #print(format(sol, "b").zfill(m)[::-1])
     #print(format(trial_sol, "b").zfill(m)[::-1])
     #print()
-    printBoardBitmask(sol >> (2 * n))
+    #printBoardBitmask(target_bm)
+    #print()
+    #printBoardBitmask(sol >> (2 * n))
 
     return res
 
@@ -5106,25 +5108,71 @@ def crossFlipsQuarterCircleMoveCount(n: int) -> int:
         elif n == 5: return 3
         return 0
 
-    sqs = [x * x for x in range(n + 1)]
+    #sqs = [x * x for x in range(n + 1)]
+    #def isqrt(num: int, lo: int=0) -> int:
+    #    return bisect.bisect_right(sqs, num, lo=lo) - 1
+
     def isqrt(num: int, lo: int=0) -> int:
-        return bisect.bisect_right(sqs, num, lo=lo) - 1
+        #if lo * lo >= num: return lo
+        hi = max(0, lo)
+        while hi * hi < num:
+            lo, hi = hi, max(1, hi << 1)
+            
+        #print(lo, hi)
+        while lo < hi:
+            mid = hi - ((hi - lo) >> 1)
+            if mid * mid > num:
+                hi = mid - 1
+            else: lo = mid
+        return lo
+    #for i in range(101):
+    #    print(f"i = {i}, isqrt(i, lo=3) = {isqrt(i, lo=3)}")
 
     n_sq = n * n
     n_min_1_sq = n_sq - (n << 1) + 1
 
-    offdiag_ans = 0
+    blk_ans = 0
     row_xor1_tot = 0
-    y_prev = -1
+    y2 = -1
+    y_lo_overlap = False
     len_curr = 0
     for x in reversed(range(n)):
-        pass
+        x_sq = x * x
+        #y = max(0, y_prev + (x * x + y * y < n_min_1_sq))
+        y1 = y2 + (not y_lo_overlap)
+        y2 = isqrt(n_sq - x_sq - 1, lo=y1)
+        y2_0 = min(x, y2)
+        if y2_0 < y1: break
+        #print(y1, y2, y2_0)
+        #print((x - 1, y2), (x - 1) ** 2 + y2 * y2, n_min_1_sq)
+        y_hi_overlap = bool(y2 <= x and (((x - 1) ** 2 + y2 * y2 >= n_min_1_sq)))
+        length0 = y2_0 - y1 + 1
+        length = y2 - y1 + 1
+        overlap_tot = y_lo_overlap + y_hi_overlap
+        row_xor1_contrib = int(not y_lo_overlap) if y2 == x else (y2 & 1 == y1 & 1) + (length0 - overlap_tot)
+        row_xor1_tot += row_xor1_contrib
+        #print(y_lo_overlap, y_hi_overlap, (y2 & 1 == y1 & 1) + (length - overlap_tot))
+        blk_contrib = 0
+        if y2 < x:
+            blk_contrib = (length - (overlap_tot << 1)) << 1
+        elif length0 > 1:
+            blk_contrib = ((length0 - 1 - (y_lo_overlap << 1)) << 1) - 1
+        else: blk_contrib = 1 - (y_lo_overlap << 1)
+        #if y2 < x else ((length0 - 1 - (y_lo_overlap << 1)) << 1) # + 1 - ((y_hi_overlap) << 1) + (length == 1 and )
+        #print(f"length = {length}, length0 = {length0}, blk_contrib = {blk_contrib if length & 1 else -blk_contrib}, y_lo_overlap = {y_lo_overlap}, y_hi_overlap = {y_hi_overlap}")
+        #print(f"row_xor1_tot contribution = {row_xor1_contrib}")
+        blk_ans += blk_contrib if length & 1 else -blk_contrib
+        y_lo_overlap = y_hi_overlap
+        if y2 >= x: break
+    
+    #row_xor1_tot = (row_xor1_tot << 1) - y_hi_overlap
+    #print(row_xor1_tot, blk_ans)
 
-    x_diag_mn_sq_dbl = n_min_1_sq
-    x_diag_mn = isqrt((x_diag_mn_sq_dbl - 1) >> 1) + 1
+    #x_diag_mn_sq_dbl = n_min_1_sq
+    #x_diag_mn = isqrt((x_diag_mn_sq_dbl - 1) >> 1) + 1
     #if 
     #print(f"offdiag_ans = {offdiag_ans}, diag ans = {max(0, x_diag_mx - x_diag_mn + 1)}")
-    return 0#res + (offdiag_ans << 1) + max(0, x_diag_mx - x_diag_mn + 1)
+    return ((row_xor1_tot * (n - row_xor1_tot)) << 1) + blk_ans
 
     """
     #isqrt = math.isqrt
@@ -7525,7 +7573,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3310}
+    eval_nums = {331}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
@@ -7725,12 +7773,16 @@ print(
 #    #print(f"i = {i}, 2 ** i - i = {(1 << i) - i}")
 #    crossFlipsQuarterCircleBruteForce(i)#(1 << i) - i)
 
+"""
+#n = 1
 
-n = 1000
+#print(f"matrix calculated answer = {crossFlipsQuarterCircleMatrix(n)}")
+#print(f"trial calculation answer = {crossFlipsQuarterCircleMoveCount(n)}")
 
-#print(crossFlipsQuarterCircleMatrix(n))
-print(crossFlipsQuarterCircleMoveCount(n))
-
+for n in range(4, 51, 2):
+    pss = crossFlipsQuarterCircleMatrix(n) == crossFlipsQuarterCircleMoveCount(n)
+    print(f"n = {n}: {'pass' if pss else 'fail'}")
+"""
 
 #for n in range(3, 21):
 #    crossFlipsQuarterCircleTrialSolution(n)
