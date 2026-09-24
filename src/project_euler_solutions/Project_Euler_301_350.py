@@ -7190,7 +7190,49 @@ def langtonsAntBlackSquareCount(n_steps: int=10 ** 18) -> int:
     #print(cumu)
     return res + q * cumu[-1] + cumu[r]
     
+# Problem 350
+def leastGCDGreatestLCMListCountBruteForce(
+    n: int,
+    gcd_min: int,
+    lcm_max: int,
+    ps: Optional[PrimeSPFsieve],
+) -> int:
+    ratio_max = lcm_max // gcd_min
+    res = max(0, lcm_max - gcd_min + 1)
+    #if ratio_max <= 1:
+    #    return max(0, lcm_max - gcd_min + 1)
+    if ps is not None:
+        ps.extendSieve(ratio_max)
 
+    memo = {}
+    memo2 = {}
+    def calculateCountForRatio(ratio: int) -> int:
+        pf = calculatePrimeFactorisation(ratio)
+        p_pows_dict = {}
+        for exp in pf.values():
+            p_pows_dict[exp] = p_pows_dict.get(exp, 0) + 1
+        p_pows_sort = tuple(sorted(p_pows_dict.items()))
+        if p_pows_sort in memo.keys():
+            return memo[p_pows_sort]
+        
+        def calculatePartitionsCount(n: int, part_sz_min: int, part_sz_max: int) -> int:
+            if n == 1: return int(n >= part_sz_min and n <= part_sz_max)
+            args = (n, part_sz_min, part_sz_max)
+            if args in memo2.keys(): return memo2[args]
+            res = 0
+            # TODO
+            memo2[args] = res
+            return 0
+
+        res = 1
+        for p_pow, f in p_pows_sort:
+            res *= calculatePartitionsCount(n, 0, p_pow) ** f
+        memo[p_pows_sort] = res
+        return res
+
+    res += sum(calculateCountForRatio(ratio) for ratio in range(2, ratio_max + 1))
+
+    return res
 
 ##############
 project_euler_num_range = (301, 350)
