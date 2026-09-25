@@ -7191,22 +7191,38 @@ def langtonsAntBlackSquareCount(n_steps: int=10 ** 18) -> int:
     return res + q * cumu[-1] + cumu[r]
     
 # Problem 350
-def leastGCDGreatestLCMListCountBruteForce(
-    n: int,
-    gcd_min: int,
-    lcm_max: int,
-    ps: Optional[PrimeSPFsieve],
+def leastGCDGreatestLCMListCount(
+    n: int=10 ** 18,
+    gcd_min=10 ** 6,
+    lcm_max=10 ** 12,
+    ps: Optional[PrimeSPFsieve]=None,
+    res_md: Optional[int]=None,
 ) -> int:
+    """
+    Solution to Project Euler #350
+    """
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
     ratio_max = lcm_max // gcd_min
     res = max(0, lcm_max - gcd_min + 1)
+    if res_md is not None: res %= res_md
     #if ratio_max <= 1:
     #    return max(0, lcm_max - gcd_min + 1)
     if ps is not None:
         ps.extendSieve(ratio_max)
 
-    memo = {}
-    memo2 = {}
+    #memo = {}
+    #memo2 = {}
     def calculateCountForRatio(ratio: int) -> int:
+        pf = calculatePrimeFactorisation(ratio)
+        res = 1
+        for f in pf.values():
+            term = addMod(addMod(pow(f + 1, n, res_md), -pow(f, n, res_md) << 1), pow(f - 1, n, res_md))
+            if not term: return 0
+            res = mulMod(res, term)
+        return res
+        """
         pf = calculatePrimeFactorisation(ratio)
         p_pows_dict = {}
         for exp in pf.values():
@@ -7229,8 +7245,13 @@ def leastGCDGreatestLCMListCountBruteForce(
             res *= calculatePartitionsCount(n, 0, p_pow) ** f
         memo[p_pows_sort] = res
         return res
+        """
 
-    res += sum(calculateCountForRatio(ratio) for ratio in range(2, ratio_max + 1))
+    for ratio in range(2, ratio_max + 1):
+        if not ratio % 10 ** 4:
+            print(f"ratio = {ratio} (of {ratio_max})")
+        f = (lcm_max // ratio) - gcd_min + 1
+        res = addMod(res, mulMod(f, calculateCountForRatio(ratio)))
 
     return res
 
@@ -7612,10 +7633,21 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
         res = langtonsAntBlackSquareCount(n_steps=10 ** 18)
         print(f"Solution to Project Euler #349 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 350 in eval_nums:
+        since = time.time()
+        res = leastGCDGreatestLCMListCount(
+            n=10 ** 18,
+            gcd_min=10 ** 6,
+            lcm_max=10 ** 12,
+            ps=PrimeSPFsieve(),
+            res_md=101 ** 4,
+        )
+        print(f"Solution to Project Euler #350 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {331}
+    eval_nums = {350}
     evaluateProjectEulerSolutions251to300(eval_nums)
 
 
