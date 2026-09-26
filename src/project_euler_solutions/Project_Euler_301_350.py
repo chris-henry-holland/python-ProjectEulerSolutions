@@ -7258,7 +7258,7 @@ def leastGCDGreatestLCMListCount(
 ##############
 project_euler_num_range = (301, 350)
 
-def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) -> None:
+def evaluateProjectEulerSolutions301to350(eval_nums: Optional[Set[int]]=None) -> None:
     if not eval_nums:
         eval_nums = set(range(project_euler_num_range[0], project_euler_num_range[1] + 1))
 
@@ -7648,7 +7648,7 @@ def evaluateProjectEulerSolutions251to300(eval_nums: Optional[Set[int]]=None) ->
 
 if __name__ == "__main__":
     eval_nums = {350}
-    evaluateProjectEulerSolutions251to300(eval_nums)
+    evaluateProjectEulerSolutions301to350(eval_nums)
 
 
 
