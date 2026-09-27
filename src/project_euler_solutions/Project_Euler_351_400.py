@@ -147,6 +147,35 @@ def hiddenPointsInTriangularLatticeHexagon(
     #print(n, ets)
     return res - 6 * ets
 
+
+# Problem 357
+def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
+    """
+    Solution to Project Euler #357
+    """
+    ps = SimplePrimeSieve(n_max + 1)
+
+    def primeTest(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+
+    p_i_mx = len(ps.p_lst) if not ps.p_lst or ps.p_lst[-1] <= n_max + 1 else bisect.bisect_right(ps.p_lst)
+    res = 0
+    for p_i in range(p_i_mx):
+        p = ps.p_lst[p_i]
+        num = p - 1
+        #print(f"num = {num}")
+        for fact1 in range(2, isqrt(num) + 1):
+            fact2, r = divmod(num, fact1)
+            if r: continue
+            #print(fact1, fact2, fact1 + fact2)
+            if not primeTest(fact1 + fact2):
+                break
+        else:
+            res += num
+            #print(num)
+            continue
+    return res
+
 ##############
 project_euler_num_range = (351, 400)
 
@@ -163,9 +192,13 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #351 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 357 in eval_nums:
+        since = time.time()
+        res = allFactorPairSumsPrimeSum(n_max=10 ** 8)
+        print(f"Solution to Project Euler #357 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {351}
+    eval_nums = {357}
     evaluateProjectEulerSolutions351to400(eval_nums)
