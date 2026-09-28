@@ -147,6 +147,27 @@ def hiddenPointsInTriangularLatticeHexagon(
     #print(n, ets)
     return res - 6 * ets
 
+# Problem 351
+def bloodTestOptimalStrategyMeanTestCountBruteForce(n_subjects: int, p_infected: int) -> float:
+
+    memo = {}
+    def recur(n_subjects: int, known_contains_infected: bool) -> float:
+        if n_subjects == 1:
+            return float(not known_contains_infected)
+        args = (n_subjects, known_contains_infected)
+        if args in memo.keys():
+            return memo[args]
+        #p2 = p_infected / (1 - (1 - p_infected) ** n_subjects) if known_contains_infected else p_infected
+        res = float("inf")
+        for n_select in range(1, ((n_subjects + 1) >> 1) + 1):
+            p_pos = (1 - (1 - p_infected) ** n_select) / (1 - (1 - p_infected) ** n_subjects) if known_contains_infected else 1 - (1 - p_infected) ** n_select
+            ans = p_pos * (recur(n_select, True) + recur(n_subjects - n_select, False)) + (1 - p_pos) * recur(n_subjects - n_select, known_contains_infected)
+            res = min(res, ans)
+        memo[args] = res
+        return res
+    
+    res = recur(n_subjects, False)
+    return res
 
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
@@ -192,6 +213,11 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #351 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 352 in eval_nums:
+        since = time.time()
+        res = bloodTestOptimalStrategyMeanTestCountBruteForce(n_subjects=25, p_infected=.02)
+        print(f"Solution to Project Euler #352 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 357 in eval_nums:
         since = time.time()
         res = allFactorPairSumsPrimeSum(n_max=10 ** 8)
@@ -200,5 +226,5 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {357}
+    eval_nums = {352}
     evaluateProjectEulerSolutions351to400(eval_nums)
