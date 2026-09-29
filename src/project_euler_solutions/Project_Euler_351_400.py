@@ -147,11 +147,12 @@ def hiddenPointsInTriangularLatticeHexagon(
     #print(n, ets)
     return res - 6 * ets
 
-# Problem 351
-def bloodTestOptimalStrategyMeanTestCountBruteForce(n_subjects: int, p_infected: int) -> float:
+# Problem 352
+def bloodTestOptimalStrategyMeanTestCountTopDown(n_subjects: int, p_infected: int) -> float:
 
     memo = {}
     def recur(n_subjects: int, known_contains_infected: bool) -> float:
+        if not n_subjects: return 0.
         if n_subjects == 1:
             return float(not known_contains_infected)
         args = (n_subjects, known_contains_infected)
@@ -159,14 +160,55 @@ def bloodTestOptimalStrategyMeanTestCountBruteForce(n_subjects: int, p_infected:
             return memo[args]
         #p2 = p_infected / (1 - (1 - p_infected) ** n_subjects) if known_contains_infected else p_infected
         res = float("inf")
-        for n_select in range(1, ((n_subjects + 1) >> 1) + 1):
+        for n_select in range(1, n_subjects + (not known_contains_infected)):
             p_pos = (1 - (1 - p_infected) ** n_select) / (1 - (1 - p_infected) ** n_subjects) if known_contains_infected else 1 - (1 - p_infected) ** n_select
-            ans = p_pos * (recur(n_select, True) + recur(n_subjects - n_select, False)) + (1 - p_pos) * recur(n_subjects - n_select, known_contains_infected)
+            ans = 1 + p_pos * (recur(n_select, True) + recur(n_subjects - n_select, False)) + (1 - p_pos) * recur(n_subjects - n_select, known_contains_infected)
             res = min(res, ans)
         memo[args] = res
         return res
     
     res = recur(n_subjects, False)
+    #print(memo)
+    return res
+
+def bloodTestOptimalStrategyMeanTestCountBottomUp(
+    n_subjects: int,
+    p_infected: int,
+) -> float:
+    # TODO- write version of this using fractions rather than floats
+    dp = [[float("inf"), float("inf")] for _ in range(n_subjects + 1)]
+    
+    dp[0] = [0., 0.]
+    if n_subjects >= 1:
+        dp[1] = [1., 0.]
+
+    for num in range(2, n_subjects + 1):
+        #print(num)
+        #dp.append([float("inf"), float("inf")])
+        for n_select in range(1, num):
+            #print(f"n_select = {n_select}")
+            p_pos = (1 - (1 - p_infected) ** n_select) / (1 - (1 - p_infected) ** num)
+            #print(p_pos)
+            #print((dp[n_select][1] + dp[num - n_select][0]), (1 - p_pos) * dp[num - n_select][1])
+            dp[num][1] = min(dp[num][1], 1 + p_pos * (dp[n_select][1] + dp[num - n_select][0]) + (1 - p_pos) * dp[num - n_select][1])
+        for n_select in range(1, num + 1):
+            p_pos = 1 - (1 - p_infected) ** n_select
+            dp[num][0] = min(dp[num][0], 1 + p_pos * (dp[n_select][1] + dp[num - n_select][0]) + (1 - p_pos) * dp[num - n_select][0])
+    #print(dp)
+    return dp[n_subjects][0]
+
+def bloodTestOptimalStrategyMeanTestCountSum(
+    n_subjects: int=10 ** 4,
+    p_infected_vals: Iterable[int]=(.01 * x for x in range(1, 51)),
+) -> float:
+    """
+    Solution to Project Euler #352
+    """
+    res = 0.
+    for p in p_infected_vals:
+        ans = bloodTestOptimalStrategyMeanTestCountBottomUp(n_subjects, p)
+        print(n_subjects, p, ans)
+        res += ans
     return res
 
 # Problem 357
@@ -215,12 +257,15 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
 
     if 352 in eval_nums:
         since = time.time()
-        res = bloodTestOptimalStrategyMeanTestCountBruteForce(n_subjects=25, p_infected=.02)
+        res = bloodTestOptimalStrategyMeanTestCountSum(
+            n_subjects=10 ** 4,
+            p_infected_vals=(.01 * x for x in range(1, 51)),
+        )
         print(f"Solution to Project Euler #352 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     if 357 in eval_nums:
         since = time.time()
-        res = allFactorPairSumsPrimeSum(n_max=10 ** 8)
+        res = allFactorPairSumsPrimeSum(n_max=10 ** 2)
         print(f"Solution to Project Euler #357 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
