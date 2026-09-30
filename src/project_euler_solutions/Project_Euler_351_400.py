@@ -211,6 +211,35 @@ def bloodTestOptimalStrategyMeanTestCountSum(
         res += ans
     return res
 
+# Problem 353
+def calculateMoonPathMinimumRisk(r: int) -> float:
+    r_sq = r * r
+
+    def arcRisk(start: tuple[int, int, int], end: tuple[int, int, int]) -> float:
+        # Note this assumes that start and end are both exactly
+        # r away from the origin
+        d_sq = sum((x - y) ** 2 for x, y in zip(start, end))
+        if d_sq > r_sq << 2:
+            raise ValueError("The points are too far apart to both be on the surface of the sphere")
+        return 2 * math.asin(math.sqrt(d_sq) / 2)
+
+    sq_lst = [x * x for x in range(r + 1)]
+
+    cnt = 1
+    print((0, 0, r))
+    for z in reversed(range(r)):
+        z_sq = z * z
+        rem = r_sq - z_sq
+        for x in range((isqrt(rem >> 1)) + 1):
+            #print(f"z = {z}, x = {x}")
+            y_sq = r_sq - z_sq - x * x
+            y = isqrt(y_sq)
+            if y_sq != y * y: continue
+            print((x, y, z))
+            cnt += 1
+    print(f"total number of integer points = {cnt}")
+    return 0.
+
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
     """
@@ -271,5 +300,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {352}
+    eval_nums = {353}
     evaluateProjectEulerSolutions351to400(eval_nums)
+
+calculateMoonPathMinimumRisk((1 << 15) - 1)
