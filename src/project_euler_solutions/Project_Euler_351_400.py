@@ -221,12 +221,49 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
         d_sq = sum((x - y) ** 2 for x, y in zip(start, end))
         if d_sq > r_sq << 2:
             raise ValueError("The points are too far apart to both be on the surface of the sphere")
-        return 2 * math.asin(math.sqrt(d_sq) / 2)
+        return (2 * math.asin(math.sqrt(d_sq / r_sq) / 2) / math.pi) ** 2
 
     sq_lst = [x * x for x in range(r + 1)]
 
     cnt = 1
-    print((0, 0, r))
+    #print((0, 0, r))
+    dists = SortedList()
+    dists_dict = {}
+    pt = (0, 0, r)
+    dists.add((0., pt))
+    #dists_dict[pt] = 0.
+    
+    for z in reversed(range(r)):
+        z_sq = z * z
+        rem = r_sq - z_sq
+        x_max = bisect.bisect_right(sq_lst, rem >> 1) - 1
+        for x in range(x_max + 1):
+            #print(f"z = {z}, x = {x}")
+            y_sq = r_sq - z_sq - x * x
+            y = bisect.bisect_right(sq_lst, y_sq) - 1
+            if sq_lst[y] != y_sq: continue
+            pt = (x, y, z)
+            d = float("inf")
+            #print((x, y, z))
+            #cnt += 1
+            for d0, pt0 in dists:
+                if d0 >= d: break
+                pt0_lst = [pt0, (pt0[1], pt0[0], pt0[2]), (-pt0[0], pt0[1], pt0[2])]
+                for pt0_0 in pt0_lst:
+                    d = min(d, d0 + arcRisk(pt0_0, pt))
+            dists.add((d, pt))
+    #print(dists)
+    res = float("inf")
+    for i1, (d1, pt1) in enumerate(dists):
+        for i2 in range(i1 + 1):
+            d2, pt2_0 = dists[i2]
+            d = d1 + d2
+            if d >= res: break
+            pt2_lst = [(pt2_0[0], pt2_0[1], -pt2_0[2]), (pt2_0[1], pt2_0[0], -pt2_0[2]), (-pt2_0[0], pt2_0[1], -pt2_0[2])]
+            for pt2 in pt2_lst:
+                res = min(res, d + arcRisk(pt1, pt2))
+    return res
+    """
     for z in reversed(range(r)):
         z_sq = z * z
         rem = r_sq - z_sq
@@ -237,8 +274,20 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
             if y_sq != y * y: continue
             print((x, y, z))
             cnt += 1
-    print(f"total number of integer points = {cnt}")
-    return 0.
+    """
+    #print(f"total number of integer points = {cnt}")
+    #return 0.
+
+def calculateMoonPathMinimumRiskMersenneNumberRadiiSum(mersenne_max: int=15) -> float:
+    """
+    Solution to Project Euler #353
+    """
+    res = 0.
+    for n in range(1, mersenne_max + 1):
+        ans = calculateMoonPathMinimumRisk((1 << n) - 1)
+        res += ans
+        print(n, (1 << n) - 1, ans)
+    return res
 
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
@@ -292,6 +341,11 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #352 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 353 in eval_nums:
+        since = time.time()
+        res = calculateMoonPathMinimumRiskMersenneNumberRadiiSum(mersenne_max=15)
+        print(f"Solution to Project Euler #353 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 357 in eval_nums:
         since = time.time()
         res = allFactorPairSumsPrimeSum(n_max=10 ** 2)
@@ -303,4 +357,5 @@ if __name__ == "__main__":
     eval_nums = {353}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
-calculateMoonPathMinimumRisk((1 << 15) - 1)
+#num = 7#(1 << 15) - 1
+#print(calculateMoonPathMinimumRisk(num))
