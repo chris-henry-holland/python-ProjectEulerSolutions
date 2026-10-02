@@ -214,17 +214,51 @@ def bloodTestOptimalStrategyMeanTestCountSum(
 # Problem 353
 def calculateMoonPathMinimumRisk(r: int) -> float:
     r_sq = r * r
+    r_dbl_sq = r_sq << 2
+
+    def arcNormalisedDistance(start: tuple[int, int, int], end: tuple[int, int, int]) -> float:
+        # Note this assumes that start and end are both exactly
+        # r away from the origin
+        d_sq = sum((x - y) ** 2 for x, y in zip(start, end))
+        if d_sq > r_dbl_sq:
+            raise ValueError("The points are too far apart to both be on the surface of the sphere")
+        return (2 * math.asin(math.sqrt(d_sq / r_dbl_sq)) / math.pi)
 
     def arcRisk(start: tuple[int, int, int], end: tuple[int, int, int]) -> float:
         # Note this assumes that start and end are both exactly
         # r away from the origin
-        d_sq = sum((x - y) ** 2 for x, y in zip(start, end))
-        if d_sq > r_sq << 2:
-            raise ValueError("The points are too far apart to both be on the surface of the sphere")
-        return (2 * math.asin(math.sqrt(d_sq / r_sq) / 2) / math.pi) ** 2
+        arc_dist = arcNormalisedDistance(start, end)
+        return arc_dist * arc_dist
+
+    arc_dist_lb = (2 * math.asin(math.sqrt(2 / r_dbl_sq)) / math.pi)
+    arc_dist_lb_risk = arc_dist_lb * arc_dist_lb
+
+    def heuristic(pt: tuple[int, int, int]) -> float:
+        d = arcNormalisedDistance(pt, (0, 0, -r))
+        m = math.ceil(d / arc_dist_lb)
+        return m * arc_dist_lb_risk
+
+    pts = [(0, 0, r)]
 
     sq_lst = [x * x for x in range(r + 1)]
 
+    for z in reversed(range(r)):
+        z_sq = z * z
+        rem = r_sq - z_sq
+        x_max = bisect.bisect_right(sq_lst, rem >> 1) - 1
+        for x in range(x_max + 1):
+            #print(f"z = {z}, x = {x}")
+            y_sq = r_sq - z_sq - x * x
+            y = bisect.bisect_right(sq_lst, y_sq) - 1
+            if sq_lst[y] != y_sq: continue
+            pts.append((x, y, z))
+    heuristics = [heuristic(pt) for pt in pts]
+    heuristics, pts = zip(*sorted(zip(heuristics, pts)))
+    print(pts)
+    print(heuristics)
+
+    
+    """
     cnt = 1
     #print((0, 0, r))
     dists = SortedList()
@@ -263,6 +297,7 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
             for pt2 in pt2_lst:
                 res = min(res, d + arcRisk(pt1, pt2))
     return res
+    """
     """
     for z in reversed(range(r)):
         z_sq = z * z
@@ -354,8 +389,8 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {353}
+    eval_nums = {3530}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
-#num = 7#(1 << 15) - 1
-#print(calculateMoonPathMinimumRisk(num))
+num = 1#(1 << 15) - 1
+print(calculateMoonPathMinimumRisk(num))
