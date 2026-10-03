@@ -253,10 +253,45 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
             if sq_lst[y] != y_sq: continue
             pts.append((x, y, z))
     heuristics = [heuristic(pt) for pt in pts]
-    heuristics, pts = zip(*sorted(zip(heuristics, pts)))
-    print(pts)
-    print(heuristics)
+    #heuristics, pts = zip(*sorted(zip(heuristics, pts)))
+    #print("pts:", pts)
+    #print(heuristics)
 
+    h = [(heuristics[0], -0., 0)]
+    dists = [float("inf") for _ in pts]
+    remain = set(range(len(pts)))
+
+    # A-star algorithm
+    while h:
+        _, d0_neg, idx0 = heapq.heappop(h)
+        if idx0 not in remain: continue
+        remain.remove(idx0)
+        dists[idx0] = -d0_neg
+        #d0 = -d0_neg
+        pt0 = pts[idx0]
+        pt0_lst = list({pt0, (pt0[1], pt0[0], pt0[2]), (-pt0[0], pt0[1], pt0[2])})
+        for idx in remain:
+            d = float("inf")
+            pt = pts[idx]
+            for pt0 in pt0_lst:
+                d = min(d, arcRisk(pt0, pt))
+            d -= d0_neg
+            if d >= dists[idx]: continue
+            heapq.heappush(h, (d + heuristics[idx], -d, idx))
+    #print(pts)
+    #print(dists)
+    res = float("inf")
+    for i1, (pt1, d1) in enumerate(zip(pts, dists)):
+        for i2 in range(i1 + 1):
+            pt2_0 = pts[i2]
+            d2 = dists[i2]
+            d = d1 + d2
+            if d >= res: break
+            pt2_lst = [(pt2_0[0], pt2_0[1], -pt2_0[2]), (pt2_0[1], pt2_0[0], -pt2_0[2]), (-pt2_0[0], pt2_0[1], -pt2_0[2])]
+            for pt2 in pt2_lst:
+                #print(pt1, pt2, d)
+                res = min(res, d + arcRisk(pt1, pt2))
+    return res
     
     """
     cnt = 1
@@ -389,8 +424,8 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3530}
+    eval_nums = {353}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
-num = 1#(1 << 15) - 1
-print(calculateMoonPathMinimumRisk(num))
+#num = (1 << 15) - 1
+#print(calculateMoonPathMinimumRisk(num))
