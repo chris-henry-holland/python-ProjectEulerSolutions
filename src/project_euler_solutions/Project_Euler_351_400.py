@@ -219,10 +219,17 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
     def arcNormalisedDistance(start: tuple[int, int, int], end: tuple[int, int, int]) -> float:
         # Note this assumes that start and end are both exactly
         # r away from the origin
+        #
+        dot_prod = sum(x * y for x, y in zip(start, end))
+        if abs(dot_prod) > r_sq:
+            raise ValueError("The points are too far apart to both be on the surface of the sphere")
+        return math.acos(dot_prod / r_sq) / math.pi
+        """
         d_sq = sum((x - y) ** 2 for x, y in zip(start, end))
         if d_sq > r_dbl_sq:
             raise ValueError("The points are too far apart to both be on the surface of the sphere")
         return (2 * math.asin(math.sqrt(d_sq / r_dbl_sq)) / math.pi)
+        """
 
     def arcRisk(start: tuple[int, int, int], end: tuple[int, int, int]) -> float:
         # Note this assumes that start and end are both exactly
@@ -252,42 +259,46 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
             y = bisect.bisect_right(sq_lst, y_sq) - 1
             if sq_lst[y] != y_sq: continue
             pts.append((x, y, z))
-    heuristics = [heuristic(pt) for pt in pts]
+    print(f"number of points = {len(pts)}")
+    #heuristics = [heuristic(pt) for pt in pts]
     #heuristics, pts = zip(*sorted(zip(heuristics, pts)))
     #print("pts:", pts)
     #print(heuristics)
 
-    h = [(heuristics[0], -0., 0)]
+    h = [(0., 0)]
     dists = [float("inf") for _ in pts]
+    dists[0] = 0.
     remain = set(range(len(pts)))
 
-    # A-star algorithm
+    # Dijkstra algorithm
     while h:
-        _, d0_neg, idx0 = heapq.heappop(h)
+        d0, idx0 = heapq.heappop(h)
         if idx0 not in remain: continue
         remain.remove(idx0)
-        dists[idx0] = -d0_neg
+        dists[idx0] = d0
         #d0 = -d0_neg
         pt0 = pts[idx0]
-        pt0_lst = list({pt0, (pt0[1], pt0[0], pt0[2]), (-pt0[0], pt0[1], pt0[2])})
+        pt0_lst = list({pt0, (pt0[1], pt0[0], pt0[2]), (-pt0[0], pt0[1], pt0[2])})#, (pt0[1], -pt0[0], pt0[2])})
         for idx in remain:
             d = float("inf")
             pt = pts[idx]
             for pt0 in pt0_lst:
                 d = min(d, arcRisk(pt0, pt))
-            d -= d0_neg
+            d += d0
             if d >= dists[idx]: continue
-            heapq.heappush(h, (d + heuristics[idx], -d, idx))
+            dists[idx] = d
+            heapq.heappush(h, (d, idx))
     #print(pts)
     #print(dists)
     res = float("inf")
     for i1, (pt1, d1) in enumerate(zip(pts, dists)):
+        #res = min(res, 2 * d1 + arcRisk(pt1, (pt1[0], pt1[1], -pt1[2])))
         for i2 in range(i1 + 1):
             pt2_0 = pts[i2]
             d2 = dists[i2]
             d = d1 + d2
-            if d >= res: break
-            pt2_lst = [(pt2_0[0], pt2_0[1], -pt2_0[2]), (pt2_0[1], pt2_0[0], -pt2_0[2]), (-pt2_0[0], pt2_0[1], -pt2_0[2])]
+            if d >= res: continue
+            pt2_lst = list({(pt2_0[0], pt2_0[1], -pt2_0[2]), (pt2_0[1], pt2_0[0], -pt2_0[2]), (-pt2_0[0], pt2_0[1], -pt2_0[2])})
             for pt2 in pt2_lst:
                 #print(pt1, pt2, d)
                 res = min(res, d + arcRisk(pt1, pt2))
@@ -353,10 +364,13 @@ def calculateMoonPathMinimumRiskMersenneNumberRadiiSum(mersenne_max: int=15) -> 
     Solution to Project Euler #353
     """
     res = 0.
+    since0 = time.time()
     for n in range(1, mersenne_max + 1):
+        since = time.time()
         ans = calculateMoonPathMinimumRisk((1 << n) - 1)
         res += ans
-        print(n, (1 << n) - 1, ans)
+        t = time.time()
+        print(n, (1 << n) - 1, ans, res, f"time for this case = {t - since:.4f} seconds, total time so far = {t - since0:.4f} seconds")
     return res
 
 # Problem 357
