@@ -338,7 +338,7 @@ def calculateMoonPathMinimumRisk(r: int) -> float:
         for i2 in range(i1 + 1):
             d2, pt2_0 = dists[i2]
             d = d1 + d2
-            if d >= res: break
+            if d >= res: continue
             pt2_lst = [(pt2_0[0], pt2_0[1], -pt2_0[2]), (pt2_0[1], pt2_0[0], -pt2_0[2]), (-pt2_0[0], pt2_0[1], -pt2_0[2])]
             for pt2 in pt2_lst:
                 res = min(res, d + arcRisk(pt1, pt2))
