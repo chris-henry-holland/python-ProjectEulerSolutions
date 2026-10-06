@@ -373,6 +373,25 @@ def calculateMoonPathMinimumRiskMersenneNumberRadiiSum(mersenne_max: int=15) -> 
         print(n, (1 << n) - 1, ans, res, f"time for this case = {t - since:.4f} seconds, total time so far = {t - since0:.4f} seconds")
     return res
 
+# Problem 354
+def honeycombDistanceCount(
+    dist_sq: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    if dist_sq % 3: return 0
+    pf = calculatePrimeFactorisation(dist_sq, ps=ps)
+    res = 1
+    for p, f in pf.items():
+        r = p % 3
+        if not r: continue
+        elif r == 2:
+            if f & 1: return 0
+            continue
+        res *= f + 1
+    return 6 * res
+
+
+
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
     """
@@ -438,8 +457,11 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {353}
+    eval_nums = {354}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
 #print(calculateMoonPathMinimumRisk(num))
+
+for dist_sq in [3, 21, 111_111_111 ** 2]:
+    print(dist_sq, honeycombDistanceCount(dist_sq, ps=None))
