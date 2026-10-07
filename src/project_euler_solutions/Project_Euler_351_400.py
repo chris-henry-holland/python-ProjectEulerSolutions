@@ -378,8 +378,9 @@ def honeycombDistanceCount(
     dist_sq: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
-    if dist_sq % 3: return 0
-    pf = calculatePrimeFactorisation(dist_sq, ps=ps)
+    q, r = divmod(dist_sq, 3)
+    if r: return 0
+    pf = calculatePrimeFactorisation(q, ps=ps)
     res = 1
     for p, f in pf.items():
         r = p % 3
@@ -390,6 +391,19 @@ def honeycombDistanceCount(
         res *= f + 1
     return 6 * res
 
+def distancesWithExactHoneycombNumberCountBruteForce(
+    honeycomb_number: int,
+    dist_max: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    if honeycomb_number % 6: return 0
+    res = 0
+    for dist_sq in range(3, dist_max * dist_max + 1, 3):
+        if honeycombDistanceCount(dist_sq, ps=ps) != honeycomb_number:
+            continue
+        print(dist_sq)
+        res += 1
+    return res
 
 
 # Problem 357
@@ -465,3 +479,9 @@ if __name__ == "__main__":
 
 for dist_sq in [3, 21, 111_111_111 ** 2]:
     print(dist_sq, honeycombDistanceCount(dist_sq, ps=None))
+
+print(distancesWithExactHoneycombNumberCountBruteForce(
+    honeycomb_number=6,
+    dist_max=3,
+    ps=None,
+))
