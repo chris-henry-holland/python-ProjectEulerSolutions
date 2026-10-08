@@ -434,6 +434,36 @@ def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
             continue
     return res
 
+# Problem 358
+def findCyclicNumbersWithGivenPrefixAndSuffix(
+    pref_val: int,
+    pref_n_dig: int,
+    suff_val: int,
+    suff_n_dig: int,
+    max_n_dig: int,
+    base: int=10,
+) -> list[int]:
+
+    if not pref_val:
+        raise ValueError("pref_val must be a strictly positive integer")
+    pref_nines = (base ** pref_n_dig) - 1
+    if pref_val > pref_nines:
+        raise ValueError("pref_val can contain at most pref_n_dig digits when represented in the chosen base")
+
+    mult_rng = [((pref_nines - 1) // (pref_val + 1)) + 1, ((pref_nines - 1) // pref_val) + 1]
+    res = []
+    for n_dig in range(pref_n_dig + suff_n_dig, max_n_dig):
+        nines = (base ** n_dig) - 1
+        print(f"n_dig = {n_dig}")
+        for mult in range(*mult_rng):
+            num, r = divmod(nines, mult)
+            #print(f"n_dig = {n_dig}, mult = {mult} num = {num}, r = {r}")
+            #print(num % (base ** suff_n_dig))
+            if r or num % (base ** suff_n_dig) != suff_val: continue
+            print(num)
+            res.append(num)
+    return res
+
 ##############
 project_euler_num_range = (351, 400)
 
@@ -471,17 +501,27 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {354}
+    eval_nums = {3580}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
 #print(calculateMoonPathMinimumRisk(num))
-
+"""
 for dist_sq in [3, 21, 111_111_111 ** 2]:
     print(dist_sq, honeycombDistanceCount(dist_sq, ps=None))
 
 print(distancesWithExactHoneycombNumberCountBruteForce(
-    honeycomb_number=6,
-    dist_max=3,
+    honeycomb_number=12,
+    dist_max=5,
     ps=None,
+))
+"""
+
+print(findCyclicNumbersWithGivenPrefixAndSuffix(
+    pref_val=137,
+    pref_n_dig=11,
+    suff_val=56789,
+    suff_n_dig=5,
+    max_n_dig=10 ** 3,
+    base=10,
 ))
