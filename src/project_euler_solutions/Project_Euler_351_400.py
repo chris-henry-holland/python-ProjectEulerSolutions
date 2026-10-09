@@ -440,7 +440,6 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
     pref_n_dig: int,
     suff_val: int,
     suff_n_dig: int,
-    max_n_dig: int,
     base: int=10,
 ) -> list[int]:
 
@@ -450,18 +449,31 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
     if pref_val > pref_nines:
         raise ValueError("pref_val can contain at most pref_n_dig digits when represented in the chosen base")
 
-    mult_rng = [((pref_nines - 1) // (pref_val + 1)) + 1, ((pref_nines - 1) // pref_val) + 1]
+    mult_rng = [max(((pref_nines - 1) // (pref_val + 1)) + 1, pref_n_dig + suff_n_dig + 1), ((pref_nines - 1) // pref_val) + 1]
+    print(f"multiple range = [{mult_rng[0]}, {mult_rng[1] - 1}]")
     res = []
+    for mult in range(*mult_rng):
+        n_dig = mult - 1
+        nines = (base ** n_dig) - 1
+        num, r = divmod(nines, mult)
+        print(f"n_dig = {n_dig}, mult = {mult}, num = {num}, r = {r}")
+        #print(num % (base ** suff_n_dig))
+        if r or num % (base ** suff_n_dig) != suff_val: continue
+        print(num)
+        res.append(num)
+    """
     for n_dig in range(pref_n_dig + suff_n_dig, max_n_dig):
         nines = (base ** n_dig) - 1
         print(f"n_dig = {n_dig}")
         for mult in range(*mult_rng):
+            
             num, r = divmod(nines, mult)
             #print(f"n_dig = {n_dig}, mult = {mult} num = {num}, r = {r}")
             #print(num % (base ** suff_n_dig))
             if r or num % (base ** suff_n_dig) != suff_val: continue
             print(num)
             res.append(num)
+    """ 
     return res
 
 ##############
@@ -517,11 +529,21 @@ print(distancesWithExactHoneycombNumberCountBruteForce(
 ))
 """
 
+
+
 print(findCyclicNumbersWithGivenPrefixAndSuffix(
     pref_val=137,
     pref_n_dig=11,
     suff_val=56789,
     suff_n_dig=5,
-    max_n_dig=10 ** 3,
     base=10,
 ))
+"""
+print(findCyclicNumbersWithGivenPrefixAndSuffix(
+    pref_val=5,
+    pref_n_dig=2,
+    suff_val=7,
+    suff_n_dig=1,
+    base=10,
+))
+"""
