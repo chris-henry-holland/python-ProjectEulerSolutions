@@ -452,8 +452,20 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
     mult_rng = [max(((pref_nines - 1) // (pref_val + 1)) + 1, pref_n_dig + suff_n_dig + 1), ((pref_nines - 1) // pref_val) + 1]
     print(f"multiple range = [{mult_rng[0]}, {mult_rng[1] - 1}]")
     res = []
+    suff_digs = []
+    num = suff_val
+    while num:
+        num, d = divmod(num, base)
+        suff_digs.append(d)
+    cnt = 0
     for mult in range(*mult_rng):
+        #print(f"mult = {mult}")
+        prod = mult * suff_val
+        if (prod + 1) % (base ** suff_n_dig):
+            continue
+        print(f"mult value {mult} passed initial screen")
         n_dig = mult - 1
+        """
         nines = (base ** n_dig) - 1
         num, r = divmod(nines, mult)
         print(f"n_dig = {n_dig}, mult = {mult}, num = {num}, r = {r}")
@@ -461,6 +473,21 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
         if r or num % (base ** suff_n_dig) != suff_val: continue
         print(num)
         res.append(num)
+        """
+        curr = 0
+        for i in range(n_dig - suff_n_dig):
+            #if i and not i % (10 ** 7): print(f"processed first {i} digits (of {n_dig})")
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            #print(d, curr)
+        for i in range(suff_n_dig):
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            #print(d, curr)
+            if d != suff_digs[~i]: break
+        else:
+            if curr: continue
+            print(f"solution found for mult = {mult}")
+            cnt += 1
+    print(f"solution count = {cnt}")
     """
     for n_dig in range(pref_n_dig + suff_n_dig, max_n_dig):
         nines = (base ** n_dig) - 1
@@ -530,7 +557,7 @@ print(distancesWithExactHoneycombNumberCountBruteForce(
 """
 
 
-
+"""
 print(findCyclicNumbersWithGivenPrefixAndSuffix(
     pref_val=137,
     pref_n_dig=11,
@@ -540,10 +567,9 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
 ))
 """
 print(findCyclicNumbersWithGivenPrefixAndSuffix(
-    pref_val=5,
-    pref_n_dig=2,
-    suff_val=7,
-    suff_n_dig=1,
+    pref_val=137,
+    pref_n_dig=11,
+    suff_val=56789,
+    suff_n_dig=5,
     base=10,
 ))
-"""
