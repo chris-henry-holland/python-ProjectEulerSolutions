@@ -475,14 +475,20 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
         res.append(num)
         """
         curr = 0
-        for i in range(n_dig - suff_n_dig):
+        print("prefix:")
+        for i in range(pref_n_dig):
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            print(d)
+        for i in range(pref_n_dig, n_dig - suff_n_dig):
             #if i and not i % (10 ** 7): print(f"processed first {i} digits (of {n_dig})")
             d, curr = divmod(base * (curr + 1) - 1, mult)
             #print(d, curr)
+        print("suffix")
         for i in range(suff_n_dig):
             d, curr = divmod(base * (curr + 1) - 1, mult)
             #print(d, curr)
             if d != suff_digs[~i]: break
+            print(d)
         else:
             if curr: continue
             print(f"solution found for mult = {mult}")
