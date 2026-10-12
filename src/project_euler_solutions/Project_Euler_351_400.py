@@ -435,14 +435,13 @@ def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
     return res
 
 # Problem 358
-def findCyclicNumbersWithGivenPrefixAndSuffix(
+def cyclicNumbersWithGivenPrefixAndSuffixCount(
     pref_val: int,
     pref_n_dig: int,
     suff_val: int,
     suff_n_dig: int,
     base: int=10,
 ) -> list[int]:
-
     if not pref_val:
         raise ValueError("pref_val must be a strictly positive integer")
     pref_nines = (base ** pref_n_dig) - 1
@@ -450,16 +449,24 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
         raise ValueError("pref_val can contain at most pref_n_dig digits when represented in the chosen base")
 
     mult_rng = [max(((pref_nines - 1) // (pref_val + 1)) + 1, pref_n_dig + suff_n_dig + 1), ((pref_nines - 1) // pref_val) + 1]
+    it = range(mult_rng[0] + (not mult_rng[0] & 1), mult_rng[1], 2)
+    if mult_rng[0] <= 2:
+        it = itertools.chain([2], it)
+    #mult_rng[0] += not mult_rng[0] & 1
     print(f"multiple range = [{mult_rng[0]}, {mult_rng[1] - 1}]")
-    res = []
+    #res = []
     suff_digs = []
     num = suff_val
     while num:
         num, d = divmod(num, base)
         suff_digs.append(d)
     cnt = 0
-    for mult in range(*mult_rng):
+    ps = SimplePrimeSieve()
+    def primeTest(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+    for mult in it:
         #print(f"mult = {mult}")
+        if not primeTest(mult) or not base % mult: continue
         prod = mult * suff_val
         if (prod + 1) % (base ** suff_n_dig):
             continue
@@ -475,25 +482,149 @@ def findCyclicNumbersWithGivenPrefixAndSuffix(
         res.append(num)
         """
         curr = 0
+        #seen = {0}
+        rpt_seen = False
         print("prefix:")
         for i in range(pref_n_dig):
             d, curr = divmod(base * (curr + 1) - 1, mult)
+            #print(i, curr)
+            if not curr: rpt_seen = True
             print(d)
+            #if curr in seen:
+            #    rpt_seen = True
+            #seen.add(curr)
+        if rpt_seen:
+            print("recurrence found early")
+            continue
         for i in range(pref_n_dig, n_dig - suff_n_dig):
             #if i and not i % (10 ** 7): print(f"processed first {i} digits (of {n_dig})")
             d, curr = divmod(base * (curr + 1) - 1, mult)
             #print(d, curr)
-        print("suffix")
-        for i in range(suff_n_dig):
+            if not curr:
+                rpt_seen = True
+                break
+        if rpt_seen:
+            print("recurrence found early")
+            continue
+        print("suffix:")
+        for i in range(suff_n_dig - 1):
             d, curr = divmod(base * (curr + 1) - 1, mult)
             #print(d, curr)
-            if d != suff_digs[~i]: break
             print(d)
+            if d != suff_digs[~i]:
+                print(f"discrepency with expected digit value ({suff_digs[~i]})")
+                break
+            elif not curr:
+                print("recurrence found early")
+                break
         else:
-            if curr: continue
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            print(d)
+            if d != suff_digs[0]:
+                print(f"discrepency with expected digit value ({suff_digs[0]})")
+                break
+            if curr:
+                print(f"division has non-zero remainder")
+                continue
             print(f"solution found for mult = {mult}")
             cnt += 1
     print(f"solution count = {cnt}")
+    """
+    for n_dig in range(pref_n_dig + suff_n_dig, max_n_dig):
+        nines = (base ** n_dig) - 1
+        print(f"n_dig = {n_dig}")
+        for mult in range(*mult_rng):
+            
+            num, r = divmod(nines, mult)
+            #print(f"n_dig = {n_dig}, mult = {mult} num = {num}, r = {r}")
+            #print(num % (base ** suff_n_dig))
+            if r or num % (base ** suff_n_dig) != suff_val: continue
+            print(num)
+            res.append(num)
+    """ 
+    return cnt
+
+def cyclicNumbersWithGivenPrefixAndSuffixDigitSums(
+    pref_val: int,
+    pref_n_dig: int,
+    suff_val: int,
+    suff_n_dig: int,
+    base: int=10,
+) -> list[int]:
+    """
+    Solution to Project Euler #358
+    """
+    # TODO- look into the solutions on the Project Euler forum, specifically
+    # those that use that the sum of digits is (base - 1) * (p - 1) / 2
+    if not pref_val:
+        raise ValueError("pref_val must be a strictly positive integer")
+    pref_nines = (base ** pref_n_dig) - 1
+    if pref_val > pref_nines:
+        raise ValueError("pref_val can contain at most pref_n_dig digits when represented in the chosen base")
+
+    mult_rng = [max(((pref_nines - 1) // (pref_val + 1)) + 1, pref_n_dig + suff_n_dig + 1), ((pref_nines - 1) // pref_val) + 1]
+    it = range(mult_rng[0] + (not mult_rng[0] & 1), mult_rng[1], 2)
+    if mult_rng[0] <= 2:
+        it = itertools.chain([[2], it])
+    #mult_rng[0] += not mult_rng[0] & 1
+    print(f"multiple range = [{mult_rng[0]}, {mult_rng[1] - 1}]")
+    res = []
+    suff_digs = []
+    num = suff_val
+    while num:
+        num, d = divmod(num, base)
+        suff_digs.append(d)
+    #cnt = 0
+    ps = SimplePrimeSieve()
+    def primeTest(num: int) -> int:
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+    for mult in it:
+        if not primeTest(mult) or not base % mult: continue
+        prod = mult * suff_val
+        if (prod + 1) % (base ** suff_n_dig):
+            continue
+        print(f"multiplier value {mult} passed initial screen")
+        n_dig = mult - 1
+        curr = 0
+        #seen = {0}
+        rpt_seen = False
+        ans = 0
+        for i in range(n_dig - suff_n_dig):
+            #if i and not i % (10 ** 7): print(f"processed first {i} digits (of {n_dig})")
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            ans += d
+            #print(d, curr)
+            if not curr:
+                rpt_seen = True
+                break
+        if rpt_seen:
+            print("recurrence found early")
+            continue
+        print("suffix:")
+        for i in range(suff_n_dig - 1):
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            #print(d, curr)
+            print(d)
+            if d != suff_digs[~i]:
+                print(f"discrepency with expected digit value ({suff_digs[~i]})")
+                break
+            elif not curr:
+                print("recurrence found early")
+                break
+            ans += d
+        else:
+            d, curr = divmod(base * (curr + 1) - 1, mult)
+            print(d)
+            if d != suff_digs[0]:
+                print(f"discrepency with expected digit value ({suff_digs[0]})")
+                break
+            if curr:
+                print(f"division has non-zero remainder")
+                continue
+            ans += d
+            print(f"solution found for mult = {mult}")
+            res.append(ans)
+    #print(f"solution count = {cnt}")
     """
     for n_dig in range(pref_n_dig + suff_n_dig, max_n_dig):
         nines = (base ** n_dig) - 1
@@ -543,10 +674,21 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         res = allFactorPairSumsPrimeSum(n_max=10 ** 2)
         print(f"Solution to Project Euler #357 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 358 in eval_nums:
+        since = time.time()
+        res = cyclicNumbersWithGivenPrefixAndSuffixDigitSums(
+            pref_val=137,
+            pref_n_dig=11,
+            suff_val=56789,
+            suff_n_dig=5,
+            base=10,
+        )
+        print(f"Solution to Project Euler #358 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3580}
+    eval_nums = {358}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
@@ -564,7 +706,7 @@ print(distancesWithExactHoneycombNumberCountBruteForce(
 
 
 """
-print(findCyclicNumbersWithGivenPrefixAndSuffix(
+print(cyclicNumbersWithGivenPrefixAndSuffixCount(
     pref_val=137,
     pref_n_dig=11,
     suff_val=56789,
@@ -572,10 +714,12 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
     base=10,
 ))
 """
+"""
 print(findCyclicNumbersWithGivenPrefixAndSuffix(
-    pref_val=137,
-    pref_n_dig=11,
-    suff_val=56789,
-    suff_n_dig=5,
+    pref_val=1,
+    pref_n_dig=1,
+    suff_val=7,
+    suff_n_dig=1,
     base=10,
 ))
+"""
