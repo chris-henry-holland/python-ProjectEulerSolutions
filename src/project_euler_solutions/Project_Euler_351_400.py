@@ -405,6 +405,13 @@ def distancesWithExactHoneycombNumberCountBruteForce(
         res += 1
     return res
 
+# Problem 356
+def specialCubicLargestRoot(n: int) -> float:
+    """
+    Calculates the largest root of the cubic polynomial:
+     g(x) = x ** 3 - 2 ** 2 * x ** 2 + n
+    """
+    return (1 << n) * (1 + 2 * math.cos(math.acos(1 - 27 * n / (2 * (1 << (3 * n)))) / 3)) / 3
 
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
@@ -688,7 +695,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {358}
+    eval_nums = {356}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
@@ -723,3 +730,6 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
     base=10,
 ))
 """
+
+for n in range(1, 21):
+    print(n, specialCubicLargestRoot(n))
