@@ -413,6 +413,34 @@ def specialCubicLargestRoot(n: int) -> float:
     """
     return (1 << n) * (1 + 2 * math.cos(math.acos(1 - 27 * n / (2 * (1 << (3 * n)))) / 3)) / 3
 
+def specialCubicLargestRootToPowerSeriesTermsGenerator(
+    n: int,
+    exp: int,
+    #res_md: Optional[int]=None,
+) -> Generator[CustomFraction, None, None]:
+    #addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    #mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+    def binom(n: int, k: int) -> int:
+        if n >= 0:
+            res = math.comb(n, k) if k >= 0 else 0
+            return res# if res_md is None else res % res_md
+        k = max(k, n - k)
+        if k < 0: return 0
+        res = 1
+        for k_ in range(k):
+            res *= n - k_
+        res //= math.factorial(k)
+        return res# if res_md is None else res % res_md
+
+    #yield CustomFraction(pow(2, n, res_md), 1)
+
+    for m in itertools.count(1):
+        term = CustomFraction(-exp * binom(3 * m - exp - 1, m - 1) * (n ** m), m * n)
+        pow2 = (3 * m - exp)
+        if pow2 > 0: term /= (1 << pow2)
+        elif pow2 < 0: term *= (1 << (-pow2))
+        yield term
+
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
     """
@@ -731,5 +759,11 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
 ))
 """
 
-for n in range(1, 21):
-    print(n, specialCubicLargestRoot(n))
+#for n in range(1, 21):
+#    print(n, specialCubicLargestRoot(n))
+
+n = 2
+exp = 2#987654321
+
+for i, term in zip(range(1, 10), specialCubicLargestRootToPowerSeriesTermsGenerator(n, exp)):
+    print(i, term)
