@@ -435,10 +435,10 @@ def specialCubicLargestRootToPowerSeriesTermsGenerator(
     #yield CustomFraction(pow(2, n, res_md), 1)
 
     for m in itertools.count(1):
-        term = CustomFraction(-exp * binom(3 * m - exp - 1, m - 1) * (n ** m), m * n)
-        pow2 = (3 * m - exp)
-        if pow2 > 0: term /= (1 << pow2)
-        elif pow2 < 0: term *= (1 << (-pow2))
+        print(3 * m - exp - 1, m - 1, binom(3 * m - exp - 1, m - 1))
+        term = CustomFraction(-exp * binom(3 * m - exp - 1, m - 1) * (n ** m) * (1 << (exp * n)), m * n * (1 << (3 * m * n)))
+        #if pow2 > 0: term /= (1 << pow2)
+        #elif pow2 < 0: term *= (1 << (-pow2))
         yield term
 
 # Problem 357
@@ -762,8 +762,10 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
 #for n in range(1, 21):
 #    print(n, specialCubicLargestRoot(n))
 
-n = 2
-exp = 2#987654321
-
-for i, term in zip(range(1, 10), specialCubicLargestRootToPowerSeriesTermsGenerator(n, exp)):
-    print(i, term)
+n = 10
+exp = 98
+res = 0
+for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGenerator(n, exp)):
+    res += term.numerator / term.denominator
+    print(i, term, res)
+    
