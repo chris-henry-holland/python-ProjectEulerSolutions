@@ -441,6 +441,49 @@ def specialCubicLargestRootToPowerSeriesTermsGenerator(
         #elif pow2 < 0: term *= (1 << (-pow2))
         yield term
 
+def specialCubicLargestRootToPowerFloor(
+    n: int,
+    exp: int,
+    res_md: Optional[int]=None,
+) -> int:
+    # Using identities that for exp >= 3 * m (where m is an integer):
+    #  -exp * ((3 * m - exp - 1) choose (m - 1)) = (-1) ** (m - 1) * ((exp - 2 * m - 1) choose (m - 1))
+    # and:
+    #  exp * ((exp - 2 * m - 1) choose (m - 1)) = m * (((q - 2 * m) choose m) + 2 * ((q - 2 * m - 1) choose (m - 1)))
+
+    #if n == 1:
+    #    return 
+
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+    res = addMod(pow(2, n * exp, res_md), -1)
+    print(res)
+    for m in range(1, (exp // 3) + 1):
+        print(f"m = {m}")
+        term = mulMod(mulMod(addMod(math.comb(exp - 2 * m, m), 2 * math.comb(exp - 2 * m - 1, m - 1)), pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md))
+        res = addMod(res, -term) if m & 1 else addMod(res, term)
+        print(term, res)
+    return res
+
+def specialCubicLargestRootsToPowerFloorSum(
+    n_min: int=1,
+    n_max: int=30,
+    exp: int=987654321,
+    res_md: Optional[int]=10 ** 8,
+) -> int:
+    """
+    Solution to Project Euler #356
+    """
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    res = 0
+    for n in range(n_min, n_max + 1):
+        term = specialCubicLargestRootToPowerFloor(n, exp, res_md)
+        print(f"n = {n}, term = {term}")
+        res = addMod(res, term)
+    return res
+
+
 # Problem 357
 def allFactorPairSumsPrimeSum(n_max: int=10 ** 8) -> int:
     """
@@ -704,6 +747,16 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         res = calculateMoonPathMinimumRiskMersenneNumberRadiiSum(mersenne_max=15)
         print(f"Solution to Project Euler #353 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 356 in eval_nums:
+        since = time.time()
+        res = specialCubicLargestRootsToPowerFloorSum(
+            n_min=1,
+            n_max=30,
+            exp=987654321,
+            res_md=10 ** 8,
+        )
+        print(f"Solution to Project Euler #356 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 357 in eval_nums:
         since = time.time()
         res = allFactorPairSumsPrimeSum(n_max=10 ** 2)
@@ -723,7 +776,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {356}
+    eval_nums = {3560}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
@@ -762,10 +815,17 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
 #for n in range(1, 21):
 #    print(n, specialCubicLargestRoot(n))
 
-n = 10
-exp = 98
-res = 0
+n = 1
+exp = 987654321
+res_md = 10 ** 8
+print(specialCubicLargestRootToPowerFloor(
+    n=n,
+    exp=exp,
+    res_md=res_md,
+))
+"""
+res = 1 << (n * exp)
 for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGenerator(n, exp)):
     res += term.numerator / term.denominator
-    print(i, term, res)
-    
+    print(i, term.numerator / term.denominator, term, res)
+"""
