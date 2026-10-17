@@ -718,6 +718,29 @@ def cyclicNumbersWithGivenPrefixAndSuffixDigitSums(
     """ 
     return res
 
+# Problem 359
+def hilbertNewHotelBruteForce(f: int, r: int) -> int:
+    res = [(0, -1) for _ in range(f)]
+    sqs = [0]
+    for num in itertools.count(1):
+        for floor in range(1, f + 1):
+            if not res[floor - 1][0]:
+                res[floor - 1] = (1, num)
+                break
+            num2 = num + res[floor - 1][1]
+            while sqs[-1] < num2:
+                sqs.append(len(sqs) ** 2)
+            j = bisect.bisect_left(sqs, num2)
+            if sqs[j] == num2:
+                res[floor - 1] = (res[floor - 1][0] + 1, num)
+                break
+        else: continue
+        if res[f - 1][0] == r:
+            break#return res[floor - 1][-1]
+    #print(sqs)
+    print(res)
+    return res[floor - 1][-1]
+
 ##############
 project_euler_num_range = (351, 400)
 
@@ -814,7 +837,7 @@ print(findCyclicNumbersWithGivenPrefixAndSuffix(
 
 #for n in range(1, 21):
 #    print(n, specialCubicLargestRoot(n))
-
+"""
 n = 1
 exp = 987654321
 res_md = 10 ** 8
@@ -824,8 +847,12 @@ print(specialCubicLargestRootToPowerFloor(
     res_md=res_md,
 ))
 """
+"""
 res = 1 << (n * exp)
 for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGenerator(n, exp)):
     res += term.numerator / term.denominator
     print(i, term.numerator / term.denominator, term, res)
 """
+
+for f, r in [(1, 1), (1, 2), (2, 1), (10, 20), (25, 75), (99, 100)]:
+    print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
