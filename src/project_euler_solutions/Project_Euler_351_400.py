@@ -726,6 +726,7 @@ def hilbertNewHotelBruteForce(f: int, r: int) -> int:
         for floor in range(1, f + 1):
             if not res[floor - 1][0]:
                 res[floor - 1] = (1, num)
+                print(floor, num)
                 break
             num2 = num + res[floor - 1][1]
             while sqs[-1] < num2:
@@ -733,6 +734,8 @@ def hilbertNewHotelBruteForce(f: int, r: int) -> int:
             j = bisect.bisect_left(sqs, num2)
             if sqs[j] == num2:
                 res[floor - 1] = (res[floor - 1][0] + 1, num)
+                #if res[floor - 1][0] == 2:
+                #    print(floor, *res[floor - 1])
                 break
         else: continue
         if res[f - 1][0] == r:
@@ -740,6 +743,31 @@ def hilbertNewHotelBruteForce(f: int, r: int) -> int:
     #print(sqs)
     print(res)
     return res[floor - 1][-1]
+
+def hilbertNewHotelFactorisationSum(
+    f_r_prod: int,
+    ps: Optional[PrimeSPFsieve]=None,
+    res_md: Optional[int]=None,
+) -> int:
+    pf = calculatePrimeFactorisation(f_r_prod, ps=ps)
+    def factorGenerator(pf: dict[int, int]) -> Generator[int, None, None]:
+        p_lst = sorted(pf.keys())
+        n_p = len(p_lst)
+        def recur(idx: int=0, curr: int=1) -> Generator[int, None, None]:
+            if idx == n_p:
+                yield curr
+                return
+            p = p_lst[idx]
+            for _ in range(pf[p] + 1):
+                yield from recur(idx=idx + 1, curr=curr)
+                curr *= p
+            return
+        yield from recur(idx=0, curr=1)
+
+    f_r_pairs = {(f, f_r_prod // f) for f in factorGenerator(pf)}
+
+    return 0
+
 
 ##############
 project_euler_num_range = (351, 400)
@@ -854,5 +882,7 @@ for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGener
     print(i, term.numerator / term.denominator, term, res)
 """
 
-for f, r in [(1, 1), (1, 2), (2, 1), (10, 20), (25, 75), (99, 100)]:
-    print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
+#for f, r in [(1, 1), (1, 2), (2, 1), (10, 20), (25, 75), (99, 100)]:
+#    print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
+f, r = 10, 1
+print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
