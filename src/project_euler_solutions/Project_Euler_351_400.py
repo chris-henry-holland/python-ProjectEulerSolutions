@@ -744,11 +744,24 @@ def hilbertNewHotelBruteForce(f: int, r: int) -> int:
     print(res)
     return res[floor - 1][-1]
 
+def hilbertNewHotel(f: int, r: int) -> int:
+    # TODO- prove these formulae
+    if f == 1:
+        return (r * (r + 1)) >> 1
+    res = (f + r) ** 2
+    if f & 1:
+        res -= (2 * f + 3 * r - 1) if r & 1 else (4 * f + 3 * r - 3)
+    else:
+        res -= (2 * f + r) if r & 1 else (r)
+
+    return res >> 1
+
 def hilbertNewHotelFactorisationSum(
-    f_r_prod: int,
+    f_r_prod: int=71328803586048,
     ps: Optional[PrimeSPFsieve]=None,
-    res_md: Optional[int]=None,
+    res_md: Optional[int]=10 ** 8,
 ) -> int:
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     pf = calculatePrimeFactorisation(f_r_prod, ps=ps)
     def factorGenerator(pf: dict[int, int]) -> Generator[int, None, None]:
         p_lst = sorted(pf.keys())
@@ -764,9 +777,12 @@ def hilbertNewHotelFactorisationSum(
             return
         yield from recur(idx=0, curr=1)
 
-    f_r_pairs = {(f, f_r_prod // f) for f in factorGenerator(pf)}
+    res = 0
+    for f in factorGenerator(pf):
+        r = f_r_prod // f
+        res = addMod(res, hilbertNewHotel(f, r))
 
-    return 0
+    return res
 
 
 ##############
@@ -824,10 +840,19 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #358 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 359 in eval_nums:
+        since = time.time()
+        res = hilbertNewHotelFactorisationSum(
+            f_r_prod=71328803586048,
+            ps=None,
+            res_md=10 ** 8,
+        )
+        print(f"Solution to Project Euler #359 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3560}
+    eval_nums = {359}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
@@ -884,5 +909,7 @@ for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGener
 
 #for f, r in [(1, 1), (1, 2), (2, 1), (10, 20), (25, 75), (99, 100)]:
 #    print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
-f, r = 10, 1
-print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
+#f, r = 10, 1
+#print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
+#for f in range(1, 10):
+#    print([hilbertNewHotel(f, r) for r in range(1, 10)])
