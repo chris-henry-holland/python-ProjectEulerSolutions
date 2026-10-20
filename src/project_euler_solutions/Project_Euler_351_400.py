@@ -449,7 +449,7 @@ def specialCubicLargestRootToPowerFloor(
     # Using identities that for exp >= 3 * m (where m is an integer):
     #  -exp * ((3 * m - exp - 1) choose (m - 1)) = (-1) ** (m - 1) * ((exp - 2 * m - 1) choose (m - 1))
     # and:
-    #  exp * ((exp - 2 * m - 1) choose (m - 1)) = m * (((q - 2 * m) choose m) + 2 * ((q - 2 * m - 1) choose (m - 1)))
+    #  exp * ((exp - 2 * m - 1) choose (m - 1)) = m * (((exp - 2 * m) choose m) + 2 * ((exp - 2 * m - 1) choose (m - 1)))
 
     #if n == 1:
     #    return 
@@ -458,12 +458,24 @@ def specialCubicLargestRootToPowerFloor(
     mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
 
     res = addMod(pow(2, n * exp, res_md), -1)
-    print(res)
-    for m in range(1, (exp // 3) + 1):
-        print(f"m = {m}")
-        term = mulMod(mulMod(addMod(math.comb(exp - 2 * m, m), 2 * math.comb(exp - 2 * m - 1, m - 1)), pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md))
+    #print(res)
+    binom1 = exp - 2
+    binom2 = 1
+    m_max = (exp // 3)
+    for m in range(1, m_max + 1):
+        if not m % (10 ** 4): print(f"m = {m} (of {m_max})")
+        #term = mulMod(mulMod(addMod(math.comb(exp - 2 * m, m), 2 * math.comb(exp - 2 * m - 1, m - 1)), pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md))
+        term = mulMod(mulMod(addMod(binom1, 2 * binom2), pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md))
+        binom1 *= ((exp - 3 * m - 1) * (exp - 3 * m - 2) * (exp - 3 * m - 3))
+        binom1 //= m + 1
+        binom1 //= exp - 2 * m
+        binom1 //= exp - 2 * m - 1
+        binom2 *= ((exp - 3 * m) * (exp - 3 * m - 1) * (exp - 3 * m - 2))
+        binom2 //= m
+        binom2 //= exp - 2 * m - 1
+        binom2 //= exp - 2 * m - 2
         res = addMod(res, -term) if m & 1 else addMod(res, term)
-        print(term, res)
+        #print(term, res)
     return res
 
 def specialCubicLargestRootsToPowerFloorSum(
@@ -852,7 +864,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {359}
+    eval_nums = {356}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
