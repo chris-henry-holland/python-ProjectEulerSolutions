@@ -796,6 +796,35 @@ def hilbertNewHotelFactorisationSum(
 
     return res
 
+# Problem 360
+def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r: int=10 ** 10) -> int:
+    r_sq = r * r
+    res = 6 * r
+    z_min = isqrt(r_sq // 3 - 1) + 1
+    z_max = r - 1
+    for z in range(z_min, z_max + 1):
+        z_sq = z * z
+        rem = r_sq - z_sq
+        y_min = isqrt((rem - 1) >> 1) + 1
+        y_max = isqrt(rem)
+        if not rem & 1:
+            y_sq = y_min * y_min
+            x_sq = rem - y_sq
+            if x_sq == y_sq:
+                res += 8 * (1 + 2 * (y_min != z)) * (z + 2 * y_min)
+                y_min += 1
+        for y in range(y_min, min(y_max + 1, z)):
+            #print(f"z = {z}, x = {x}")
+            x_sq = rem - y * y
+            x = isqrt(x_sq)
+            if x * x != x_sq: continue
+            res += 24 * (1 + bool(x)) * (x + y + z)
+        if y_min > y_max or y_max < z: continue
+        x_sq = rem - z_sq
+        x = isqrt(x_sq)
+        if x * x != x_sq: continue
+        res += 12 * (1 + bool(x)) * (x + 2 * z)
+    return res
 
 ##############
 project_euler_num_range = (351, 400)
@@ -861,10 +890,15 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #359 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 360 in eval_nums:
+        since = time.time()
+        res = sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r=10 ** 5)
+        print(f"Solution to Project Euler #360 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {356}
+    eval_nums = {360}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
