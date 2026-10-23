@@ -1677,8 +1677,10 @@ def sumOfTwoSquaresSolutionsCount(
     Calculates the number of ordered integer pairs (a, b) for which:
         a ** 2 + b ** 2 = target
     Note that this includes solutions for which a and b are equal and
-    for which a and/or be is/are neative.
+    for which a and/or b is/are negative.
     """
+    if not target: return 1
+    elif target < 0: return 0
     res = 1
     if ps is not None:
         pf = calculatePrimeFactorisation(target, ps=ps)

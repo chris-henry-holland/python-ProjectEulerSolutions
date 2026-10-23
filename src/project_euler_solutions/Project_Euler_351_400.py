@@ -91,7 +91,6 @@ def calculatePrimeFactorisation(
     return res
 
 # Problem 351
-
 def eulerTotientSum(m: int, ps: Optional[PrimeSPFsieve]=None) -> int:
     # Using the identity:
     # phi_cumu(n) = n * (n + 1) / 2 - sum(d = 2 to n) phi_cumu(floor(n / d))
@@ -826,6 +825,78 @@ def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r: int=10 ** 10) -
         res += 12 * (1 + bool(x)) * (x + 2 * z)
     return res
 
+def sumOfTwoSquaresSolutionsCount(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Calculates the number of ordered integer pairs (a, b) for which:
+        a ** 2 + b ** 2 = target
+    Note that this includes solutions for which a and b are equal and
+    for which a and/or b is/are negative.
+    """
+    if not target: return 1
+    elif target < 0: return 0
+    res = 1
+    if ps is not None:
+        pf = calculatePrimeFactorisation(target, ps=ps)
+        gaussian_pf = {}
+        mult = 1
+        for p, f in pf.items():
+            if p == 2: continue
+            residue = p % 4
+            if residue == 3:
+                if f & 1:
+                    #print(p, f)
+                    return 0
+                continue
+            res *= f + 1
+    else:
+        num = target
+        while not num & 1:
+            num >>= 1
+        for p in range(3, isqrt(num) + 1, 2):
+            if p * p > num: break
+            f = 0
+            num2, r = divmod(num, p)
+            while not r:
+                num = num2
+                f += 1
+                num2, r = divmod(num, p)
+            if not f: continue
+            if p & 3 == 3:
+                if f & 1: return 0
+                continue
+            res *= f + 1
+        if num > 1:
+            if num & 3 == 3: return 0
+            res <<= 1
+    return res << 2
+
+def sphereIntegerPointsManhattanDistanceToOriginSum(
+    r: int=10 ** 10,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    # Relies on there being no integer n for which 3 * n ** 2
+    # is a square (follows from the prime factorisation having
+    # an odd power of 3)
+    r_sq = r * r
+    res = 0
+    for z in range(1, r + 1):
+        z_sq = z * z
+        rem = r_sq - z_sq
+        if not z % 10 ** 2:
+            print(f"z = {z} (of {r}), rem = {rem}")
+        cnt = sumOfTwoSquaresSolutionsCount(
+            rem,
+            ps=ps,
+        )
+        if not cnt: continue
+        term = z * cnt
+        res += term
+        #print(f"rem = {rem}, cnt = {cnt}, term = {term}")
+    return res * 6
+
 ##############
 project_euler_num_range = (351, 400)
 
@@ -892,7 +963,10 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
 
     if 360 in eval_nums:
         since = time.time()
-        res = sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r=10 ** 5)
+        res = sphereIntegerPointsManhattanDistanceToOriginSum(
+            r=10 ** 10,
+            ps=None,
+        )
         print(f"Solution to Project Euler #360 = {res}, calculated in {time.time() - since:.4f} seconds")
 
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
