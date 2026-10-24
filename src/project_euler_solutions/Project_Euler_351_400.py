@@ -825,25 +825,27 @@ def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r: int=10 ** 10) -
         res += 12 * (1 + bool(x)) * (x + 2 * z)
     return res
 
+"""
 def sumOfTwoSquaresSolutionsCount(
     target: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
-    """
+    ""
     Calculates the number of ordered integer pairs (a, b) for which:
         a ** 2 + b ** 2 = target
     Note that this includes solutions for which a and b are equal and
     for which a and/or b is/are negative.
-    """
+    ""
     if not target: return 1
     elif target < 0: return 0
     res = 1
     if ps is not None:
         pf = calculatePrimeFactorisation(target, ps=ps)
-        gaussian_pf = {}
-        mult = 1
+        #gaussian_pf = {}
+        #mult = 1
+        if 2 in pf.keys():
+            pf.pop(2)
         for p, f in pf.items():
-            if p == 2: continue
             residue = p % 4
             if residue == 3:
                 if f & 1:
@@ -852,9 +854,109 @@ def sumOfTwoSquaresSolutionsCount(
                 continue
             res *= f + 1
     else:
+        ps2 = SimplePrimeSieve()
+        def primeTest(num: int) -> bool:
+            return ps2.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
         num = target
+        if not primeTest(num):
+            f = 0
+            while not num & 1:
+                num >>= 1
+                f += 1
+            #if f: print(2, f)
+            if not ps2.millerRabinPrimalityTestWithKnownBounds(num)[0]:
+                for p in range(3, isqrt(num) + 1, 2):
+                    if p * p > num: break
+                    if p % 10 ** 7 == 1:
+                        print(f"num = {num}, p = {p} (of {isqrt(num)})")
+                    f = 0
+                    num2, r = divmod(num, p)
+                    while not r:
+                        num = num2
+                        f += 1
+                        num2, r = divmod(num, p)
+                    if not f: continue
+                    #print(p, f)
+                    if p & 3 == 3:
+                        if f & 1: return 0
+                        continue
+                    res *= f + 1
+                    if not ps2.millerRabinPrimalityTestWithKnownBounds(num)[0]:
+                        break
+        if num > 1:
+            #print(num, 1)
+            if num & 3 == 3: return 0
+            res <<= 1
+    return res << 2
+"""
+
+def sumOfTwoSquaresSolutionsCountFromPrimeFactorisationBreakdown(
+    target_pf: dict[int, int],
+) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
+    """
+    For the integer target with prime factorisation given by target_pf,
+    calculates the number of non-negative ordered integer pairs (a, b)
+    for which a <= b, and:
+        a ** 2 + b ** 2 = target
+    separating the counts into those where a and b are strictly positive, those
+    those where exactly one of a and b is zero and those where both of a and b
+    are zero, and further subdividing these counts into those where a and b are
+    equal and those where a and b are unequal
+    """
+    if target < 0: return ((0, 0), (0, 0), (0, 0))
+    if not target: return ((0, 0), (0, 0), (1, 0))
+    
+    res = 1
+    f2 = target_pf.pop(2, 0)
+    sq_status = 1 << (f2 & 1)
+    for p, f in target_pf.items():
+        if f & 1: sq_status = 0
+        residue = p % 4
+        if residue == 3:
+            if f & 1:
+                #print(p, f)
+                res = 0
+                break
+            continue
+        res *= f + 1
+    #print(sq_status, res)
+    if f2: target_pf[2] = f2 # Adding 2 back into the prime factorisation
+                             # to eliminate that potential side effect
+    if sq_status == 1:
+        return ((0, (res - 1) >> 1), (0, 1), (0, 0))
+    elif sq_status == 2:
+        return ((1, (res - 1) >> 1), (0, 0), (0, 0))
+    return ((0, res >> 1), (0, 0), (0, 0))
+
+def sumOfTwoSquaresSolutionsCountBreakdown(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
+    """
+    Calculates the number of non-negative ordered integer pairs (a, b) for which
+    a <= b and:
+        a ** 2 + b ** 2 = target
+    separating the counts into those where a and b are strictly positive, those
+    those where exactly one of a and b is zero and those where both of a and b
+    are zero, and further subdividing these counts into those where a and b are
+    equal and those where a and b are unequal
+    """
+    if target < 0: return ((0, 0), (0, 0), (0, 0))
+    if not target: return ((0, 0), (0, 0), (1, 0))
+    
+    res = 1
+    sq_status = 0
+    if ps is not None:
+        return sumOfTwoSquaresSolutionsCountFromPrimeFactorisationBreakdown(
+            calculatePrimeFactorisation(target, ps=ps),
+        )
+    else:
+        num = target
+        f_mod2 = False
         while not num & 1:
             num >>= 1
+            f_mod2 = not f_mod2
+        sq_status = 1 << (f_mod2)
         for p in range(3, isqrt(num) + 1, 2):
             if p * p > num: break
             f = 0
@@ -864,14 +966,33 @@ def sumOfTwoSquaresSolutionsCount(
                 f += 1
                 num2, r = divmod(num, p)
             if not f: continue
+            elif f & 1: sq_status = 0
             if p & 3 == 3:
-                if f & 1: return 0
+                if f & 1: return ((0, 0), (0, 0), (0, 0))
                 continue
             res *= f + 1
         if num > 1:
-            if num & 3 == 3: return 0
+            sq_status = 0
+            if num & 3 == 3: return ((0, 0), (0, 0), (0, 0))
             res <<= 1
-    return res << 2
+    #print(sq_status, res)
+    if sq_status == 1:
+        return ((0, (res - 1) >> 1), (0, 1), (0, 0))
+    elif sq_status == 2:
+        return ((1, (res - 1) >> 1), (0, 0), (0, 0))
+    return ((0, res >> 1), (0, 0), (0, 0))
+
+def sumOfTwoSquaresSolutionsCount(
+    target: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    cnt_breakdown = sumOfTwoSquaresSolutionsCountBreakdown(target, ps=ps)
+    #print(cnt_breakdown)
+    res = (cnt_breakdown[0][0] << 2) +\
+        (cnt_breakdown[0][1] << 3) +\
+        (cnt_breakdown[1][1] << 2) +\
+        (cnt_breakdown[2][0])
+    return res
 
 def sphereIntegerPointsManhattanDistanceToOriginSum(
     r: int=10 ** 10,
@@ -880,20 +1001,56 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
     # Relies on there being no integer n for which 3 * n ** 2
     # is a square (follows from the prime factorisation having
     # an odd power of 3)
-    r_sq = r * r
+    #r_sq = r * r
     res = 0
     for z in range(1, r + 1):
-        z_sq = z * z
-        rem = r_sq - z_sq
-        if not z % 10 ** 2:
-            print(f"z = {z} (of {r}), rem = {rem}")
-        cnt = sumOfTwoSquaresSolutionsCount(
-            rem,
-            ps=ps,
-        )
-        if not cnt: continue
+        #z_sq = z * z
+        #rem = r_sq - z_sq
+        rem_facts = [r - z, r + z]
+        cnt = 1
+        g = gcd(*rem_facts)
+        g_pfacts = ps.primeFactors(g)
+        common_pf = {}
+        for p in g_pfacts:
+            common_pf[p] = 0
+            for j in range(2):
+                num2, r = divmod(rem_facts[j], p)
+                while not r:
+                    rem_facts[j] = num2
+                    common_pf[p] += 1
+                    num2, r = divmod(rem_facts[j], p)
+        bd0 = sumOfTwoSquaresSolutionsCountFromPrimeFactorisationBreakdown(common_pf)
+        
+
+        if ps is not None:
+            """
+            g_facts = ps.primeFactors(g)
+            if 2 in pf.keys():
+                pf.pop(2)
+            for p, f in pf.items():
+                residue = p % 4
+                if residue == 3:
+                    if f & 1:
+                        #print(p, f)
+                        return 0
+                    continue
+                res *= f + 1
+            """
+        else:
+            pass
+
+        for rem in rem_facts:
+            cnt *= sumOfTwoSquaresSolutionsCount(
+                rem,
+                ps=ps,
+            ) >> 2
+            if not cnt: break
+        cnt <<= 2
+        #if not cnt: continue
         term = z * cnt
         res += term
+        if not z % 10 ** 4:
+            print(f"z = {z} (of {r}), rem = {rem}, res = {res}")
         #print(f"rem = {rem}, cnt = {cnt}, term = {term}")
     return res * 6
 
@@ -964,7 +1121,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     if 360 in eval_nums:
         since = time.time()
         res = sphereIntegerPointsManhattanDistanceToOriginSum(
-            r=10 ** 10,
+            r=45,
             ps=None,
         )
         print(f"Solution to Project Euler #360 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -972,7 +1129,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {360}
+    eval_nums = {3600}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
@@ -1033,3 +1190,8 @@ for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGener
 #print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
 #for f in range(1, 10):
 #    print([hilbertNewHotel(f, r) for r in range(1, 10)])
+
+use_ps = True
+ps = PrimeSPFsieve() if use_ps else None
+for target in range(51):
+    print(target, sumOfTwoSquaresSolutionsCountBreakdown(target, ps=ps), sumOfTwoSquaresSolutionsCount(target, ps=ps))
