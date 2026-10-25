@@ -796,10 +796,13 @@ def hilbertNewHotelFactorisationSum(
     return res
 
 # Problem 360
-def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r: int=10 ** 10) -> int:
+def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(rad: int=10 ** 10) -> int:
+    r = rad
+    if rad <= 0: return 0
     r_sq = r * r
     res = 6 * r
-    z_min = isqrt(r_sq // 3 - 1) + 1
+    print((0, 0, r), 6)
+    z_min = isqrt(max(r_sq // 3 - 1, 0)) + 1
     z_max = r - 1
     for z in range(z_min, z_max + 1):
         z_sq = z * z
@@ -810,6 +813,7 @@ def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r: int=10 ** 10) -
             y_sq = y_min * y_min
             x_sq = rem - y_sq
             if x_sq == y_sq:
+                print((y_min, y_min, z), 8 * (1 + 2 * (y_min != z)))
                 res += 8 * (1 + 2 * (y_min != z)) * (z + 2 * y_min)
                 y_min += 1
         for y in range(y_min, min(y_max + 1, z)):
@@ -817,11 +821,13 @@ def sphereIntegerPointsManhattanDistanceToOriginSumBruteForce(r: int=10 ** 10) -
             x_sq = rem - y * y
             x = isqrt(x_sq)
             if x * x != x_sq: continue
+            print((x, y, z), 24 * (1 + bool(x)))
             res += 24 * (1 + bool(x)) * (x + y + z)
         if y_min > y_max or y_max < z: continue
         x_sq = rem - z_sq
         x = isqrt(x_sq)
         if x * x != x_sq: continue
+        print((x, z, z), 12 * (1 + bool(x)))
         res += 12 * (1 + bool(x)) * (x + 2 * z)
     return res
 
@@ -903,8 +909,6 @@ def sumOfTwoSquaresSolutionsCountFromPrimeFactorisationBreakdown(
     are zero, and further subdividing these counts into those where a and b are
     equal and those where a and b are unequal
     """
-    if target < 0: return ((0, 0), (0, 0), (0, 0))
-    if not target: return ((0, 0), (0, 0), (1, 0))
     
     res = 1
     f2 = target_pf.pop(2, 0)
@@ -982,36 +986,63 @@ def sumOfTwoSquaresSolutionsCountBreakdown(
         return ((1, (res - 1) >> 1), (0, 0), (0, 0))
     return ((0, res >> 1), (0, 0), (0, 0))
 
+def sumOfTwoSquaresSolutionsCountBreakdownCoprimeProduct(
+    breakdown1: tuple[tuple[int, int], tuple[int, int], tuple[int, int]],
+    breakdown2: tuple[tuple[int, int], tuple[int, int], tuple[int, int]],
+) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
+
+    if not sum(sum(x) for x in breakdown1) or not sum(sum(x) for x in breakdown2):
+        return ((0, 0), (0, 0), (0, 0))
+    if breakdown1[2][0] or breakdown2[2][0]:
+        return ((0, 0), (0, 0), (1, 0))
+    tot1 = ((breakdown1[0][1]) << 1) + breakdown1[0][0] + breakdown1[1][1]
+    tot2 = ((breakdown2[0][1]) << 1) + breakdown2[0][0] + breakdown2[1][1]
+    res = tot1 * tot2
+    if breakdown1[1][1] == 1 and breakdown2[1][1] == 1:
+        return ((0, (res - 1) >> 1), (0, 1), (0, 0))
+    if (breakdown1[0][0] == 1 and breakdown2[1][1] == 1) or (breakdown1[1][1] == 1 and breakdown2[0][0] == 1):
+        return ((1, (res - 1) >> 1), (0, 0), (0, 0))
+    return ((0, res >> 1), (0, 0), (0, 0))
+
+def sumOfTwoSquaresSolutionsCountFromBreakdown(
+    target_breakdown: tuple[tuple[int, int], tuple[int, int], tuple[int, int]],
+) -> int:
+    return (target_breakdown[0][0] << 2) +\
+        (target_breakdown[0][1] << 3) +\
+        (target_breakdown[1][1] << 2) +\
+        (target_breakdown[2][0])
+
+
 def sumOfTwoSquaresSolutionsCount(
     target: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
-    cnt_breakdown = sumOfTwoSquaresSolutionsCountBreakdown(target, ps=ps)
+    target_breakdown = sumOfTwoSquaresSolutionsCountBreakdown(target, ps=ps)
+    return sumOfTwoSquaresSolutionsCountFromBreakdown(target_breakdown)
     #print(cnt_breakdown)
-    res = (cnt_breakdown[0][0] << 2) +\
-        (cnt_breakdown[0][1] << 3) +\
-        (cnt_breakdown[1][1] << 2) +\
-        (cnt_breakdown[2][0])
-    return res
+    
 
 def sphereIntegerPointsManhattanDistanceToOriginSum(
-    r: int=10 ** 10,
+    rad: int=10 ** 10,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
     # Relies on there being no integer n for which 3 * n ** 2
     # is a square (follows from the prime factorisation having
     # an odd power of 3)
     #r_sq = r * r
-    res = 0
-    for z in range(1, r + 1):
+    res = rad
+    for z in range(rad):
         #z_sq = z * z
         #rem = r_sq - z_sq
-        rem_facts = [r - z, r + z]
+        rem_facts = [rad - z, rad + z]
         cnt = 1
         g = gcd(*rem_facts)
-        g_pfacts = ps.primeFactors(g)
+        
+        g_pf = calculatePrimeFactorisation(g, ps=ps)
+        #print(f"rad = {rad}, z = {z}, rem_facts = {rem_facts}, g = {g}, g_pf = {g_pf}")
         common_pf = {}
-        for p in g_pfacts:
+        for p in g_pf.keys():
+            #print(f"p = {p}")
             common_pf[p] = 0
             for j in range(2):
                 num2, r = divmod(rem_facts[j], p)
@@ -1019,38 +1050,27 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
                     rem_facts[j] = num2
                     common_pf[p] += 1
                     num2, r = divmod(rem_facts[j], p)
-        bd0 = sumOfTwoSquaresSolutionsCountFromPrimeFactorisationBreakdown(common_pf)
         
-
-        if ps is not None:
-            """
-            g_facts = ps.primeFactors(g)
-            if 2 in pf.keys():
-                pf.pop(2)
-            for p, f in pf.items():
-                residue = p % 4
-                if residue == 3:
-                    if f & 1:
-                        #print(p, f)
-                        return 0
-                    continue
-                res *= f + 1
-            """
-        else:
-            pass
-
+        bd = sumOfTwoSquaresSolutionsCountFromPrimeFactorisationBreakdown(common_pf)
+        #print(f"common_pf = {common_pf}, bd = {bd}, post division rem_facts = {rem_facts}")
         for rem in rem_facts:
-            cnt *= sumOfTwoSquaresSolutionsCount(
-                rem,
-                ps=ps,
-            ) >> 2
-            if not cnt: break
-        cnt <<= 2
-        #if not cnt: continue
+            
+            bd2 = sumOfTwoSquaresSolutionsCountBreakdown(rem, ps=ps)
+            
+            bd = sumOfTwoSquaresSolutionsCountBreakdownCoprimeProduct(
+                bd,
+                bd2,
+            )
+            #print(rem, bd2, bd)
+        
+        cnt = sumOfTwoSquaresSolutionsCountFromBreakdown(bd)
+        #print(f"rad = {rad}, z = {z}, overall breakdown = {bd}, count = {cnt}")
         term = z * cnt
         res += term
-        if not z % 10 ** 4:
-            print(f"z = {z} (of {r}), rem = {rem}, res = {res}")
+        if not z % 10 ** 5:
+            print(f"z = {z} (of {rad}), res = {res}")
+        if term:
+            print(f"Non-zero term for z = {z}: {term}")
         #print(f"rem = {rem}, cnt = {cnt}, term = {term}")
     return res * 6
 
@@ -1121,7 +1141,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     if 360 in eval_nums:
         since = time.time()
         res = sphereIntegerPointsManhattanDistanceToOriginSum(
-            r=45,
+            rad=10 ** 8,
             ps=None,
         )
         print(f"Solution to Project Euler #360 = {res}, calculated in {time.time() - since:.4f} seconds")
@@ -1129,7 +1149,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3600}
+    eval_nums = {360}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
@@ -1190,8 +1210,9 @@ for i, term in zip(range(1, 101), specialCubicLargestRootToPowerSeriesTermsGener
 #print(f"P({f}, {r}) = {hilbertNewHotelBruteForce(f, r)}")
 #for f in range(1, 10):
 #    print([hilbertNewHotel(f, r) for r in range(1, 10)])
-
+"""
 use_ps = True
 ps = PrimeSPFsieve() if use_ps else None
 for target in range(51):
     print(target, sumOfTwoSquaresSolutionsCountBreakdown(target, ps=ps), sumOfTwoSquaresSolutionsCount(target, ps=ps))
+"""
