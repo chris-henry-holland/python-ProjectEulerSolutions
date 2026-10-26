@@ -1026,6 +1026,9 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
     rad: int=10 ** 10,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
+    """
+    Solution to Project Euler #360
+    """
     # Relies on there being no integer n for which 3 * n ** 2
     # is a square (follows from the prime factorisation having
     # an odd power of 3)
@@ -1038,19 +1041,26 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
     # for each solution each of x, y and z are divisible by 2 ** m
     # where m is the exponent of 2 in the prime factorisation of
     # rad.
-    res = rad
+
+    prnt_intvl = 10 ** 5
+    
     rad2 = rad
     pow2 = 0
     while not rad2 & 1:
         rad2 >>= 1
         pow2 += 1
-
+    res = rad2
     prev_prnt_div = 0
+
+    if ps is not None:
+        print("extending prime sieve")
+        ps.extendSieve(rad2 << 1)
+        print("finished extending prime sieve")
     
-    for z in range(0, rad, 1 << pow2):
+    for z in range(0, rad2):
         #z_sq = z * z
         #rem = r_sq - z_sq
-        rem_facts = [rad - z, rad + z]
+        rem_facts = [rad2 - z, rad2 + z]
         cnt = 1
         g = gcd(*rem_facts)
         
@@ -1083,14 +1093,14 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
         #print(f"rad = {rad}, z = {z}, overall breakdown = {bd}, count = {cnt}")
         term = z * cnt
         res += term
-        curr_prnt_div = z // 10 ** 8
+        curr_prnt_div = z // prnt_intvl
         if curr_prnt_div > prev_prnt_div:
-            print(f"z = {z} (of {rad}), res = {res}")
+            print(f"z = {z} (of {rad2}), res = {res}")
             prev_prnt_div = curr_prnt_div
         #if term:
         #    print(f"Non-zero term for z = {z}: {term}")
         #print(f"rem = {rem}, cnt = {cnt}, term = {term}")
-    return res * 6
+    return (res * 6) << pow2
 
 ##############
 project_euler_num_range = (351, 400)
@@ -1160,7 +1170,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         since = time.time()
         res = sphereIntegerPointsManhattanDistanceToOriginSum(
             rad=10 ** 10,
-            ps=None,
+            ps=PrimeSPFsieve(),
         )
         print(f"Solution to Project Euler #360 = {res}, calculated in {time.time() - since:.4f} seconds")
 
