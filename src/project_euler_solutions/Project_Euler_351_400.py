@@ -1030,8 +1030,24 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
     # is a square (follows from the prime factorisation having
     # an odd power of 3)
     #r_sq = r * r
+
+    # Note that for even rad, all of x, y and z must be even
+    # given that if any of them are odd, mod 4 the sum of the
+    # squares would be between 1 and 3 inclusive, while the radius
+    # squared would be 0. By induction it therefore follows that
+    # for each solution each of x, y and z are divisible by 2 ** m
+    # where m is the exponent of 2 in the prime factorisation of
+    # rad.
     res = rad
-    for z in range(rad):
+    rad2 = rad
+    pow2 = 0
+    while not rad2 & 1:
+        rad2 >>= 1
+        pow2 += 1
+
+    prev_prnt_div = 0
+    
+    for z in range(0, rad, 1 << pow2):
         #z_sq = z * z
         #rem = r_sq - z_sq
         rem_facts = [rad - z, rad + z]
@@ -1067,10 +1083,12 @@ def sphereIntegerPointsManhattanDistanceToOriginSum(
         #print(f"rad = {rad}, z = {z}, overall breakdown = {bd}, count = {cnt}")
         term = z * cnt
         res += term
-        if not z % 10 ** 5:
+        curr_prnt_div = z // 10 ** 8
+        if curr_prnt_div > prev_prnt_div:
             print(f"z = {z} (of {rad}), res = {res}")
-        if term:
-            print(f"Non-zero term for z = {z}: {term}")
+            prev_prnt_div = curr_prnt_div
+        #if term:
+        #    print(f"Non-zero term for z = {z}: {term}")
         #print(f"rem = {rem}, cnt = {cnt}, term = {term}")
     return res * 6
 
@@ -1141,7 +1159,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     if 360 in eval_nums:
         since = time.time()
         res = sphereIntegerPointsManhattanDistanceToOriginSum(
-            rad=10 ** 8,
+            rad=10 ** 10,
             ps=None,
         )
         print(f"Solution to Project Euler #360 = {res}, calculated in {time.time() - since:.4f} seconds")
