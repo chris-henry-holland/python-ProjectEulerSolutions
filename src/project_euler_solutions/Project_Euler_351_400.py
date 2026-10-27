@@ -450,9 +450,110 @@ def specialCubicLargestRootToPowerFloor(
     # and:
     #  exp * ((exp - 2 * m - 1) choose (m - 1)) = m * (((exp - 2 * m) choose m) + 2 * ((exp - 2 * m - 1) choose (m - 1)))
 
+    # recurrence relation for the sum over m from 1 to exp // 3 of
+    #  S(m) = m * (((exp - 2 * m) choose m)
+    # for exp >= 6 is:
+    #  S(exp) = 2 * S(exp - 1) - S(exp - 2) + 2 * S(exp - 3) - 2 * S(exp - 4) - S(exp - 6)
+
+    # recurrence relation for the sum over m from 1 to exp // 3 of
+    #  S(m) = m * (((exp - 2 * m - 1) choose (m - 1))
+    # for exp >= 6 is also:
+    #  S(exp) = 2 * S(exp - 1) - S(exp - 2) + 2 * S(exp - 3) - 2 * S(exp - 4) - S(exp - 6)
+
     #if n == 1:
     #    return 
+    mat = [[0, 1, 0, 0, 0, 0],
+           [0, 0, 1, 0, 0, 0],
+           [0, 0, 0, 1, 0, 0],
+           [0, 0, 0, 0, 1, 0],
+           [0, 0, 0, 0, 0, 1],
+           [-1, 0, -2, 2, -1, 2],
+    ]
 
+    vec_init1 = [0, 0, 0, 1, 2, 3]
+    vec_init2 = [0, 0, 0, 1, 1, 1]
+
+    vec_init = [x + 2 * y for x, y in zip(vec_init1, vec_init2)]
+
+    if res_md is not None:
+        mat = [[x % res_md for x in row] for row in mat]
+        vec_init = [x % res_md for x in vec_init]
+
+    def matrixMultiply(mat1: list[list[int]], mat2: list[list[int]], res_md: Optional[int]=None) -> list[list[int]]:
+        # Assumes mat1 and mat2 are valid matrices (i.e. all of their
+        # respective sub-lists have the same length)
+        shape1 = (len(mat1), len(mat1[0]))
+        shape2 = (len(mat2), len(mat2[0]))
+        if shape1[1] != shape2[0]:
+            raise ValueError(
+                "The number of columns of mat1 must match the"
+                "number of rows of mat2"
+            )
+
+        addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+        mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+        res = [[0] * shape2[1] for _ in range(shape1[0])]
+        for i1 in range(shape1[0]):
+            for i2 in range(shape2[1]):
+                for j in range(shape1[1]):
+                    res[i1][i2] = addMod(res[i1][i2], mulMod(mat1[i1][j], mat2[j][i2]))
+        return res
+
+    def applyMatrixToVector(mat: list[list[int]], vec: list[int], res_md: Optional[int]=None) -> list[int]:
+        # Assumes mat is a valid matrix (i.e. all of its
+        # sub-lists have the same length)
+        mat_shape = (len(mat), len(mat[0]))
+        vec_len = len(vec)
+        if vec_len != mat_shape[1]:
+            raise ValueError(
+                "The number of columns in mat and the length of vec "
+                "must be equal."
+            )
+
+        addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+        mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+        res = [0] * mat_shape[0]
+        for i, row in enumerate(mat):
+            for j in range(vec_len):
+                res[i] = addMod(res[i], mulMod(row[j], vec[j]))
+        return res
+
+    def matrixPow(mat: list[list[int]], exp, res_md: Optional[int]=None) -> list[int]:
+        mat_shape = (len(mat), len(mat[0]))
+        if mat_shape[0] != mat_shape[1]:
+            raise ValueError(
+                "mat must be a square matrix"
+            )
+        mat_sz = mat_shape[0]
+        
+
+        #addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+        #mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+
+        exp2 = exp
+        if exp2 & 1:
+            res = mat
+        else:
+            res = [[0] * mat_sz for _ in range(mat_sz)]
+            for i in range(mat_sz): res[i][i] = 1
+        exp2 >>= 1
+        mat_pow2 = mat
+        while exp2:
+            mat_pow2 = matrixMultiply(mat_pow2, mat_pow2, res_md=res_md)
+            if exp2 & 1:
+                res = matrixMultiply(res, mat_pow2)
+            exp2 >>= 1
+        return res
+
+
+    mat_sq = matrixPow(mat, 2, res_md=res_md)
+
+    print(mat)
+    print(mat_sq)
+    return 0
+    """
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
 
@@ -476,6 +577,7 @@ def specialCubicLargestRootToPowerFloor(
         res = addMod(res, -term) if m & 1 else addMod(res, term)
         #print(term, res)
     return res
+    """
 
 def specialCubicLargestRootsToPowerFloorSum(
     n_min: int=1,
@@ -1177,7 +1279,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {360}
+    eval_nums = {356}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
