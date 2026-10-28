@@ -451,14 +451,22 @@ def specialCubicLargestRootToPowerFloor(
     #  exp * ((exp - 2 * m - 1) choose (m - 1)) = m * (((exp - 2 * m) choose m) + 2 * ((exp - 2 * m - 1) choose (m - 1)))
 
     # recurrence relation for the sum over m from 1 to exp // 3 of
-    #  S(m) = m * (((exp - 2 * m) choose m)
+    #  t(m) = m * (((exp - 2 * m) choose m)
     # for exp >= 6 is:
     #  S(exp) = 2 * S(exp - 1) - S(exp - 2) + 2 * S(exp - 3) - 2 * S(exp - 4) - S(exp - 6)
+    # with initial conditions S(0) = 0, S(1) = 0, S(2) = 0, S(3) = 1, S(4) = 2, S(5) = 3
 
     # recurrence relation for the sum over m from 1 to exp // 3 of
-    #  S(m) = m * (((exp - 2 * m - 1) choose (m - 1))
+    #  t(m) = m * (((exp - 2 * m - 1) choose (m - 1))
     # for exp >= 6 is also:
     #  S(exp) = 2 * S(exp - 1) - S(exp - 2) + 2 * S(exp - 3) - 2 * S(exp - 4) - S(exp - 6)
+    # but with initial conditions S(0) = 0, S(1) = 0, S(2) = 0, S(3) = 1, S(4) = 1, S(5) = 1
+
+    # homogeneous recurrence relation for the sum over m from 1 to exp // 3 of
+    #  t(m) = (exp / m) * ((exp - 2 * m - 1) choose (m - 1)) * (-1) ** m * n ** (m - 1) * 2 ** ((q - 3 * m) * n)
+    # for exp >= 5 is:
+    #  S(exp) = 2 ** (n + 1) * S(exp - 1) - 2 ** (2 * n) * S(exp - 2) - n * S(exp - 3) + n * 2 ** n * S(exp - 4)
+    # with initial conditions S(1) = 0, S(2) = 0, S(3) = -3, S(4) = -3 * 2 ** n
 
     #if n == 1:
     #    return 
@@ -549,6 +557,9 @@ def specialCubicLargestRootToPowerFloor(
 
 
     mat_sq = matrixPow(mat, 2, res_md=res_md)
+
+
+    res = mulMod, pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md)
 
     print(mat)
     print(mat_sq)
