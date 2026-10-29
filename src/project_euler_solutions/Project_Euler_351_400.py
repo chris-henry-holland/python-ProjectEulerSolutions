@@ -468,20 +468,40 @@ def specialCubicLargestRootToPowerFloor(
     #  S(exp) = 2 ** (n + 1) * S(exp - 1) - 2 ** (2 * n) * S(exp - 2) - n * S(exp - 3) + n * 2 ** n * S(exp - 4)
     # with initial conditions S(1) = 0, S(2) = 0, S(3) = -3, S(4) = -3 * 2 ** n
 
+    # Waring's formula:
+    # The sum over the roots of a degree d monic polynomial:
+    #    P(x) = a_0 + a_1 * t + a_2 * t ** 2 + ... + a_(d - 1) * t ** (d - 1) + t ** d
+    # of their q:th powers is:
+    #  (sum over all k_0, k_1, ..., k_(d - 1) for which d * k_0 + (d - 1) * k_1 + ... + k_(d - 1) = q)
+    #     q * (multinomial k_0, k_1, ..., k_(d - 1)) * (-a_0) ** k_0 * (-a_1) ** k_1 * ... * (-a_(d - 1)) ** k_(d - 1) / (k_0 + k_1 + ... + k_(d - 1))
+    # For cubic monic polynomials, this becomes:
+    #  (sum over k_1 from 0 to floor(q / 2)) (sum over k_0 from 0 to floor(q - 2 * k_2) / 3))
+    #     q * (multinomial (q - 2 * k_1 - 3 * k_0), k_2, k_3) * (-a_0) ** k_0 * (-a_1) ** k_1 * (-a_2) ** (q - 2 * k_1 - 3 * k_3) / (q - k_1 - 2 * k_0)
+    # In this case, we have that a_1 is 0, which means that all terms for which k_1
+    # is non-zero are zero. Therefore, the sum over the roots of this type of monic
+    # cubic polynomial of their q:th powers is:
+    #  (sum over k_0 from 0 to floor(q / 3))
+    #     q * ((q - 2 * k_0) choose (k_0)) * (-a_0) ** k_0 * (-a_2) ** (q - 3 * k_0) / (q - 2 * k_0)
+    # In this case, a_0 = n and a_2 = -(2 ** n), giving the sum over the roots to
+    # their q:th power as:
+    #  (sum over k_0 from 0 to floor(q / 3))
+    #     q * ((q - 2 * k_0) choose (k_0)) * (-n) ** k_0 * 2 ** (n * (q - 3 * k_0)) / (q - 2 * k_0)
+    # This sum, S(q) has the homogeneous linear recurrence relation for q >= 3:
+    #  S(q) = 2 ** n * S(q - 1) - n * S(q - 3)
+    # with initial conditions S(0) = 3, S(1) = 2 ** n, S(2) = 2 ** (2 * n
+    
     #if n == 1:
     #    return 
-    mat = [[0, 1, 0, 0, 0, 0],
-           [0, 0, 1, 0, 0, 0],
-           [0, 0, 0, 1, 0, 0],
-           [0, 0, 0, 0, 1, 0],
-           [0, 0, 0, 0, 0, 1],
-           [-1, 0, -2, 2, -1, 2],
+    mat = [
+        [0, 1, 0],
+        [0, 0, 1],
+        [-n, 0, pow(2, n, res_md)],
     ]
 
-    vec_init1 = [0, 0, 0, 1, 2, 3]
-    vec_init2 = [0, 0, 0, 1, 1, 1]
+    #vec_init1 = [0, 0, 0, 1, 2, 3]
+    #vec_init2 = [0, 0, 0, 1, 1, 1]
 
-    vec_init = [x + 2 * y for x, y in zip(vec_init1, vec_init2)]
+    vec_init = [3, pow(2, n, res_md), pow(2, n << 1, res_md)]
 
     if res_md is not None:
         mat = [[x % res_md for x in row] for row in mat]
@@ -556,14 +576,24 @@ def specialCubicLargestRootToPowerFloor(
         return res
 
 
-    mat_sq = matrixPow(mat, 2, res_md=res_md)
+    #mat_sq = matrixPow(mat, 2, res_md=res_md)
 
 
-    res = mulMod, pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md)
+    #res = mulMod, pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md)
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
 
-    print(mat)
-    print(mat_sq)
-    return 0
+    rt_pow_sm = 0
+    if n < len(mat):
+        rt_pow_sm = vec_init[n]
+    else:
+        mat2 = matrixPow(mat, exp - len(mat) + 1, res_md=res_md)
+        for num1, num2 in zip(mat2[-1], vec_init):
+            rt_pow_sm = addMod(rt_pow_sm, mulMod(num2, num2))
+
+    #print(mat)
+    #print(mat_sq)
+    return rt_pow_sm - 1
     """
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
@@ -1247,9 +1277,9 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     if 356 in eval_nums:
         since = time.time()
         res = specialCubicLargestRootsToPowerFloorSum(
-            n_min=1,
-            n_max=30,
-            exp=987654321,
+            n_min=2,#1,
+            n_max=2,#30,
+            exp=1,#987654321,
             res_md=10 ** 8,
         )
         print(f"Solution to Project Euler #356 = {res}, calculated in {time.time() - since:.4f} seconds")
