@@ -492,20 +492,10 @@ def specialCubicLargestRootToPowerFloor(
     
     #if n == 1:
     #    return 
-    mat = [
-        [0, 1, 0],
-        [0, 0, 1],
-        [-n, 0, pow(2, n, res_md)],
-    ]
+    if not exp: return 1
 
-    #vec_init1 = [0, 0, 0, 1, 2, 3]
-    #vec_init2 = [0, 0, 0, 1, 1, 1]
-
-    vec_init = [3, pow(2, n, res_md), pow(2, n << 1, res_md)]
-
-    if res_md is not None:
-        mat = [[x % res_md for x in row] for row in mat]
-        vec_init = [x % res_md for x in vec_init]
+    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
+    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
 
     def matrixMultiply(mat1: list[list[int]], mat2: list[list[int]], res_md: Optional[int]=None) -> list[list[int]]:
         # Assumes mat1 and mat2 are valid matrices (i.e. all of their
@@ -575,25 +565,87 @@ def specialCubicLargestRootToPowerFloor(
             exp2 >>= 1
         return res
 
+    if n == 1:
+        # cubic equation x ** 3 - 2 * x ** 2 + 1 = 0 factorises as:
+        #  (x - 1) * (x ** 2 - x - 1) = 1
+        # The solutions are therefore:
+        #   x = 1, x = phi, x = -1 / phi
+        # where phi = (1 + sqrt(5)) / 2 is the golden ratio
+        # Since phi > 1, phi is the largest of these roots
+        # phi ** n = L_n if n is odd else L_n - 1
+        # where L_n is the n:th Lucas number
+        mat = [
+            [0, 1],
+            [1, 1],
+        ]
+        vec_init = [2, 1]
+        Ln = 0
+        if exp < len(mat):
+            Ln = vec_init[exp]
+        else:
+            mat2 = matrixPow(mat, exp - len(mat) + 1, res_md=res_md)
+            for num1, num2 in zip(mat2[-1], vec_init):
+                Ln = addMod(Ln, mulMod(num1, num2))
+        return Ln - (not n & 1)
+        
+
+
+    mat = [
+        [0, 1, 0],
+        [0, 0, 1],
+        [-n, 0, pow(2, n, res_md)],
+    ]
+
+    #vec_init1 = [0, 0, 0, 1, 2, 3]
+    #vec_init2 = [0, 0, 0, 1, 1, 1]
+
+    vec_init = [3, pow(2, n, res_md), pow(2, n << 1, res_md)]
+
+    if res_md is not None:
+        mat = [[x % res_md for x in row] for row in mat]
+        vec_init = [x % res_md for x in vec_init]
+
+    
+
 
     #mat_sq = matrixPow(mat, 2, res_md=res_md)
 
 
     #res = mulMod, pow(n, m - 1)), pow(2, (exp - 3 * m) * n, res_md)
-    addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
-    mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
+    
 
     rt_pow_sm = 0
-    if n < len(mat):
-        rt_pow_sm = vec_init[n]
+    if exp < len(mat):
+        rt_pow_sm = vec_init[exp]
     else:
         mat2 = matrixPow(mat, exp - len(mat) + 1, res_md=res_md)
         for num1, num2 in zip(mat2[-1], vec_init):
-            rt_pow_sm = addMod(rt_pow_sm, mulMod(num2, num2))
+            rt_pow_sm = addMod(rt_pow_sm, mulMod(num1, num2))
 
     #print(mat)
     #print(mat_sq)
-    return rt_pow_sm - 1
+    # For n >= 2, the smallest root is in the range (-1, 0)
+    # and the middle root is in the range (0, 1), with their
+    # sum being positive (and necessarily less than 1). Consequently,
+    # the sum of those two roots to any positive odd power is in the
+    # range (0, 1), and to any positive even power is in the range
+    # (0, 2).
+    # Furthermore, the absolute values of both of these two roots
+    # is strictly decreasing as n increases, and so for a given even
+    # power, their sum to that power is also decreasing, and as
+    # the even power increases for a given n, the sum of the two
+    # roots is strictly decreasing (this is straightforward to show).
+    # For n = 2, the sum of the squares of the smaller two roots
+    # is greater than 1 (approx 1.0525103), but the sum of the 4th
+    # powers of those roots is less than 1, and for n = 3 the sum
+    # of the squares of the smaller two roots is less than 1.
+    # It therefore follows that the sum of the positive powers of
+    # the smaller of the two roots for given n is in the range
+    # (0, 1) for every positive integer n and every positive power
+    # except for n = 2 and the power of 2, for which it is in the
+    # range (1, 2)
+
+    return rt_pow_sm - 1 - (n == 2 and exp == 2)
     """
     addMod = (lambda x, y: x + y) if res_md is None else (lambda x, y: (x + y) % res_md)
     mulMod = (lambda x, y: x * y) if res_md is None else (lambda x, y: (x * y) % res_md)
@@ -1277,9 +1329,9 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     if 356 in eval_nums:
         since = time.time()
         res = specialCubicLargestRootsToPowerFloorSum(
-            n_min=2,#1,
-            n_max=2,#30,
-            exp=1,#987654321,
+            n_min=1,
+            n_max=30,
+            exp=987654321,
             res_md=10 ** 8,
         )
         print(f"Solution to Project Euler #356 = {res}, calculated in {time.time() - since:.4f} seconds")
