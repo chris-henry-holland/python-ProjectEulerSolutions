@@ -392,17 +392,67 @@ def honeycombDistanceCount(
 
 def distancesWithExactHoneycombNumberCountBruteForce(
     honeycomb_number: int,
-    dist_max: int,
+    dist_sq_max: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
     if honeycomb_number % 6: return 0
     res = 0
-    for dist_sq in range(3, dist_max * dist_max + 1, 3):
+    for dist_sq in range(3, dist_sq_max + 1, 3):
         if honeycombDistanceCount(dist_sq, ps=ps) != honeycomb_number:
             continue
         print(dist_sq)
         res += 1
     return res
+
+def distancesWithExactHoneycombNumberCount(
+    honeycomb_number: int,
+    dist_sq_max: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    """
+    Solution to Project Euler #354
+    """
+    
+    hn_div_6, r = divmod(honeycomb_number, 6)
+    if r: return 0
+    if ps is None:
+        ps = PrimeSPFsieve()
+    hn_div_6_pf = calculatePrimeFactorisation(hn_div_6, ps=ps)
+    n_p = sum(hn_div_6_pf.values())
+    print(hn_div_6_pf)
+    #exps_lst = []
+    it = ps.endlessPrimeGenerator()
+    exp_lst = sorted(hn_div_6_pf.keys())
+    lb = 1
+    for i in reversed(range(1, len(exp_lst))):
+        exp = exp_lst[i]
+        f = hn_div_6_pf[exp]
+        remain = f
+        for p in it:
+            if p % 3 != 1: continue
+            lb *= p ** exp
+            if remain == 1: break
+            remain -= 1
+    exp = exp_lst[0]
+    f = hn_div_6_pf[exp]
+    remain = f
+    if remain > 1:
+        for p in it:
+            if p % 3 != 1: continue
+            lb *= p ** exp
+            if remain == 2: break
+            remain -= 1
+    lb2 = lb
+    for p in it:
+        if p % 3 != 1: continue
+        lb2 *= p ** exp
+        break
+    if lb2 > dist_sq_max: return 0
+    p_ub = integerNthRoot(dist_sq_max // lb, exp)
+    print(lb, lb2, p_ub, dist_sq_max // lb2)
+    return 0
+    
+
 
 # Problem 356
 def specialCubicLargestRoot(n: int) -> float:
@@ -1372,21 +1422,27 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {356}
+    eval_nums = {3540}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
 #print(calculateMoonPathMinimumRisk(num))
-"""
+
 for dist_sq in [3, 21, 111_111_111 ** 2]:
     print(dist_sq, honeycombDistanceCount(dist_sq, ps=None))
 
 print(distancesWithExactHoneycombNumberCountBruteForce(
     honeycomb_number=12,
-    dist_max=5,
+    dist_sq_max=5 ** 2,
     ps=None,
 ))
-"""
+
+print(distancesWithExactHoneycombNumberCount(
+    honeycomb_number=450,
+    dist_sq_max=(5 * 10 ** 11) ** 2,
+    ps=None,
+))
+
 
 
 """
