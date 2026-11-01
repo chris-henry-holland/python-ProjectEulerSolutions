@@ -422,10 +422,10 @@ def distancesWithExactHoneycombNumberCount(
     print(hn_div_6_pf)
     #exps_lst = []
     it = ps.endlessPrimeGenerator()
-    exp_lst = sorted(hn_div_6_pf.keys())
+    p_exp_lst = sorted(hn_div_6_pf.keys())
     lb = 1
-    for i in reversed(range(1, len(exp_lst))):
-        exp = exp_lst[i]
+    for i in reversed(range(1, len(p_exp_lst))):
+        exp = p_exp_lst[i]
         f = hn_div_6_pf[exp]
         remain = f
         for p in it:
@@ -433,7 +433,7 @@ def distancesWithExactHoneycombNumberCount(
             lb *= p ** exp
             if remain == 1: break
             remain -= 1
-    exp = exp_lst[0]
+    exp = p_exp_lst[0]
     f = hn_div_6_pf[exp]
     remain = f
     if remain > 1:
@@ -448,9 +448,99 @@ def distancesWithExactHoneycombNumberCount(
         lb2 *= p ** exp
         break
     if lb2 > dist_sq_max: return 0
-    p_ub = integerNthRoot(dist_sq_max // lb, exp)
-    print(lb, lb2, p_ub, dist_sq_max // lb2)
-    return 0
+    md3_2_p_prod_ub = isqrt(dist_sq_max // lb2)
+    
+    ps.extendSieve(md3_2_p_prod_ub)
+    md3_2_p_prod_lst = [2]
+    md3_2_p_prod_sq_lst = [4]
+    for num1 in range(4, md3_2_p_prod_ub + 1, 3):
+        num2 = num1 + 1
+        for num in [num1, num2]:
+            p, _, fact = ps.sieve[num]
+            #if num == 33: print(p, num2)
+            if p % 3 != 2: continue
+            if fact != 1:
+                j = bisect.bisect_left(md3_2_p_prod_lst, fact)
+                if j >= len(md3_2_p_prod_lst) or md3_2_p_prod_lst[j] != fact:
+                    continue
+            md3_2_p_prod_lst.append(num)
+            md3_2_p_prod_sq_lst.append(num * num)
+
+    def primeTest(num: int, ps: Optional[SimplePrimeSieve]=None) -> bool:
+        if ps is not None and p < len(ps.sieve):
+            return ps.sieve[num] if isinstance(ps.sieve[num], bool) else (ps.sieve[num][0] == num)
+        else:
+            ps = SimplePrimeSieve()
+        return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
+
+    md3_1_p_ub = integerNthRoot(dist_sq_max // lb, exp)
+    md3_1_p_lst = []
+    for p in range(4, md3_1_p_ub + 1, 3):
+        if primeTest(p, ps=ps): md3_1_p_lst.append(p)
+
+    #print(lb, lb2, md3_1_p_ub, isqrt(md3_2_p_prod_ub))
+    print(md3_2_p_prod_lst)
+    print(len(md3_2_p_prod_lst))
+    #print(len(md3_1_p_lst))
+    #print(md3_1_p_lst)
+
+    def integersWithGivenPrimeFactorsAndPrimeExponentsGenerator(
+        p_exp_dict: dict[int, int],
+        p_lst: list[int],
+        num_max: Optional[int]=None,
+    ) -> Generator[int, None, None]:
+        p_exp_lst = sorted(p_exp_dict.keys())
+        p_idx_seen = set()#SortedList(range(len(p_lst)))
+        #print(p_exp_dict)
+        #print(p_exp_lst)
+
+        p_fact_curr = {}
+
+        def recur(curr: int, remain: Union[int, float], exp_idx: int, p_remain: int, p_idx_mn: int=0) -> Generator[int, None, None]:
+            #print(curr, remain, exp_idx, p_remain, p_idx_mn, p_idx_seen)
+            if not p_remain:
+                if not exp_idx:
+                    #print(p_fact_curr)
+                    yield curr
+                exp_idx -= 1
+                exp = p_exp_lst[exp_idx]
+                p_remain = p_exp_dict[exp] - 1
+                p_idx_mn = 0
+            else:
+                p_remain -= 1
+                exp = p_exp_lst[exp_idx]
+            for p_idx in range(p_idx_mn, len(p_lst)):
+                if p_idx in p_idx_seen: continue
+                p = p_lst[p_idx]
+                p_pow = p ** exp
+                if p_pow > remain: break
+                p_fact_curr[p] = exp
+                sol_seen = False
+                p_idx_seen.add(p_idx)
+                for num in recur(curr * p_pow, remain // p_pow, exp_idx, p_remain, p_idx_mn=p_idx_mn): 
+                    yield num
+                    sol_seen = True
+                p_idx_seen.remove(p_idx)
+                p_fact_curr.pop(p)
+                if not sol_seen: break
+            return
+        yield from recur(1, float("inf") if num_max is None else num_max, len(p_exp_lst) - 1, p_remain=p_exp_dict[p_exp_lst[-1]], p_idx_mn=0)
+        return
+
+    res = 0
+    for num in integersWithGivenPrimeFactorsAndPrimeExponentsGenerator(
+        hn_div_6_pf,
+        md3_1_p_lst,
+        num_max=dist_sq_max,
+    ):
+        #print(f"calculating count for power of primes congruent to 1 mod 3 component = {num}")
+        remain = dist_sq_max // num
+        while remain:
+            j = bisect.bisect_right(md3_2_p_prod_sq_lst, remain)
+            res += j + 1
+            remain //= 3
+
+    return res
     
 
 
@@ -1431,18 +1521,25 @@ if __name__ == "__main__":
 for dist_sq in [3, 21, 111_111_111 ** 2]:
     print(dist_sq, honeycombDistanceCount(dist_sq, ps=None))
 
-print(distancesWithExactHoneycombNumberCountBruteForce(
-    honeycomb_number=12,
-    dist_sq_max=5 ** 2,
-    ps=None,
-))
-
+for honeycomb_number, dist_sq_max in [(12, 5 ** 2)]:
+    ans1 = distancesWithExactHoneycombNumberCountBruteForce(
+        honeycomb_number=honeycomb_number,
+        dist_sq_max=dist_sq_max,
+        ps=None,
+    )
+    ans2 = distancesWithExactHoneycombNumberCount(
+        honeycomb_number=honeycomb_number,
+        dist_sq_max=dist_sq_max,
+        ps=None,
+    )
+    print(f"honeycomb number = {honeycomb_number}, maximum squared distance = {dist_sq_max}, brute force solution = {ans1}, calculated solution = {ans2}")
+"""
 print(distancesWithExactHoneycombNumberCount(
     honeycomb_number=450,
     dist_sq_max=(5 * 10 ** 11) ** 2,
     ps=None,
 ))
-
+"""
 
 
 """
