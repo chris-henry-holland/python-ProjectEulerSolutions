@@ -412,50 +412,56 @@ def distancesWithExactHoneycombNumberCount(
     """
     Solution to Project Euler #354
     """
-    
+    num_mx = dist_sq_max // 3
     hn_div_6, r = divmod(honeycomb_number, 6)
     if r: return 0
     if ps is None:
         ps = PrimeSPFsieve()
     hn_div_6_pf = calculatePrimeFactorisation(hn_div_6, ps=ps)
-    n_p = sum(hn_div_6_pf.values())
-    print(hn_div_6_pf)
+    exp_dict = {x - 1: f for x, f in hn_div_6_pf.items()}
+    #n_p = sum(hn_div_6_pf.values())
+    #print(exp_dict)
     #exps_lst = []
     it = ps.endlessPrimeGenerator()
-    p_exp_lst = sorted(hn_div_6_pf.keys())
+    p_exp_lst = sorted(exp_dict.keys())
     lb = 1
     for i in reversed(range(1, len(p_exp_lst))):
         exp = p_exp_lst[i]
-        f = hn_div_6_pf[exp]
+        f = exp_dict[exp]
         remain = f
         for p in it:
             if p % 3 != 1: continue
             lb *= p ** exp
             if remain == 1: break
             remain -= 1
-    exp = p_exp_lst[0]
-    f = hn_div_6_pf[exp]
-    remain = f
-    if remain > 1:
+    if len(p_exp_lst):
+        exp = p_exp_lst[0]
+        f = exp_dict[exp]
+        remain = f
+        if remain > 1:
+            for p in it:
+                if p % 3 != 1: continue
+                lb *= p ** exp
+                if remain == 2: break
+                remain -= 1
+        lb2 = lb
         for p in it:
             if p % 3 != 1: continue
-            lb *= p ** exp
-            if remain == 2: break
-            remain -= 1
-    lb2 = lb
-    for p in it:
-        if p % 3 != 1: continue
-        lb2 *= p ** exp
-        break
-    if lb2 > dist_sq_max: return 0
-    md3_2_p_prod_ub = isqrt(dist_sq_max // lb2)
+            lb2 *= p ** exp
+            break
+    else:
+        lb = 1
+        lb2 = 1
+    if lb2 > num_mx: return 0
+    md3_2_p_prod_ub = isqrt(num_mx // lb2)
     
     ps.extendSieve(md3_2_p_prod_ub)
     md3_2_p_prod_lst = [2]
     md3_2_p_prod_sq_lst = [4]
     for num1 in range(4, md3_2_p_prod_ub + 1, 3):
         num2 = num1 + 1
-        for num in [num1, num2]:
+        lst = [num1] if num1 == md3_2_p_prod_ub else [num1, num2]
+        for num in lst:
             p, _, fact = ps.sieve[num]
             #if num == 33: print(p, num2)
             if p % 3 != 2: continue
@@ -473,14 +479,16 @@ def distancesWithExactHoneycombNumberCount(
             ps = SimplePrimeSieve()
         return ps.millerRabinPrimalityTestWithKnownBounds(num, max_n_additional_trials_if_above_max=10)[0]
 
-    md3_1_p_ub = integerNthRoot(dist_sq_max // lb, exp)
+    md3_1_p_ub = integerNthRoot(num_mx // lb, exp) if p_exp_lst else 1
     md3_1_p_lst = []
     for p in range(4, md3_1_p_ub + 1, 3):
         if primeTest(p, ps=ps): md3_1_p_lst.append(p)
 
     #print(lb, lb2, md3_1_p_ub, isqrt(md3_2_p_prod_ub))
-    print(md3_2_p_prod_lst)
-    print(len(md3_2_p_prod_lst))
+    #print(f"lb2 = {lb2}, md3_2_p_prod_ub = {md3_2_p_prod_ub}, num_mx = {num_mx}")
+    #print(md3_2_p_prod_lst)
+    #print(md3_2_p_prod_sq_lst)
+    #print(len(md3_2_p_prod_lst))
     #print(len(md3_1_p_lst))
     #print(md3_1_p_lst)
 
@@ -489,6 +497,9 @@ def distancesWithExactHoneycombNumberCount(
         p_lst: list[int],
         num_max: Optional[int]=None,
     ) -> Generator[int, None, None]:
+        if not p_exp_dict:
+            yield 1
+            return
         p_exp_lst = sorted(p_exp_dict.keys())
         p_idx_seen = set()#SortedList(range(len(p_lst)))
         #print(p_exp_dict)
@@ -502,6 +513,7 @@ def distancesWithExactHoneycombNumberCount(
                 if not exp_idx:
                     #print(p_fact_curr)
                     yield curr
+                    return
                 exp_idx -= 1
                 exp = p_exp_lst[exp_idx]
                 p_remain = p_exp_dict[exp] - 1
@@ -517,7 +529,7 @@ def distancesWithExactHoneycombNumberCount(
                 p_fact_curr[p] = exp
                 sol_seen = False
                 p_idx_seen.add(p_idx)
-                for num in recur(curr * p_pow, remain // p_pow, exp_idx, p_remain, p_idx_mn=p_idx_mn): 
+                for num in recur(curr * p_pow, remain // p_pow, exp_idx, p_remain, p_idx_mn=p_idx + 1): 
                     yield num
                     sol_seen = True
                 p_idx_seen.remove(p_idx)
@@ -528,18 +540,26 @@ def distancesWithExactHoneycombNumberCount(
         return
 
     res = 0
-    for num in integersWithGivenPrimeFactorsAndPrimeExponentsGenerator(
-        hn_div_6_pf,
-        md3_1_p_lst,
-        num_max=dist_sq_max,
-    ):
-        #print(f"calculating count for power of primes congruent to 1 mod 3 component = {num}")
-        remain = dist_sq_max // num
-        while remain:
-            j = bisect.bisect_right(md3_2_p_prod_sq_lst, remain)
-            res += j + 1
-            remain //= 3
-
+    for factorisation in ps.factorisationsGenerator(hn_div_6):
+        exp_dict = {}
+        for fact in factorisation:
+            exp_dict[fact - 1] = exp_dict.get(fact - 1, 0) + 1
+        #print(honeycomb_number, hn_div_6, factorisation, exp_dict)
+        term = 0
+        for num in integersWithGivenPrimeFactorsAndPrimeExponentsGenerator(
+            exp_dict,
+            md3_1_p_lst,
+            num_max=num_mx,
+        ):
+            #print(f"calculating count for power of primes congruent to 1 mod 3 component = {num}")
+            remain = num_mx // num
+            while remain:
+                j = bisect.bisect_right(md3_2_p_prod_sq_lst, remain)
+                #print(remain, j)
+                term += j + 1
+                remain //= 3
+        #print(f"term for the prime exponents {exp_dict} = {term}")
+        res += term
     return res
     
 
@@ -1466,6 +1486,15 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         res = calculateMoonPathMinimumRiskMersenneNumberRadiiSum(mersenne_max=15)
         print(f"Solution to Project Euler #353 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 354 in eval_nums:
+        since = time.time()
+        res = distancesWithExactHoneycombNumberCount(
+            honeycomb_number=450,
+            dist_sq_max=(5 * 10 ** 11) ** 2,
+            ps=None,
+        )
+        print(f"Solution to Project Euler #354 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 356 in eval_nums:
         since = time.time()
         res = specialCubicLargestRootsToPowerFloorSum(
@@ -1512,16 +1541,16 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {3540}
+    eval_nums = {354}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
 #print(calculateMoonPathMinimumRisk(num))
-
+"""
 for dist_sq in [3, 21, 111_111_111 ** 2]:
     print(dist_sq, honeycombDistanceCount(dist_sq, ps=None))
 
-for honeycomb_number, dist_sq_max in [(12, 5 ** 2)]:
+for honeycomb_number, dist_sq_max in [(6 * 12, 10 ** 7)]:
     ans1 = distancesWithExactHoneycombNumberCountBruteForce(
         honeycomb_number=honeycomb_number,
         dist_sq_max=dist_sq_max,
@@ -1533,6 +1562,7 @@ for honeycomb_number, dist_sq_max in [(12, 5 ** 2)]:
         ps=None,
     )
     print(f"honeycomb number = {honeycomb_number}, maximum squared distance = {dist_sq_max}, brute force solution = {ans1}, calculated solution = {ans2}")
+"""
 """
 print(distancesWithExactHoneycombNumberCount(
     honeycomb_number=450,
