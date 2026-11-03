@@ -562,6 +562,46 @@ def distancesWithExactHoneycombNumberCount(
         res += term
     return res
     
+# Problem 355
+def maximalCoprimeSubsetSum(
+    num_max: int,
+    ps: Optional[PrimeSPFsieve]=None,
+) -> int:
+    if ps is None:
+        ps = PrimeSPFsieve()
+    ps.extendSieve(num_max)
+    res = 1
+    p_pows_mx = {}
+    for p in ps.p_lst:
+        if p > num_max: break
+        curr = p
+        while True:
+            nxt = curr * p
+            if nxt > num_max: break
+            curr = nxt
+        p_pows_mx[p] = curr
+        res += curr
+    candidates = {}
+    for num in reversed(range(4, num_max + 1)):
+        p_facts = ps.primeFactors(num)
+        if len(p_facts) <= 1: continue
+        num2 = 0
+        for p in p_facts:
+            num2 += p_pows_mx[p]
+            if num2 >= num: break
+        else:
+            candidates[num] = (p_facts, num - num2)
+    print(candidates)
+    print(len(candidates))
+    print(res)
+    #gt_2_cnt = 0
+    n_p_facts_cnts = {}
+    for p_facts, _ in candidates.values():
+        n_p = len(p_facts)
+        n_p_facts_cnts[n_p] = n_p_facts_cnts.get(n_p, 0) + 1
+    print(n_p_facts_cnts)
+    #print(min(candidates.keys()))
+    return 0
 
 
 # Problem 356
@@ -1495,6 +1535,14 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
         )
         print(f"Solution to Project Euler #354 = {res}, calculated in {time.time() - since:.4f} seconds")
 
+    if 355 in eval_nums:
+        since = time.time()
+        res = maximalCoprimeSubsetSum(
+            num_max=2 * 10 ** 5,
+            ps=None,
+        )
+        print(f"Solution to Project Euler #355 = {res}, calculated in {time.time() - since:.4f} seconds")
+
     if 356 in eval_nums:
         since = time.time()
         res = specialCubicLargestRootsToPowerFloorSum(
@@ -1541,7 +1589,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     print(f"Total time taken = {time.time() - since0:.4f} seconds")
 
 if __name__ == "__main__":
-    eval_nums = {354}
+    eval_nums = {355}
     evaluateProjectEulerSolutions351to400(eval_nums)
 
 #num = (1 << 15) - 1
