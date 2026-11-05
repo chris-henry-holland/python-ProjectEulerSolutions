@@ -633,7 +633,8 @@ def maximalCoprimeSubsetSum(
         yield from recur(0)
         return
 
-    candidates = {}
+    #candidates = {}
+    comb_sets = []
     for num in reversed(range(4, num_max + 1)):
         p_facts = ps.primeFactors(num)
         if len(p_facts) <= 1: continue
@@ -645,7 +646,8 @@ def maximalCoprimeSubsetSum(
             #print(num, p_facts)
             #candidates[num] = (p_facts, num - num2)
             if len(p_facts) <= 2:
-                candidates[num] = (p_facts, num - num2)
+                #candidates[num] = (set(p_facts), num - num2)
+                comb_sets.append((num - num2, set(p_facts)))
                 continue
             parts = []
             for partitioning in listPartitionsGenerator(p_facts, excl_full_lst=True):
@@ -666,8 +668,37 @@ def maximalCoprimeSubsetSum(
             else:
                 #if len(p_facts) > 2:
                 print(p_facts, num, parts)
-                candidates[num] = (p_facts, num - num2)
-            
+                #candidates[num] = (set(p_facts), num - num2)
+                comb_sets.append((num - num2, set(p_facts)))
+
+    comb_sets.sort(key=lambda x: CustomFraction(-x[0], len(x[1])))
+    print(len(comb_sets))
+    n_comb_sets = len(comb_sets)
+    add_rem_ub = [0] * (n_comb_sets + 1)
+    for i in reversed(range(n_comb_sets)):
+        add_rem_ub[i] = add_rem_ub[i + 1] + comb_sets[i][0]
+    #print(add_rem_ub)
+    add_best = [0]
+    curr_incl_nums = set()
+
+    def backtrack(idx: int, curr_add: int) -> None:
+        add_best[0] = max(add_best[0], curr_add)
+        if idx == n_comb_sets or curr_add + add_rem_ub[idx] <= add_best[0]: return
+
+        nonlocal curr_incl_nums
+
+        if curr_incl_nums.isdisjoint(comb_sets[idx][1]):
+            # Include the set at index idx
+            curr_incl_nums.update(comb_sets[idx][1])
+            backtrack(idx + 1, curr_add + comb_sets[idx][0])
+            curr_incl_nums -= comb_sets[idx][1]
+        # Exclude the set at index idx
+        backtrack(idx + 1, curr_add)
+        return
+
+    backtrack(0, 0)
+    return res + add_best[0]
+    """
     #print(candidates)
     #print(len(candidates))
     print(res)
@@ -678,7 +709,9 @@ def maximalCoprimeSubsetSum(
         n_p_facts_cnts[n_p] = n_p_facts_cnts.get(n_p, 0) + 1
     print(n_p_facts_cnts)
     #print(min(candidates.keys()))
+    
     return 0
+    """
 
 
 # Problem 356
@@ -1615,7 +1648,7 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
     if 355 in eval_nums:
         since = time.time()
         res = maximalCoprimeSubsetSum(
-            num_max=2 * 10 ** 5,
+            num_max=10 ** 3,#2 * 10 ** 5,
             ps=None,
         )
         print(f"Solution to Project Euler #355 = {res}, calculated in {time.time() - since:.4f} seconds")
