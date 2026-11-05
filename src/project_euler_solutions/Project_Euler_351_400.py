@@ -563,6 +563,37 @@ def distancesWithExactHoneycombNumberCount(
     return res
     
 # Problem 355
+def largestIntegerNotExceedingNWithGivenPrimeFactors(
+    n: int,
+    primes: set[int],
+    must_have_all_prime_factors: bool=False,
+) -> int:
+    num0 = 1
+    if num0 > n: return -1
+    if must_have_all_prime_factors:
+        for p in primes:
+            num0 *= p
+            if num0 > n: return -1
+    p_lst = sorted(primes)
+    n_p = len(p_lst)
+    #p_inds = [0] * n_p
+    res = num0
+    candidates = [num0 * p for p in p_lst]
+    heapq.heapify(candidates)
+    
+    while candidates:
+        #print(candidates)
+        num = heapq.heappop(candidates)
+        res = num
+        while candidates and candidates[0] == num:
+            heapq.heappop(candidates)
+        for p in primes:
+            num2 = num * p
+            if num2 > n: break
+            heapq.heappush(candidates, num2)
+    return res
+        
+
 def maximalCoprimeSubsetSum(
     num_max: int,
     ps: Optional[PrimeSPFsieve]=None,
@@ -581,6 +612,27 @@ def maximalCoprimeSubsetSum(
             curr = nxt
         p_pows_mx[p] = curr
         res += curr
+
+    def listPartitionsGenerator(lst: list[Any], excl_full_lst: bool=False) -> Generator[list[tuple[int]], None, None]:
+
+        curr = []
+        def recur(idx: int) -> Generator[list[tuple[int]], None, None]:
+            #print(curr, idx)
+            if idx == len(lst):
+                if not excl_full_lst or len(curr) > 1:
+                    yield [tuple(x) for x in curr]
+                return
+            for i in range(len(curr)):
+                curr[i].append(lst[idx])
+                yield from recur(idx + 1)
+                curr[i].pop()
+            curr.append([lst[idx]])
+            yield from recur(idx + 1)
+            curr.pop()
+            return
+        yield from recur(0)
+        return
+
     candidates = {}
     for num in reversed(range(4, num_max + 1)):
         p_facts = ps.primeFactors(num)
@@ -590,9 +642,34 @@ def maximalCoprimeSubsetSum(
             num2 += p_pows_mx[p]
             if num2 >= num: break
         else:
-            candidates[num] = (p_facts, num - num2)
-    print(candidates)
-    print(len(candidates))
+            #print(num, p_facts)
+            #candidates[num] = (p_facts, num - num2)
+            if len(p_facts) <= 2:
+                candidates[num] = (p_facts, num - num2)
+                continue
+            parts = []
+            for partitioning in listPartitionsGenerator(p_facts, excl_full_lst=True):
+                if len(partitioning) == len(p_facts): continue
+                #dprint(p_facts, partitioning)
+                num3 = 0
+                vals = []
+                for part in partitioning:
+                    num4 = largestIntegerNotExceedingNWithGivenPrimeFactors(num_max, part, must_have_all_prime_factors=True)
+                    vals.append((part, num4))
+                    num3 += num4
+                    if num3 > num:
+                        break
+                else:
+                    parts.append((vals, num3))
+                    continue
+                break
+            else:
+                #if len(p_facts) > 2:
+                print(p_facts, num, parts)
+                candidates[num] = (p_facts, num - num2)
+            
+    #print(candidates)
+    #print(len(candidates))
     print(res)
     #gt_2_cnt = 0
     n_p_facts_cnts = {}
@@ -1618,8 +1695,15 @@ print(distancesWithExactHoneycombNumberCount(
     ps=None,
 ))
 """
-
-
+"""
+print(
+    largestIntegerNotExceedingNWithGivenPrimeFactors(
+        33,
+        primes={2, 3},
+        must_have_all_prime_factors=False,
+    )
+)
+"""
 """
 print(cyclicNumbersWithGivenPrefixAndSuffixCount(
     pref_val=137,
