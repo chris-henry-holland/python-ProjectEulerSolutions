@@ -593,8 +593,43 @@ def largestIntegerNotExceedingNWithGivenPrimeFactors(
             heapq.heappush(candidates, num2)
     return res
         
+def largestValueSumForDisjointSetsBruteForce(
+    set_values: list[tuple[set[int], int]],
+) -> int:
+    set_vals = sorted(set_values, key=lambda x: CustomFraction(-x[1], len(x[0])))
+    print(set_vals)
+    n_sets = len(set_vals)
+    sm_rem_ub = [0] * (n_sets + 1)
+    for i in reversed(range(n_sets)):
+        sm_rem_ub[i] = sm_rem_ub[i + 1] + set_vals[i][1]
+    #print(add_rem_ub)
+    res = [0]
+    curr_incl_nums = set()
 
-def maximalCoprimeSubsetSum(
+    def backtrack(idx: int, curr_sm: int) -> None:
+        #if idx < 10: print(idx)
+        #res[0] = max(res[0], curr_sm)
+        if idx == n_sets or curr_sm + sm_rem_ub[idx] <= res[0]: return
+
+        nonlocal curr_incl_nums
+
+        if curr_incl_nums.isdisjoint(set_vals[idx][0]):
+            # Include the set at index idx
+            curr_incl_nums.update(set_vals[idx][0])
+            curr_sm2 = curr_sm + set_vals[idx][1]
+            if curr_sm2 > res[0]:
+                res[0] = curr_sm2
+                print(f"new best add = {res[0]}")
+            backtrack(idx + 1, curr_sm2)
+            curr_incl_nums -= set_vals[idx][0]
+        # Exclude the set at index idx
+        backtrack(idx + 1, curr_sm)
+        return
+
+    backtrack(0, 0)
+    return res[0]
+
+def maximalCoprimeSubsetSumBruteForce(
     num_max: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
@@ -647,7 +682,7 @@ def maximalCoprimeSubsetSum(
             #candidates[num] = (p_facts, num - num2)
             if len(p_facts) <= 2:
                 #candidates[num] = (set(p_facts), num - num2)
-                comb_sets.append((num - num2, set(p_facts)))
+                comb_sets.append((set(p_facts), num - num2))
                 continue
             parts = []
             for partitioning in listPartitionsGenerator(p_facts, excl_full_lst=True):
@@ -669,35 +704,44 @@ def maximalCoprimeSubsetSum(
                 #if len(p_facts) > 2:
                 print(p_facts, num, parts)
                 #candidates[num] = (set(p_facts), num - num2)
-                comb_sets.append((num - num2, set(p_facts)))
+                comb_sets.append((set(p_facts), num - num2))
 
-    comb_sets.sort(key=lambda x: CustomFraction(-x[0], len(x[1])))
+    return res + largestValueSumForDisjointSetsBruteForce(comb_sets)
+
+    """
+    comb_sets.sort(key=lambda x: CustomFraction(-x[1], len(x[0])))
     print(len(comb_sets))
     n_comb_sets = len(comb_sets)
     add_rem_ub = [0] * (n_comb_sets + 1)
     for i in reversed(range(n_comb_sets)):
-        add_rem_ub[i] = add_rem_ub[i + 1] + comb_sets[i][0]
+        add_rem_ub[i] = add_rem_ub[i + 1] + comb_sets[i][1]
     #print(add_rem_ub)
     add_best = [0]
     curr_incl_nums = set()
 
     def backtrack(idx: int, curr_add: int) -> None:
-        add_best[0] = max(add_best[0], curr_add)
+        if idx < 10: print(idx)
+        #add_best[0] = max(add_best[0], curr_add)
         if idx == n_comb_sets or curr_add + add_rem_ub[idx] <= add_best[0]: return
 
         nonlocal curr_incl_nums
 
-        if curr_incl_nums.isdisjoint(comb_sets[idx][1]):
+        if curr_incl_nums.isdisjoint(comb_sets[idx][0]):
             # Include the set at index idx
-            curr_incl_nums.update(comb_sets[idx][1])
-            backtrack(idx + 1, curr_add + comb_sets[idx][0])
-            curr_incl_nums -= comb_sets[idx][1]
+            curr_incl_nums.update(comb_sets[idx][0])
+            curr_add2 = curr_add + comb_sets[idx][1]
+            if curr_add2 > add_best[0]:
+                add_best[0] = curr_add2
+                print(f"new best add = {add_best[0]}")
+            backtrack(idx + 1, curr_add2)
+            curr_incl_nums -= comb_sets[idx][0]
         # Exclude the set at index idx
         backtrack(idx + 1, curr_add)
         return
 
     backtrack(0, 0)
     return res + add_best[0]
+    """
     """
     #print(candidates)
     #print(len(candidates))
@@ -1647,8 +1691,8 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
 
     if 355 in eval_nums:
         since = time.time()
-        res = maximalCoprimeSubsetSum(
-            num_max=10 ** 3,#2 * 10 ** 5,
+        res = maximalCoprimeSubsetSumBruteForce(
+            num_max=100,#2 * 10 ** 5,
             ps=None,
         )
         print(f"Solution to Project Euler #355 = {res}, calculated in {time.time() - since:.4f} seconds")
