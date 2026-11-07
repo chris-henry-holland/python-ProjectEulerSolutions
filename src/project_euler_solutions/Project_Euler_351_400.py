@@ -24,6 +24,7 @@ import os
 import random
 import sys
 import time
+import scipy.optimize as sp_opt
 
 from collections import deque, defaultdict
 from sortedcontainers import SortedDict, SortedList, SortedSet
@@ -32,6 +33,7 @@ from gmpy2 import mpfr
 from data_structures.fractions import CustomFraction
 from data_structures.prime_sieves import PrimeSPFsieve, SimplePrimeSieve
 from data_structures.fenwick_tree import FenwickTree
+
 
 from algorithms.number_theory_algorithms import gcd, lcm, isqrt, integerNthRoot, solveLinearCongruence, extendedEuclideanAlgorithm, solveLinearNonHomogeneousDiophantineEquation, floorHarmonicSeries
 from algorithms.pseudorandom_number_generators import blumBlumShubPseudoRandomGenerator
@@ -629,7 +631,42 @@ def largestValueSumForDisjointSetsBruteForce(
     backtrack(0, 0)
     return res[0]
 
-def maximalCoprimeSubsetSumBruteForce(
+def largestValueSumForDisjointSets(
+    set_values: list[tuple[set[int], int]],
+) -> int:
+    # Using integer linear programming
+    # TODO- try to implement the linear programming algorithm from
+    # scratch
+    nums = set()
+    for st, _ in set_values:
+        nums |= st
+    nums = sorted(nums)
+    nums_dict = {num: i for i, num in enumerate(nums)}
+    
+            
+    n_nums = len(nums)
+    n_sets = len(set_values)
+
+    # Constraint matrix
+    mat = np.zeros((n_nums, n_sets))
+    num_incl_sets = [[] for _ in range(len(nums))]
+    for j, (st, _) in enumerate(set_values):
+        for num in st:
+            i = nums_dict[num]
+            num_incl_sets[i].append(j)
+            mat[i, j] = 1.
+    constraints = sp_opt.LinearConstraint(mat, lb=0, ub=1)
+    bounds = sp_opt.Bounds(0, 1)
+    integrality = np.ones(n_sets)
+    vec = np.array([-x[1] for x in set_values])
+    res = sp_opt.milp(c=vec, constraints=constraints, bounds=bounds, integrality=integrality)
+    if not res.success:
+        raise ValueError(f"integer linear programming algorithm scipy.optimize.milp failed to find solution:\n{res.message}")
+    print(type(res.fun), res.fun)
+    return round(-res.fun)
+
+
+def maximalCoprimeSubsetSum(
     num_max: int,
     ps: Optional[PrimeSPFsieve]=None,
 ) -> int:
@@ -706,7 +743,7 @@ def maximalCoprimeSubsetSumBruteForce(
                 #candidates[num] = (set(p_facts), num - num2)
                 comb_sets.append((set(p_facts), num - num2))
 
-    return res + largestValueSumForDisjointSetsBruteForce(comb_sets)
+    return res + largestValueSumForDisjointSets(comb_sets)
 
     """
     comb_sets.sort(key=lambda x: CustomFraction(-x[1], len(x[0])))
@@ -1691,8 +1728,8 @@ def evaluateProjectEulerSolutions351to400(eval_nums: Optional[Set[int]]=None) ->
 
     if 355 in eval_nums:
         since = time.time()
-        res = maximalCoprimeSubsetSumBruteForce(
-            num_max=100,#2 * 10 ** 5,
+        res = maximalCoprimeSubsetSum(
+            num_max=2 * 10 ** 5,
             ps=None,
         )
         print(f"Solution to Project Euler #355 = {res}, calculated in {time.time() - since:.4f} seconds")
